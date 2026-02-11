@@ -63,13 +63,18 @@ def inject_custom_styles(background_path: Path) -> None:
             }}
 
             .stButton > button {{
-                background-color: #2563eb;
-                color: #ffffff;
+                background-color: #374151;
+                color: #ffffff !important;
                 border: none;
             }}
 
+            .stButton > button p,
+            .stButton > button span {{
+                color: #ffffff !important;
+            }}
+
             .stButton > button:hover {{
-                background-color: #1d4ed8;
+                background-color: #1f2937;
             }}
 
             .landing-card {{

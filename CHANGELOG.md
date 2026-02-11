@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Die Hero-CTA-Buttons wurden von Blau auf Dunkelgrau umgestellt; die Button-Schrift bleibt weiß für klare Lesbarkeit.
+- EN: Hero CTA buttons were changed from blue to dark gray; button text remains white for clear readability.
 - DE: Wetterabfrage ist jetzt standortkonfigurierbar über `WEATHER_LAT` und `WEATHER_LON`; Standard ist Volksgarten (Düsseldorf) statt festem Stadtzentrum.
 - EN: Weather lookup is now location-configurable via `WEATHER_LAT` and `WEATHER_LON`; default is Volksgarten (Düsseldorf) instead of a fixed city-center coordinate.
 - DE: Bei mehreren passenden Abenteuern priorisiert die Auswahl nun Einträge mit Standort „Volksgarten“.
