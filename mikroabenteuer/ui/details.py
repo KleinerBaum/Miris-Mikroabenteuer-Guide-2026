@@ -1,7 +1,7 @@
 import streamlit as st
 
-from mikroabenteuer.config import DEFAULT_REISEAPOTHEKE
-from mikroabenteuer.models import Adventure
+from ..config import DEFAULT_REISEAPOTHEKE
+from ..models import Adventure
 
 
 def render_adventure_details(adventure: Adventure, expanded: bool = False) -> None:

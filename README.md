@@ -38,6 +38,7 @@ mikroabenteuer-mit-carla/
 │   ├── data_loader.py
 │   ├── seed.yaml
 │   └── ui/
+│       ├── __init__.py
 │       ├── table.py
 │       └── details.py
 └── tests/
@@ -60,3 +61,8 @@ streamlit run app.py
 ```bash
 pytest -m "not integration"
 ```
+
+
+## Stability note / Stabilitätshinweis
+- Added an explicit `mikroabenteuer.ui` package file and switched to relative imports inside the package to avoid intermittent `KeyError` import issues during Streamlit reloads.
+- Eine explizite `mikroabenteuer.ui`-Package-Datei und relative Imports im Package verhindern sporadische `KeyError`-Importfehler bei Streamlit-Reloads.

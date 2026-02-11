@@ -3,8 +3,8 @@ from typing import List
 import pandas as pd
 import streamlit as st
 
-from mikroabenteuer.models import Adventure
-from mikroabenteuer.ui.details import render_adventure_details
+from ..models import Adventure
+from .details import render_adventure_details
 
 
 def render_adventure_table(adventures: List[Adventure]) -> None:
