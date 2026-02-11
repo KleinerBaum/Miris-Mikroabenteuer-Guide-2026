@@ -26,6 +26,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 ## Features
 - Conversion-orientierte, zweisprachige Landingpage (DE/EN) im Funnel-Aufbau: Aufmerksamkeit → Relevanz → Vertrauen → Auswahl → Handlung
 - Hero-Sektion mit klaren CTA-Pfaden („Jetzt Mikroabenteuer entdecken“, „Nach Jahreszeit filtern")
+- CTA-Buttons im Hero-Bereich in dunklem Grau mit weißer Schrift für besseren Kontrast und ruhigeres Erscheinungsbild
 - Problem-/Lösungssektion, Mikroabenteuer-Erklärung, Wirkungsargumentation und 3-Schritte-Startformel
 - Filterbare Abenteuerkarten nach Jahreszeit, Dauer, Alter und Stimmung inkl. „Details ansehen“-CTA je Karte
 - Lead-Element für kostenlose Ideenliste und emotionaler Abschluss-CTA für Wiederkehr/Start
