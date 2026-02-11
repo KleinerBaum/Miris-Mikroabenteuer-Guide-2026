@@ -51,3 +51,24 @@ def test_choose_adventure_defaults_to_first(monkeypatch) -> None:
     selected = choose_adventure()
 
     assert selected.title == "Fallback"
+
+
+def test_choose_adventure_prefers_volksgarten_with_multiple_matches(
+    monkeypatch,
+) -> None:
+    adventures = [
+        _build_adventure("Wiesenabenteuer", "Rheinwiese"),
+        _build_adventure("Picknick im Park", "Volksgarten Düsseldorf"),
+        _build_adventure("Seezeit", "Unterbacher See"),
+    ]
+    monkeypatch.setattr(
+        "mikroabenteuer.adventure_engine.load_adventures", lambda: adventures
+    )
+    monkeypatch.setattr(
+        "mikroabenteuer.adventure_engine.get_weather",
+        lambda: {"rain": 0.0, "temperature": 24.0, "wind": 5.0},
+    )
+
+    selected = choose_adventure()
+
+    assert selected.location == "Volksgarten Düsseldorf"

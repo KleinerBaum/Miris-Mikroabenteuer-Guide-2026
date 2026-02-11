@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Wetterabfrage ist jetzt standortkonfigurierbar über `WEATHER_LAT` und `WEATHER_LON`; Standard ist Volksgarten (Düsseldorf) statt festem Stadtzentrum.
+- EN: Weather lookup is now location-configurable via `WEATHER_LAT` and `WEATHER_LON`; default is Volksgarten (Düsseldorf) instead of a fixed city-center coordinate.
+- DE: Bei mehreren passenden Abenteuern priorisiert die Auswahl nun Einträge mit Standort „Volksgarten“.
+- EN: If multiple adventures match, selection now prioritizes entries whose location contains “Volksgarten”.
 - DE: Google OAuth2 wurde auf Least-Privilege-Scopes für Kalender und Gmail erweitert (`calendar.events`, `calendar.readonly`, `gmail.send`) und zentral im neuen Auth-Modul gebündelt.
 - EN: Google OAuth2 was expanded to least-privilege scopes for calendar and Gmail (`calendar.events`, `calendar.readonly`, `gmail.send`) and centralized in a new auth module.
 - DE: Neue Google-Integrationen für Kalender-Events und HTML-Mail-Versand inkl. API-Retry mit exponentiellem Backoff ergänzt.
@@ -44,3 +48,4 @@
 - Daily- und manuelle Mailflows verwenden dieselbe sichere Credential-Verwaltung.
 - Das Projekt unterstützt jetzt automatisierte tägliche Abenteuer-Mails als SaaS-nahe Basis.
 - Für Production wird ein HTTPS-Reverse-Proxy (z. B. Nginx + Let's Encrypt) empfohlen.
+- Wetter-Standort kann jetzt per `WEATHER_LAT`/`WEATHER_LON` gesetzt werden; die Abenteuerauswahl priorisiert bei Mehrfachtreffern den Volksgarten.
