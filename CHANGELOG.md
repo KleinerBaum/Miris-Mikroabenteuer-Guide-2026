@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Den gesamten im Header sichtbaren Begrüßungstext entfernt (Bild-Caption, Hero-Titel und Hero-Untertitel), sodass im oberen Seitenbereich nur noch das Bild angezeigt wird.
+- EN: Removed all visible welcome text in the header (image caption, hero title, and hero subtitle), so only the image remains in the top section.
 - DE: Das Begrüßungsbild im Hero-Bereich wird jetzt aus dem lokalen Asset `20251219_155329.jpg` via `st.image` geladen, um Streamlit-`MediaFileHandler`-Fehler durch abgelaufene Media-IDs zu vermeiden.
 - EN: The hero welcome image is now loaded from the local asset `20251219_155329.jpg` via `st.image` to avoid Streamlit `MediaFileHandler` errors caused by expired media IDs.
 - DE: Headline „🌿 Mikroabenteuer mit Carla / Kleine Abenteuer. Große Erinnerungen.“ im Hero-Bereich zentriert und das Begrüßungsbild auf eine um 70% reduzierte Darstellung (30% Breite) umgestellt.

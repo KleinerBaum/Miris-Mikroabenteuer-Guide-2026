@@ -18,16 +18,6 @@ st.set_page_config(
     layout="wide",
 )
 
-st.markdown(
-    """
-    <div style="text-align: center;">
-        <h1>🌿 Mikroabenteuer mit Carla</h1>
-        <p style="font-size: 1.1rem;">Kleine Abenteuer. Große Erinnerungen.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
 
 def inject_custom_styles(background_path: Path) -> None:
     """Inject a light, readable theme with a custom background image."""
@@ -82,12 +72,8 @@ top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
 with top_col_center:
     st.image(
         image="20251219_155329.jpg",
-        caption="Willkommen! / Welcome!",
         width=240,
     )
-
-st.title("🌿 Mikroabenteuer mit Carla / Micro Adventures with Carla")
-st.caption("Kleine Abenteuer. Große Erinnerungen. / Small adventures. Big memories.")
 
 configure_openai_api_key()
 
