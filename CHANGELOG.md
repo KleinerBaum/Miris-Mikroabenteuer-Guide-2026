@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Das Begrüßungsbild im Hero-Bereich wird jetzt aus dem lokalen Asset `20251219_155329.jpg` via `st.image` geladen, um Streamlit-`MediaFileHandler`-Fehler durch abgelaufene Media-IDs zu vermeiden.
+- EN: The hero welcome image is now loaded from the local asset `20251219_155329.jpg` via `st.image` to avoid Streamlit `MediaFileHandler` errors caused by expired media IDs.
 - DE: Headline „🌿 Mikroabenteuer mit Carla / Kleine Abenteuer. Große Erinnerungen.“ im Hero-Bereich zentriert und das Begrüßungsbild auf eine um 70% reduzierte Darstellung (30% Breite) umgestellt.
 - EN: Centered the hero headline “🌿 Mikroabenteuer mit Carla / Kleine Abenteuer. Große Erinnerungen.” and reduced the welcome image display by 70% (30% width).
 - DE: `mikroabenteuer/ui/__init__.py` ergänzt und Package-Imports auf relative Importe umgestellt, um sporadische `KeyError`-Importprobleme in Streamlit-Reloadern zu vermeiden.
