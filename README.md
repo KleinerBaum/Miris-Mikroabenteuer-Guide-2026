@@ -55,6 +55,29 @@ Erforderliche Google Redirect URI (Production):
 https://yourdomain.de/oauth2callback
 ```
 
+
+## Google OAuth2 Setup (Calendar + Gmail)
+1. In Google Cloud: create **OAuth consent screen** as `External`.
+   - App name: `Mikroabenteuer mit Carla`
+   - Support email: `gerrit.fabisch2024@gmail.com`
+   - Test user: `gerrit.fabisch2024@gmail.com`
+2. Add least-privilege scopes:
+   - `https://www.googleapis.com/auth/calendar.events`
+   - `https://www.googleapis.com/auth/calendar.readonly`
+   - `https://www.googleapis.com/auth/gmail.send`
+3. Create OAuth client as **Desktop App** and download JSON to:
+   - `secrets/google_client_secret.json` (never commit)
+4. OAuth token is generated and stored locally in:
+   - `secrets/token.json` (never commit)
+
+Die App nutzt die gleichen Credentials für Kalender-Events und Gmail-Versand.
+The app uses the same credentials for calendar event creation and Gmail sending.
+
+## Secrets & Token Storage
+- Development: store OAuth files in `secrets/`.
+- Production (recommended): store encrypted token/client secret in GCP Secret Manager or base64-encoded environment variables.
+- Never store secrets in the repository and never log token payloads.
+
 ## Docker Deployment
 
 ```bash
@@ -99,6 +122,6 @@ mypy .
 
 ## Security-Hinweise
 - Tokens in `secrets/` Volume speichern (nicht ins Image einbauen)
-- Nur minimale OAuth-Scopes verwenden (`gmail.send`)
+- Nur minimale OAuth-Scopes verwenden (`calendar.events`, `calendar.readonly`, `gmail.send`)
 - Keine API-Keys oder PII loggen
 - Externe Requests mit Timeouts + Backoff absichern

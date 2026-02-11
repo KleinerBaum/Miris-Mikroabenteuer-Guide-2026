@@ -7,53 +7,64 @@ from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from typing import Any
 
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
+from googleapiclient.discovery import Resource, build
 
 from mikroabenteuer.email_templates import build_html_mail
 from mikroabenteuer.ics_builder import build_ics
 from mikroabenteuer.models import Adventure
 from mikroabenteuer.retry import retry_with_backoff
 
-SCOPES = ["https://www.googleapis.com/auth/gmail.send"]
-TOKEN_FILE = os.getenv("GOOGLE_TOKEN_FILE", "secrets/token.json")
-CLIENT_SECRET_FILE = os.getenv(
-    "GOOGLE_CLIENT_SECRET_FILE", "secrets/client_secret.json"
-)
+from .api_utils import safe_api_call
+from .auth import get_credentials
+from .schemas import GmailMessageRequest
+
 DAILY_MAIL_TO = os.getenv("DAILY_MAIL_TO", "")
 DAILY_MAIL_FROM = os.getenv("DAILY_MAIL_FROM", "")
+DEFAULT_FROM_ADDRESS = os.getenv("GMAIL_FROM_ADDRESS", "gerrit.fabisch2024@gmail.com")
 
 
 class GmailConfigError(RuntimeError):
     """Raised when Gmail configuration is incomplete."""
 
 
-def get_gmail_service():
+def get_gmail_service() -> Resource:
     """Authenticate and build Gmail API service."""
-    creds: Credentials | None = None
-
-    if os.path.exists(TOKEN_FILE):
-        creds = Credentials.from_authorized_user_file(TOKEN_FILE, SCOPES)
-
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CLIENT_SECRET_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-
-        os.makedirs(os.path.dirname(TOKEN_FILE), exist_ok=True)
-        with open(TOKEN_FILE, "w", encoding="utf-8") as token:
-            token.write(creds.to_json())
-
+    creds = get_credentials()
     return build("gmail", "v1", credentials=creds)
 
 
+def send_html_email(to: str, subject: str, html_content: str) -> dict[str, Any]:
+    """Send a simple HTML email using Gmail API."""
+    payload = GmailMessageRequest(
+        to=to,
+        subject=subject,
+        html_content=html_content,
+    )
+    service = get_gmail_service()
+
+    message = MIMEText(payload.html_content, "html")
+    message["to"] = str(payload.to)
+    message["from"] = DEFAULT_FROM_ADDRESS
+    message["subject"] = payload.subject
+
+    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
+    body = {"raw": raw_message}
+
+    return safe_api_call(
+        lambda: service.users()
+        .messages()
+        .send(
+            userId="me",
+            body=body,
+        )
+        .execute()
+    )
+
+
 @retry_with_backoff(max_attempts=3, base_delay=1)
-def send_daily_mail(adventure: Adventure) -> dict[str, object]:
+def send_daily_mail(adventure: Adventure) -> dict[str, Any]:
     """Send a daily adventure mail with HTML and ICS attachment."""
     if not DAILY_MAIL_TO or not DAILY_MAIL_FROM:
         raise GmailConfigError(
@@ -84,6 +95,9 @@ def send_daily_mail(adventure: Adventure) -> dict[str, object]:
     message.attach(ics_part)
 
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
-    result = service.users().messages().send(userId="me", body={"raw": raw}).execute()
-
-    return result
+    return safe_api_call(
+        lambda: service.users()
+        .messages()
+        .send(userId="me", body={"raw": raw})
+        .execute()
+    )

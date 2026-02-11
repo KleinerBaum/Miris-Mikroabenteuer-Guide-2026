@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Google OAuth2 wurde auf Least-Privilege-Scopes für Kalender und Gmail erweitert (`calendar.events`, `calendar.readonly`, `gmail.send`) und zentral im neuen Auth-Modul gebündelt.
+- EN: Google OAuth2 was expanded to least-privilege scopes for calendar and Gmail (`calendar.events`, `calendar.readonly`, `gmail.send`) and centralized in a new auth module.
+- DE: Neue Google-Integrationen für Kalender-Events und HTML-Mail-Versand inkl. API-Retry mit exponentiellem Backoff ergänzt.
+- EN: Added new Google integrations for calendar events and HTML email sending, including API retry with exponential backoff.
+- DE: Abenteuer-Detailansicht um Aktionen „In Kalender eintragen / Add to calendar“ und „Per Mail senden / Send by email“ erweitert.
+- EN: Adventure detail view now includes actions “In Kalender eintragen / Add to calendar” and “Per Mail senden / Send by email”.
 - DE: Die Startseite wurde zu einer conversion-orientierten, zweisprachigen Funnel-Landingpage ausgebaut (Hero, Problem/Lösung, Erklärsektion, Filterkarten, Nutzenargumentation, 3-Schritte-Start, Lead-Element, Abschluss-CTA).
 - EN: The homepage was expanded into a conversion-oriented bilingual funnel landing page (hero, problem/solution, explanation section, filter cards, impact arguments, 3-step start, lead element, closing CTA).
 - DE: Neue Abenteuer-Kategorien mit kombinierten Filtern (Jahreszeit, Dauer, Alter, Stimmung) und Karten-CTAs "Details ansehen / View details" unterstützen die direkte Nutzerhandlung.
@@ -34,5 +40,7 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- OAuth2-Setup für Kalender + Gmail ist nun vorbereitet (Consent-Screen-Konfiguration, Desktop-Client-Datei in `secrets/`, lokale Token-Erzeugung).
+- Daily- und manuelle Mailflows verwenden dieselbe sichere Credential-Verwaltung.
 - Das Projekt unterstützt jetzt automatisierte tägliche Abenteuer-Mails als SaaS-nahe Basis.
 - Für Production wird ein HTTPS-Reverse-Proxy (z. B. Nginx + Let's Encrypt) empfohlen.
