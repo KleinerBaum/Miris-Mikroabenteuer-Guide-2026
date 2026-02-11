@@ -1,4 +1,4 @@
-from typing import List
+from __future__ import annotations
 
 import pandas as pd
 import streamlit as st
@@ -7,7 +7,12 @@ from mikroabenteuer.models import Adventure
 from mikroabenteuer.ui.details import render_adventure_details
 
 
-def render_adventure_table(adventures: List[Adventure]) -> None:
+def render_adventure_table(
+    adventures: list[Adventure],
+    *,
+    user_key: str | None,
+    sender_email: str,
+) -> None:
     df = pd.DataFrame(
         [
             {
@@ -29,4 +34,8 @@ def render_adventure_table(adventures: List[Adventure]) -> None:
 
     for adventure in adventures:
         with st.expander(f"🌱 {adventure.title}"):
-            render_adventure_details(adventure)
+            render_adventure_details(
+                adventure,
+                user_key=user_key,
+                sender_email=sender_email,
+            )
