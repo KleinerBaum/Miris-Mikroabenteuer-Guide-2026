@@ -6,20 +6,39 @@ from mikroabenteuer.data_loader import load_adventures
 from mikroabenteuer.models import Adventure
 from mikroabenteuer.weather_service import get_weather
 
+VOLKSGARTEN_KEYWORD = "volksgarten"
+
 
 def _first_matching(
     adventures: Iterable[Adventure], *keywords: str
 ) -> Adventure | None:
+    matches: list[Adventure] = []
+    lowered_keywords = tuple(keyword.lower() for keyword in keywords)
+
     for adventure in adventures:
         haystack = f"{adventure.title} {adventure.location}".lower()
-        if any(keyword.lower() in haystack for keyword in keywords):
-            return adventure
+        if any(keyword in haystack for keyword in lowered_keywords):
+            matches.append(adventure)
 
-    return None
+    if not matches:
+        return None
+
+    volksgarten_match = next(
+        (
+            adventure
+            for adventure in matches
+            if VOLKSGARTEN_KEYWORD in adventure.location.lower()
+        ),
+        None,
+    )
+    if volksgarten_match is not None:
+        return volksgarten_match
+
+    return matches[0]
 
 
 def choose_adventure() -> Adventure:
-    """Pick an adventure based on current weather in Düsseldorf."""
+    """Pick an adventure based on current weather near Volksgarten."""
     adventures = load_adventures()
     weather = get_weather()
 

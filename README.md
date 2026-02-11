@@ -13,13 +13,23 @@ api_key = "<dein-key>"
 
 Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` gesetzt, falls die Umgebungsvariable fehlt.
 
+- Standort für Wetterabfrage per Umgebungsvariablen konfigurierbar:
+
+```bash
+export WEATHER_LAT="51.2149"   # Default: Volksgarten
+export WEATHER_LON="6.7861"    # Default: Volksgarten
+```
+
+Wenn `WEATHER_LAT`/`WEATHER_LON` nicht gesetzt sind, nutzt die App automatisch Volksgarten-Koordinaten.
+Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`, `6.7735`) gesetzt werden.
+
 ## Features
 - Conversion-orientierte, zweisprachige Landingpage (DE/EN) im Funnel-Aufbau: Aufmerksamkeit → Relevanz → Vertrauen → Auswahl → Handlung
 - Hero-Sektion mit klaren CTA-Pfaden („Jetzt Mikroabenteuer entdecken“, „Nach Jahreszeit filtern")
 - Problem-/Lösungssektion, Mikroabenteuer-Erklärung, Wirkungsargumentation und 3-Schritte-Startformel
 - Filterbare Abenteuerkarten nach Jahreszeit, Dauer, Alter und Stimmung inkl. „Details ansehen“-CTA je Karte
 - Lead-Element für kostenlose Ideenliste und emotionaler Abschluss-CTA für Wiederkehr/Start
-- Wetterbasierte Abenteuerauswahl für Düsseldorf (Open-Meteo)
+- Wetterbasierte Abenteuerauswahl mit Volksgarten-Fokus (Open-Meteo)
 - Täglicher Scheduler (`08:20`, Europe/Berlin) für Abenteuer-Mail
 - RFC-konformer ICS-Builder für Kalendereinladungen
 - HTML-Mail-Template mit Inline-CSS (DE/EN)
