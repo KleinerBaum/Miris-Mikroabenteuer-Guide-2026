@@ -3,7 +3,7 @@ from typing import List
 
 import yaml
 
-from mikroabenteuer.models import Adventure
+from .models import Adventure
 
 DATA_PATH = Path(__file__).parent / "seed.yaml"
 

@@ -19,6 +19,7 @@ st.set_page_config(
 st.title("🌿 Mikroabenteuer mit Carla")
 st.caption("Kleine Abenteuer. Große Erinnerungen.")
 
+
 def inject_custom_styles(background_path: Path) -> None:
     """Inject a light, readable theme with a custom background image."""
     background_b64 = base64.b64encode(background_path.read_bytes()).decode("utf-8")

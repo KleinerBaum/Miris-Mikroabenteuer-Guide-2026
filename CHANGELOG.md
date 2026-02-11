@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Geändert / Changed
+- DE: `mikroabenteuer/ui/__init__.py` ergänzt und Package-Imports auf relative Importe umgestellt, um sporadische `KeyError`-Importprobleme in Streamlit-Reloadern zu vermeiden.
+- EN: Added `mikroabenteuer/ui/__init__.py` and switched package internals to relative imports to prevent intermittent `KeyError` import failures during Streamlit reloads.
+
+
 ### Hinzugefügt
 - OpenAI-API-Schlüssel-Auflösung über `OPENAI_API_KEY` mit Streamlit-Secrets-Fallback (`[openai].api_key`) ergänzt.
 - OpenAI-Schlüsselkonfiguration beim App-Start integriert und Unit-Tests für die Schlüsselauflösung ergänzt.
