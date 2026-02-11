@@ -16,6 +16,8 @@ Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` ge
 ## Features
 - Kalenderähnlicher Bereich mit **Abenteuer des Tages**
 - Übersichtstabelle aller Abenteuer
+- Helles, kontrastreiches UI-Theme mit `Hintergrund.png` als App-Hintergrund
+- Zentrales Begrüßungsbild (`20251219_155329.jpg`) im oberen Bereich der Landing-Page
 - Detailansicht pro Abenteuer über `st.expander`
 - Safety-Block pro Abenteuer
 - Carla-Entwicklungsvorteil + Carla-Tipp
