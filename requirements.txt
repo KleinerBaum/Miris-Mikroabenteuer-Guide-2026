@@ -2,3 +2,7 @@ streamlit>=1.32
 pydantic>=2.6
 pyyaml>=6.0
 pandas>=2.2
+google-api-python-client>=2.120
+google-auth>=2.27
+google-auth-oauthlib>=1.2
+google-auth-httplib2>=0.2
