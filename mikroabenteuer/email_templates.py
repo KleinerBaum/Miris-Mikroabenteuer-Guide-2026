@@ -10,7 +10,7 @@ def build_html_mail(adventure: Adventure) -> str:
 <html>
 <body style="font-family:Arial,sans-serif; background:#f4f8f4; margin:0; padding:20px; color:#1f2937;">
   <div style="max-width:640px; margin:auto; background:#ffffff; padding:24px; border-radius:12px; border:1px solid #dce6dc;">
-    <p style="margin:0 0 8px; color:#2e7d32; font-size:14px;">Daily adventure / Tagesabenteuer</p>
+    <p style="margin:0 0 8px; color:#2e7d32; font-size:14px;">Miri & Carla daily adventure / Miri & Carla Tagesabenteuer</p>
     <h1 style="margin:0 0 12px; color:#2e7d32;">🌿 {adventure.title}</h1>
     <p style="margin:6px 0;"><b>Ort / Location:</b> {adventure.location}</p>
     <p style="margin:6px 0;"><b>Dauer / Duration:</b> {adventure.duration}</p>
@@ -18,7 +18,7 @@ def build_html_mail(adventure: Adventure) -> str:
     <h3 style="margin:18px 0 8px;">✨ Motto</h3>
     <p style="margin:0 0 12px;">{adventure.intro_quote}</p>
 
-    <h3 style="margin:18px 0 8px;">🧠 Warum gut für Carla? / Why it's good for Carla?</h3>
+    <h3 style="margin:18px 0 8px;">🧠 Warum das Carla hilft / Why this helps Carla</h3>
     <p style="margin:0 0 12px;">{adventure.child_benefit}</p>
 
     <h3 style="margin:18px 0 8px;">⚠ Sicherheit / Safety</h3>

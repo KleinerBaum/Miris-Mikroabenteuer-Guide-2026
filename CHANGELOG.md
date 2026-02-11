@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Alle relevanten UI- und Mail-Texte wurden auf die exklusive Zielgruppe „Miri (Mutter) und Carla (Tochter)" angepasst.
+- EN: All relevant UI and email texts were adjusted for the exclusive audience “Miri (mother) and Carla (daughter)”.
 - DE: Die Landingpage wurde visuell entschlackt und neu strukturiert: kompakter Hero, klarer 3-Schritte-Einstieg, Fokus auf Filter/Karten und reduzierter Abschlussbereich.
 - EN: The landing page was visually decluttered and restructured: compact hero, clear 3-step onboarding, focus on filters/cards, and a reduced closing section.
 - DE: Die Hero-CTA-Buttons wurden von Blau auf Dunkelgrau umgestellt; die Button-Schrift bleibt weiß für klare Lesbarkeit.
@@ -48,6 +50,7 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- App-Texte adressieren jetzt durchgehend Miri und Carla statt allgemein Familien.
 - Landingpage ist jetzt deutlich übersichtlicher und führt Nutzer:innen mit weniger Ablenkung schneller zur Abenteuerauswahl.
 - OAuth2-Setup für Kalender + Gmail ist nun vorbereitet (Consent-Screen-Konfiguration, Desktop-Client-Datei in `secrets/`, lokale Token-Erzeugung).
 - Daily- und manuelle Mailflows verwenden dieselbe sichere Credential-Verwaltung.
