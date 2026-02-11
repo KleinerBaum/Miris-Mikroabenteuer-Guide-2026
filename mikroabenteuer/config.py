@@ -1,4 +1,4 @@
-APP_TITLE = "Mikroabenteuer mit Carla"
+APP_TITLE = "Miris Mikroabenteuer mit Carla"
 
 DEFAULT_REISEAPOTHEKE = [
     "Pflaster (wasserfest)",

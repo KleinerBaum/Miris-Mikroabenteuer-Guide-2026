@@ -97,16 +97,16 @@ def inject_custom_styles(background_path: Path) -> None:
 
 def render_landing_page(cards: list[LandingAdventureCard]) -> None:
     """Render a clear, compact bilingual landing page."""
-    st.markdown("# Mikroabenteuer für Familien / Family micro-adventures")
+    st.markdown("# Miris Mikroabenteuer mit Carla / Miri's micro-adventures with Carla")
 
     hero_col, steps_col = st.columns([1.7, 1])
     with hero_col:
         st.markdown(
             """
             ### Schnell raus, gemeinsam erleben / Get outside quickly, experience together
-            Kleine Ideen für große Familienmomente – ohne Planung und ohne lange Vorbereitung.
+            Kleine Ideen für Miri und Carla – ohne Planung und ohne lange Vorbereitung.
 
-            Small ideas for big family moments – no planning, no long preparation.
+            Small ideas for Miri and Carla — no planning, no long preparation.
             """
         )
         if st.button(
@@ -205,13 +205,13 @@ def render_landing_page(cards: list[LandingAdventureCard]) -> None:
         "### Wahrnehmung / Perception\nAchtsamkeit, Fokus, Sinneserfahrung.\n\nMindfulness, focus, sensory learning."
     )
     benefit_col3.markdown(
-        "### Verbindung / Connection\nGemeinsame Erinnerungen.\n\nShared family memories."
+        "### Verbindung / Connection\nGemeinsame Erinnerungen.\n\nShared memories for Miri and Carla."
     )
 
     st.divider()
     st.markdown(
         """
-        ### Bereit für euer nächstes Erlebnis? / Ready for your next outdoor moment?
+        ### Bereit für euer nächstes Erlebnis, Miri & Carla? / Ready for your next outdoor moment, Miri & Carla?
         Ein Abenteuer, ein kleiner Rucksack, ein erster Schritt – mehr braucht es nicht.
 
         One adventure, a small backpack, one first step – that's all you need.
@@ -226,10 +226,10 @@ with top_col_center:
     st.markdown(
         """
         <h2 style="text-align: center; margin-bottom: 0.3rem;">
-            Kleine Abenteuer. Große Erinnerungen 🎂
+            Miri & Carla: Kleine Abenteuer. Große Erinnerungen 🎂
         </h2>
         <p style="text-align: center; margin-top: 0; margin-bottom: 0.8rem; color: #4b5563;">
-            Small adventures. Big memories.
+            Miri & Carla: Small adventures. Big memories.
         </p>
         """,
         unsafe_allow_html=True,

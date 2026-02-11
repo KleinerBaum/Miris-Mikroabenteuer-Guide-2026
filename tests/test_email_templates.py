@@ -21,6 +21,6 @@ def test_build_html_mail_renders_bilingual_sections() -> None:
 
     html = build_html_mail(adventure)
 
-    assert "Daily adventure / Tagesabenteuer" in html
+    assert "Miri & Carla daily adventure / Miri & Carla Tagesabenteuer" in html
     assert "Ort / Location" in html
     assert "Nässe" in html

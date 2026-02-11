@@ -1,6 +1,6 @@
 # Miris-Mikroabenteuer-Guide-2026
 
-Eine lokale Streamlit-MVP-App für "Mikroabenteuer mit Carla" – erweitert um Daily-Automation als SaaS-Basis.
+Eine lokale Streamlit-MVP-App für **Miri (Mutter) und Carla (Tochter)** – erweitert um Daily-Automation als SaaS-Basis.
 
 ## Konfiguration
 - OpenAI API-Schlüssel wird bevorzugt aus `OPENAI_API_KEY` gelesen.
@@ -39,7 +39,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Aufklappbare Liste (Drop-down/Expander) aller Abenteuer ohne zusätzliche Tabelle
 - Helles, kontrastreiches UI-Theme mit `Hintergrund.png` als App-Hintergrund
 - Zentrales Begrüßungsbild aus lokalem Asset (`20251219_155329.jpg`) im oberen Bereich der Landing-Page, stabil über `st.image` eingebunden
-- Hero-Bereich mit zentrierter, zweisprachiger Headline „Kleine Abenteuer. Große Erinnerungen 🎂 / Small adventures. Big memories.“ direkt oberhalb des Begrüßungsbildes
+- Hero-Bereich mit zentrierter, zweisprachiger Headline „Miri & Carla: Kleine Abenteuer. Große Erinnerungen 🎂 / Miri & Carla: Small adventures. Big memories.“ direkt oberhalb des Begrüßungsbildes
 - Detailansicht pro Abenteuer über `st.expander`
 
 ## Daily Scheduler aktivieren
@@ -68,7 +68,7 @@ https://yourdomain.de/oauth2callback
 
 ## Google OAuth2 Setup (Calendar + Gmail)
 1. In Google Cloud: create **OAuth consent screen** as `External`.
-   - App name: `Mikroabenteuer mit Carla`
+   - App name: `Miris Mikroabenteuer mit Carla`
    - Support email: `gerrit.fabisch2024@gmail.com`
    - Test user: `gerrit.fabisch2024@gmail.com`
 2. Add least-privilege scopes:

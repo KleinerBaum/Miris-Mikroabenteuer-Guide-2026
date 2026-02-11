@@ -36,10 +36,10 @@ def render_adventure_details(
     for step in adventure.steps:
         st.markdown(f"- {step}")
 
-    st.markdown("### 🧠 Warum gut für Carla? / Why this helps Carla")
+    st.markdown("### 🧠 Warum das Carla hilft / Why this helps Carla")
     st.success(adventure.child_benefit)
 
-    st.markdown("### 💡 Carla-Tipp des Tages / Carla's tip of the day")
+    st.markdown("### 💡 Miri-Tipp für Carla / Miri's tip for Carla")
     st.warning(adventure.carla_tip)
 
     st.markdown("### ⚠ Sicherheit / Safety")
@@ -78,7 +78,7 @@ def render_adventure_details(
             try:
                 send_html_email(
                     to="gerrit.fabisch2024@gmail.com",
-                    subject=f"Mikroabenteuer: {adventure.title}",
+                    subject=f"Miri & Carla Mikroabenteuer: {adventure.title}",
                     html_content=(
                         f"<h1>{adventure.title}</h1><p>{adventure.description}</p>"
                     ),

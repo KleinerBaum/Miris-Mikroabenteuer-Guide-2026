@@ -76,7 +76,7 @@ def send_daily_mail(adventure: Adventure) -> dict[str, Any]:
     message = MIMEMultipart("mixed")
     message["to"] = DAILY_MAIL_TO
     message["from"] = DAILY_MAIL_FROM
-    message["subject"] = f"Mikroabenteuer: {adventure.title}"
+    message["subject"] = f"Miri & Carla Mikroabenteuer: {adventure.title}"
 
     html_body = build_html_mail(adventure)
     message.attach(MIMEText(html_body, "html", "utf-8"))
