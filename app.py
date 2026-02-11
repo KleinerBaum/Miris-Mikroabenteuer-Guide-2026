@@ -1,4 +1,6 @@
+import base64
 from datetime import date
+from pathlib import Path
 
 import streamlit as st
 
@@ -16,6 +18,66 @@ st.set_page_config(
 
 st.title("🌿 Mikroabenteuer mit Carla")
 st.caption("Kleine Abenteuer. Große Erinnerungen.")
+
+def inject_custom_styles(background_path: Path) -> None:
+    """Inject a light, readable theme with a custom background image."""
+    background_b64 = base64.b64encode(background_path.read_bytes()).decode("utf-8")
+
+    st.markdown(
+        f"""
+        <style>
+            .stApp {{
+                background: linear-gradient(
+                    rgba(255, 255, 255, 0.87),
+                    rgba(255, 255, 255, 0.87)
+                ), url("data:image/png;base64,{background_b64}");
+                background-size: cover;
+                background-position: center;
+                background-attachment: fixed;
+                color: #1f2937;
+            }}
+
+            h1, h2, h3, .stCaption, p, label, span {{
+                color: #1f2937 !important;
+            }}
+
+            [data-testid="stMetric"],
+            [data-testid="stExpander"],
+            [data-testid="stDataFrame"],
+            [data-testid="stMarkdownContainer"] > div,
+            .stTextInput > div > div,
+            .stSelectbox > div > div {{
+                background-color: rgba(255, 255, 255, 0.8);
+                border-radius: 0.8rem;
+            }}
+
+            .stButton > button {{
+                background-color: #2563eb;
+                color: #ffffff;
+                border: none;
+            }}
+
+            .stButton > button:hover {{
+                background-color: #1d4ed8;
+            }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+inject_custom_styles(Path("Hintergrund.png"))
+
+top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
+with top_col_center:
+    st.image(
+        "20251219_155329.jpg",
+        caption="Willkommen! / Welcome!",
+        width="stretch",
+    )
+
+st.title("🌿 Mikroabenteuer mit Carla / Micro Adventures with Carla")
+st.caption("Kleine Abenteuer. Große Erinnerungen. / Small adventures. Big memories.")
 
 configure_openai_api_key()
 
