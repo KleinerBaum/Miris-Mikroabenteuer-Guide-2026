@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Die Sektion „Alle Mikroabenteuer“ wurde in „Alternative Mikroabenteuer“ umbenannt und die zusätzliche Übersichtstabelle entfernt; die Abenteuer bleiben über Drop-down-Elemente (`st.expander`) erreichbar.
+- EN: Renamed the “All Micro-Adventures” section to “Alternative Micro-Adventures” and removed the extra overview table; adventures remain accessible via drop-down expanders (`st.expander`).
 - DE: Den gesamten im Header sichtbaren Begrüßungstext entfernt (Bild-Caption, Hero-Titel und Hero-Untertitel), sodass im oberen Seitenbereich nur noch das Bild angezeigt wird.
 - EN: Removed all visible welcome text in the header (image caption, hero title, and hero subtitle), so only the image remains in the top section.
 - DE: Das Begrüßungsbild im Hero-Bereich wird jetzt aus dem lokalen Asset `20251219_155329.jpg` via `st.image` geladen, um Streamlit-`MediaFileHandler`-Fehler durch abgelaufene Media-IDs zu vermeiden.
