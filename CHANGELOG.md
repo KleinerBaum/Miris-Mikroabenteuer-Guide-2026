@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Die Startseite wurde zu einer conversion-orientierten, zweisprachigen Funnel-Landingpage ausgebaut (Hero, Problem/Lösung, Erklärsektion, Filterkarten, Nutzenargumentation, 3-Schritte-Start, Lead-Element, Abschluss-CTA).
+- EN: The homepage was expanded into a conversion-oriented bilingual funnel landing page (hero, problem/solution, explanation section, filter cards, impact arguments, 3-step start, lead element, closing CTA).
+- DE: Neue Abenteuer-Kategorien mit kombinierten Filtern (Jahreszeit, Dauer, Alter, Stimmung) und Karten-CTAs "Details ansehen / View details" unterstützen die direkte Nutzerhandlung.
+- EN: New adventure categories with combined filters (season, duration, age, mood) and card CTAs "Details ansehen / View details" support direct user action.
 - DE: Über dem Begrüßungsbild wird jetzt zentriert die Headline „Kleine Abenteuer. Große Erinnerungen 🎂“ angezeigt, ergänzt um die englische Zeile „Small adventures. Big memories.“.
 - EN: A centered headline “Kleine Abenteuer. Große Erinnerungen 🎂” is now shown above the welcome image, complemented by the English line “Small adventures. Big memories.”.
 - DE: Die Sektion „Alle Mikroabenteuer“ wurde in „Alternative Mikroabenteuer“ umbenannt und die zusätzliche Übersichtstabelle entfernt; die Abenteuer bleiben über Drop-down-Elemente (`st.expander`) erreichbar.
