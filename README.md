@@ -1,6 +1,6 @@
 # Miris-Mikroabenteuer-Guide-2026
 
-Eine lokale Streamlit-MVP-App für "Mikroabenteuer mit Carla".
+Eine lokale Streamlit-MVP-App für "Mikroabenteuer mit Carla" – erweitert um Daily-Automation als SaaS-Basis.
 
 ## Konfiguration
 - OpenAI API-Schlüssel wird bevorzugt aus `OPENAI_API_KEY` gelesen.
@@ -14,35 +14,59 @@ api_key = "<dein-key>"
 Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` gesetzt, falls die Umgebungsvariable fehlt.
 
 ## Features
+- Wetterbasierte Abenteuerauswahl für Düsseldorf (Open-Meteo)
+- Täglicher Scheduler (`08:20`, Europe/Berlin) für Abenteuer-Mail
+- RFC-konformer ICS-Builder für Kalendereinladungen
+- HTML-Mail-Template mit Inline-CSS (DE/EN)
+- Gmail-Versand mit HTML + ICS Attachment
+- Wiederholversuche mit exponentiellem Backoff für externe Calls
 - Kalenderähnlicher Bereich mit **Abenteuer des Tages**
 - Übersichtstabelle aller Abenteuer
 - Helles, kontrastreiches UI-Theme mit `Hintergrund.png` als App-Hintergrund
 - Zentrales Begrüßungsbild (remote Streamlit-Media-URL) im oberen Bereich der Landing-Page, auf 30% Breite (≈70% verkleinert) skaliert
 - Detailansicht pro Abenteuer über `st.expander`
-- Safety-Block pro Abenteuer
-- Carla-Entwicklungsvorteil + Carla-Tipp
-- Standardisierte Mini-Reiseapotheke
-- Wiederverwendbares Pydantic-Datenmodell
 
-## Projektstruktur
+## Daily Scheduler aktivieren
+Der Scheduler wird nur gestartet, wenn die Umgebungsvariable gesetzt ist:
+
+```bash
+export ENABLE_DAILY_SCHEDULER=1
+```
+
+## Gmail Setup (OAuth)
+Benötigte Umgebungsvariablen:
+
+```bash
+export DAILY_MAIL_TO="you@example.com"
+export DAILY_MAIL_FROM="you@example.com"
+export GOOGLE_CLIENT_SECRET_FILE="secrets/client_secret.json"
+export GOOGLE_TOKEN_FILE="secrets/token.json"
+```
+
+Erforderliche Google Redirect URI (Production):
+
 ```text
-mikroabenteuer-mit-carla/
-├── app.py
-├── requirements.txt
-├── README.md
-├── CHANGELOG.md
-├── mikroabenteuer/
-│   ├── __init__.py
-│   ├── config.py
-│   ├── models.py
-│   ├── data_loader.py
-│   ├── seed.yaml
-│   └── ui/
-│       ├── __init__.py
-│       ├── table.py
-│       └── details.py
-└── tests/
-    └── test_models.py
+https://yourdomain.de/oauth2callback
+```
+
+## Docker Deployment
+
+```bash
+docker compose up --build
+```
+
+## Nginx Reverse Proxy (HTTPS)
+Minimalbeispiel:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name yourdomain.de;
+
+    location / {
+        proxy_pass http://localhost:8501;
+    }
+}
 ```
 
 ## Installation
@@ -60,9 +84,12 @@ streamlit run app.py
 ## Tests
 ```bash
 pytest -m "not integration"
+ruff format && ruff check
+mypy .
 ```
 
-
-## Stability note / Stabilitätshinweis
-- Added an explicit `mikroabenteuer.ui` package file and switched to relative imports inside the package to avoid intermittent `KeyError` import issues during Streamlit reloads.
-- Eine explizite `mikroabenteuer.ui`-Package-Datei und relative Imports im Package verhindern sporadische `KeyError`-Importfehler bei Streamlit-Reloads.
+## Security-Hinweise
+- Tokens in `secrets/` Volume speichern (nicht ins Image einbauen)
+- Nur minimale OAuth-Scopes verwenden (`gmail.send`)
+- Keine API-Keys oder PII loggen
+- Externe Requests mit Timeouts + Backoff absichern
