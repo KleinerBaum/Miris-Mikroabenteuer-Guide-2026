@@ -24,12 +24,11 @@ Wenn `WEATHER_LAT`/`WEATHER_LON` nicht gesetzt sind, nutzt die App automatisch V
 Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`, `6.7735`) gesetzt werden.
 
 ## Features
-- Conversion-orientierte, zweisprachige Landingpage (DE/EN) im Funnel-Aufbau: Aufmerksamkeit → Relevanz → Vertrauen → Auswahl → Handlung
-- Hero-Sektion mit klaren CTA-Pfaden („Jetzt Mikroabenteuer entdecken“, „Nach Jahreszeit filtern")
-- CTA-Buttons im Hero-Bereich in dunklem Grau mit weißer Schrift für besseren Kontrast und ruhigeres Erscheinungsbild
-- Problem-/Lösungssektion, Mikroabenteuer-Erklärung, Wirkungsargumentation und 3-Schritte-Startformel
+- Neu strukturierte, zweisprachige Landingpage (DE/EN) mit klarer Hierarchie: Hero, 3-Schritte-Orientierung, Filterbereich, Karten und kompakter Abschluss
+- Reduzierte Hero-Sektion mit primärem CTA („Jetzt Abenteuer auswählen / Pick an adventure now") und direktem Scroll-Hinweis
+- Kompakter Orientierungskasten „So funktioniert's / How it works" für schnellen Einstieg
 - Filterbare Abenteuerkarten nach Jahreszeit, Dauer, Alter und Stimmung inkl. „Details ansehen“-CTA je Karte
-- Lead-Element für kostenlose Ideenliste und emotionaler Abschluss-CTA für Wiederkehr/Start
+- Straffere Nutzenargumentation („Warum das gut tut / Why this helps") und vereinfachter Abschlussblock ohne zusätzliche Lead-Stufen
 - Wetterbasierte Abenteuerauswahl mit Volksgarten-Fokus (Open-Meteo)
 - Täglicher Scheduler (`08:20`, Europe/Berlin) für Abenteuer-Mail
 - RFC-konformer ICS-Builder für Kalendereinladungen
@@ -122,7 +121,7 @@ streamlit run app.py
 ```
 
 ## Landingpage-Screenshot
-- Aktuelle Funnel-Landingpage: `browser:/tmp/codex_browser_invocations/405e90d1146ed5ee/artifacts/landingpage-funnel-firefox.png`
+- Aktuelle Landingpage-Struktur: `browser:/tmp/codex_browser_invocations/d8cd397d06237a46/artifacts/images/landingpage-struktur.png`
 
 ## Tests
 ```bash

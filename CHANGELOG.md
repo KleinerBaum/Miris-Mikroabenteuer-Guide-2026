@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Die Landingpage wurde visuell entschlackt und neu strukturiert: kompakter Hero, klarer 3-Schritte-Einstieg, Fokus auf Filter/Karten und reduzierter Abschlussbereich.
+- EN: The landing page was visually decluttered and restructured: compact hero, clear 3-step onboarding, focus on filters/cards, and a reduced closing section.
 - DE: Die Hero-CTA-Buttons wurden von Blau auf Dunkelgrau umgestellt; die Button-Schrift bleibt weiß für klare Lesbarkeit.
 - EN: Hero CTA buttons were changed from blue to dark gray; button text remains white for clear readability.
 - DE: Wetterabfrage ist jetzt standortkonfigurierbar über `WEATHER_LAT` und `WEATHER_LON`; Standard ist Volksgarten (Düsseldorf) statt festem Stadtzentrum.
@@ -46,6 +48,7 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- Landingpage ist jetzt deutlich übersichtlicher und führt Nutzer:innen mit weniger Ablenkung schneller zur Abenteuerauswahl.
 - OAuth2-Setup für Kalender + Gmail ist nun vorbereitet (Consent-Screen-Konfiguration, Desktop-Client-Datei in `secrets/`, lokale Token-Erzeugung).
 - Daily- und manuelle Mailflows verwenden dieselbe sichere Credential-Verwaltung.
 - Das Projekt unterstützt jetzt automatisierte tägliche Abenteuer-Mails als SaaS-nahe Basis.

@@ -96,85 +96,53 @@ def inject_custom_styles(background_path: Path) -> None:
 
 
 def render_landing_page(cards: list[LandingAdventureCard]) -> None:
-    """Render conversion-focused bilingual funnel sections."""
-    st.markdown(
-        """
-        # Mikroabenteuer für Familien – Rausgehen war noch nie so einfach
-        ### Kleine Abenteuer. Keine Vorbereitung. Direkt vor eurer Haustür.
-        #### Family micro-adventures made easy: short, spontaneous, and close to home.
-        """
-    )
+    """Render a clear, compact bilingual landing page."""
+    st.markdown("# Mikroabenteuer für Familien / Family micro-adventures")
 
-    proof_col1, proof_col2, proof_col3 = st.columns(3)
-    proof_col1.markdown(
-        "<p class='landing-proof'>✓ ab 3 Jahren geeignet / suitable from age 3+</p>",
-        unsafe_allow_html=True,
-    )
-    proof_col2.markdown(
-        "<p class='landing-proof'>✓ ohne Planung möglich / no planning required</p>",
-        unsafe_allow_html=True,
-    )
-    proof_col3.markdown(
-        "<p class='landing-proof'>✓ ganzjährig umsetzbar / works all year round</p>",
-        unsafe_allow_html=True,
-    )
+    hero_col, steps_col = st.columns([1.7, 1])
+    with hero_col:
+        st.markdown(
+            """
+            ### Schnell raus, gemeinsam erleben / Get outside quickly, experience together
+            Kleine Ideen für große Familienmomente – ohne Planung und ohne lange Vorbereitung.
 
-    cta_col1, cta_col2 = st.columns([1, 1])
-    with cta_col1:
+            Small ideas for big family moments – no planning, no long preparation.
+            """
+        )
         if st.button(
-            "Jetzt Mikroabenteuer entdecken / Discover micro-adventures now",
+            "Jetzt Abenteuer auswählen / Pick an adventure now",
             use_container_width=True,
         ):
             st.info(
-                "Weiter unten findest du die Abenteuerkarten und Filter. / Scroll down for cards and filters."
+                "Direkt darunter findest du Filter und Abenteuerkarten. / Filters and cards are right below."
             )
-    with cta_col2:
-        if st.button(
-            "Nach Jahreszeit filtern / Filter by season", use_container_width=True
-        ):
-            st.info("Wähle unten die passende Jahreszeit aus. / Select a season below.")
 
-    st.divider()
-    st.header(
-        '„Uns ist langweilig.“ – Kennst du das? / "We are bored." – Know that feeling?'
+    with steps_col:
+        st.markdown(
+            """
+            #### So funktioniert's / How it works
+            1. Filtern / Filter
+            2. Karte wählen / Choose a card
+            3. Rausgehen / Head outside
+            """
+        )
+
+    proof_col1, proof_col2, proof_col3 = st.columns(3)
+    proof_col1.markdown(
+        "<p class='landing-proof'>✓ ab 3 Jahren / suitable from age 3+</p>",
+        unsafe_allow_html=True,
     )
-    st.markdown(
-        """
-        Wochenende. Regen. Keine Lust auf großen Ausflug. Kinder mit Energie.
-
-        **Mikroabenteuer lösen genau dieses Problem.** Sie sind kurz, spontan und machen Natur wieder aufregend.
-
-        Weekend. Rain. No motivation for a big trip. Kids full of energy.
-
-        **Micro-adventures solve exactly this pain point.** They are short, spontaneous, and make nature exciting again.
-        """
+    proof_col2.markdown(
+        "<p class='landing-proof'>✓ spontan möglich / start spontaneously</p>",
+        unsafe_allow_html=True,
     )
-
-    st.divider()
-    st.header("Was ist ein Mikroabenteuer? / What is a micro-adventure?")
-    st.markdown(
-        """
-        Ein Mikroabenteuer ist ein kleines Naturerlebnis, das ohne Vorbereitung möglich ist – direkt vor eurer Haustür.
-        Es braucht keine Ausrüstung, keinen Urlaub und keinen perfekten Plan.
-
-        A micro-adventure is a small outdoor experience you can start without preparation, right outside your front door.
-        No special gear, no holiday, no perfect plan needed.
-        """
-    )
-
-    principle_col1, principle_col2, principle_col3 = st.columns(3)
-    principle_col1.markdown(
-        "### 1. Einfach / Simple\nKeine Planung, kein Aufwand.\n\nNo planning, no overhead."
-    )
-    principle_col2.markdown(
-        "### 2. Draußen / Outside\nNatur bewusst erleben.\n\nExperience nature mindfully."
-    )
-    principle_col3.markdown(
-        "### 3. Gemeinsam / Together\nZeit statt Zeug.\n\nTime over stuff."
+    proof_col3.markdown(
+        "<p class='landing-proof'>✓ bei jedem Wetter / works all year round</p>",
+        unsafe_allow_html=True,
     )
 
     st.divider()
-    st.header("Finde euer nächstes Mikroabenteuer / Find your next micro-adventure")
+    st.header("Abenteuer finden / Find an adventure")
 
     season_options = ["Alle / All"] + sorted({card.season for card in cards})
     duration_options = ["Alle / All"] + sorted({card.duration for card in cards})
@@ -228,9 +196,7 @@ def render_landing_page(cards: list[LandingAdventureCard]) -> None:
                 )
 
     st.divider()
-    st.header(
-        "Warum kleine Abenteuer große Wirkung haben / Why tiny adventures have big impact"
-    )
+    st.header("Warum das gut tut / Why this helps")
     benefit_col1, benefit_col2, benefit_col3 = st.columns(3)
     benefit_col1.markdown(
         "### Bewegung / Movement\nMotorik, Gleichgewicht, Körpergefühl.\n\nMotor skills, balance, body awareness."
@@ -243,44 +209,14 @@ def render_landing_page(cards: list[LandingAdventureCard]) -> None:
     )
 
     st.divider()
-    st.header(
-        "So startet ihr euer erstes Mikroabenteuer / Start your first micro-adventure in 3 steps"
-    )
     st.markdown(
         """
-        1. Abenteuer auswählen / Pick an adventure  
-        2. Rausgehen / Head outside  
-        3. Erleben / Experience together
+        ### Bereit für euer nächstes Erlebnis? / Ready for your next outdoor moment?
+        Ein Abenteuer, ein kleiner Rucksack, ein erster Schritt – mehr braucht es nicht.
+
+        One adventure, a small backpack, one first step – that's all you need.
         """
     )
-    st.button(
-        "Jetzt erstes Abenteuer starten / Start your first adventure now",
-        use_container_width=True,
-    )
-
-    st.divider()
-    st.header("10 Mikroabenteuer als kostenlose Liste / 10 free micro-adventure ideas")
-    st.markdown(
-        """
-        Hol dir eine kompakte Übersicht mit sofort umsetzbaren Ideen.
-
-        Get a compact list of ideas you can start right away.
-        """
-    )
-    st.button("Kostenlos herunterladen / Download for free", use_container_width=True)
-
-    st.divider()
-    st.header("Abenteuer beginnen vor der Haustür / Adventure starts at your doorstep")
-    st.markdown(
-        """
-        Es braucht keinen Urlaub, kein Event und keinen perfekten Moment.
-        Nur den ersten Schritt nach draußen.
-
-        You do not need a holiday, event, or perfect timing.
-        You only need your first step outside.
-        """
-    )
-    st.button("Jetzt loslegen / Get started now", use_container_width=True)
 
 
 inject_custom_styles(Path("Hintergrund.png"))
