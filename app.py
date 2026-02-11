@@ -4,6 +4,7 @@ import streamlit as st
 
 from mikroabenteuer.config import APP_TITLE
 from mikroabenteuer.data_loader import load_adventures
+from mikroabenteuer.openai_settings import configure_openai_api_key
 from mikroabenteuer.ui.details import render_adventure_details
 from mikroabenteuer.ui.table import render_adventure_table
 
@@ -15,6 +16,9 @@ st.set_page_config(
 
 st.title("🌿 Mikroabenteuer mit Carla / Micro Adventures with Carla")
 st.caption("Kleine Abenteuer. Große Erinnerungen. / Small adventures. Big memories.")
+
+configure_openai_api_key()
+
 
 adventures = load_adventures()
 
