@@ -1,0 +1,81 @@
+- id: abenteuer_01
+  title: "Entdecker-Runde um den Deichsee"
+  location: "Volksgarten – Deichsee"
+  duration: "45–60 Minuten"
+  intro_quote: "Heute retten wir den See vor unsichtbaren Drachen!"
+  description: >
+    Ein ruhiger Rundgang um den Deichsee. Carla sammelt kleine Natur-Schätze
+    und entdeckt Wasser, Vögel und Windbewegungen.
+  preparation:
+    - Bequeme Schuhe
+    - Kleiner Stoffbeutel für Naturfunde
+    - Trinkflasche
+  steps:
+    - Gemeinsam den See umrunden
+    - 3 Naturgeräusche benennen
+    - Steine ins Wasser werfen und Wellen beobachten
+  child_benefit: >
+    Fördert Sprachentwicklung, Naturbewusstsein und Feinmotorik.
+  carla_tip: >
+    Alles benennen, was sie zeigt. Sprache entsteht durch Wiederholung.
+  safety:
+    risks:
+      - Nähe zum Wasser
+      - Rutschige Wege bei Regen
+    prevention:
+      - Immer Handkontakt am Wasser
+      - Abstand zur Böschung
+
+- id: abenteuer_02
+  title: "Wiesen-Picknick mit Wolkenkino"
+  location: "Südpark – große Wiese"
+  duration: "30–90 Minuten"
+  intro_quote: "Die Wolken erzählen uns heute eine Geschichte."
+  description: >
+    Eine Decke ausbreiten und gemeinsam Wolkenbilder suchen.
+  preparation:
+    - Picknickdecke
+    - Snacks
+    - Sonnenhut
+  steps:
+    - Wolken beobachten
+    - Tierformen erraten
+    - Kleine Pause im Gras
+  child_benefit: >
+    Fantasie, visuelle Wahrnehmung und emotionale Regulation.
+  carla_tip: >
+    Ihre Interpretation ist immer richtig. Fantasie niemals korrigieren.
+  safety:
+    risks:
+      - Sonne
+      - Insekten
+    prevention:
+      - LSF 50 verwenden
+      - Schattenplätze wählen
+
+- id: abenteuer_03
+  title: "Pfadfinder-Spur im Südpark"
+  location: "Südpark – Waldpfad"
+  duration: "40–70 Minuten"
+  intro_quote: "Heute folgen wir geheimen Spuren im Wald."
+  description: >
+    Kleine Suche nach Blättern, Ästen und Naturmustern entlang des Waldpfads.
+  preparation:
+    - Wetterfeste Kleidung
+    - Stoffbeutel
+    - Wasserflasche
+  steps:
+    - Fünf verschiedene Blattformen suchen
+    - Einen Lieblingsbaum auswählen
+    - Naturfund am Ende erzählen
+  child_benefit: >
+    Unterstützt Beobachtung, Wortschatz und Konzentration.
+  carla_tip: >
+    Offene Fragen stellen: "Was siehst du?" statt "Ist das ein Blatt?"
+  safety:
+    risks:
+      - Stolpern über Wurzeln
+      - Zecken
+    prevention:
+      - Langsame Schritte auf unebenen Wegen
+      - Nach dem Ausflug Zeckencheck durchführen

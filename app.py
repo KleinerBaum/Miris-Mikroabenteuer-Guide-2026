@@ -1,1 +1,30 @@
-#
+from datetime import date
+
+import streamlit as st
+
+from mikroabenteuer.config import APP_TITLE
+from mikroabenteuer.data_loader import load_adventures
+from mikroabenteuer.ui.details import render_adventure_details
+from mikroabenteuer.ui.table import render_adventure_table
+
+st.set_page_config(
+    page_title=APP_TITLE,
+    page_icon="🌿",
+    layout="wide",
+)
+
+st.title("🌿 Mikroabenteuer mit Carla / Micro Adventures with Carla")
+st.caption("Kleine Abenteuer. Große Erinnerungen. / Small adventures. Big memories.")
+
+adventures = load_adventures()
+
+today = date.today().isoformat()
+todays_adventure = adventures[hash(today) % len(adventures)]
+
+st.divider()
+st.header("📅 Abenteuer des Tages / Adventure of the Day")
+render_adventure_details(todays_adventure, expanded=True)
+
+st.divider()
+st.header("🗺 Alle Mikroabenteuer / All Micro Adventures")
+render_adventure_table(adventures)
