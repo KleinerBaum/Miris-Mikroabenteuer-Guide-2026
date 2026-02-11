@@ -23,7 +23,7 @@ Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` ge
 - Kalenderähnlicher Bereich mit **Abenteuer des Tages**
 - Übersichtstabelle aller Abenteuer
 - Helles, kontrastreiches UI-Theme mit `Hintergrund.png` als App-Hintergrund
-- Zentrales Begrüßungsbild (`20251219_155329.jpg`) im oberen Bereich der Landing-Page
+- Zentrales Begrüßungsbild (remote Streamlit-Media-URL) im oberen Bereich der Landing-Page, auf 30% Breite (≈70% verkleinert) skaliert
 - Detailansicht pro Abenteuer über `st.expander`
 
 ## Daily Scheduler aktivieren
