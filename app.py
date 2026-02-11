@@ -95,5 +95,5 @@ st.header("📅 Abenteuer des Tages")
 render_adventure_details(todays_adventure, expanded=True)
 
 st.divider()
-st.header("🗺 Alle Mikroabenteuer")
+st.header("🗺 Alternative Mikroabenteuer / Alternative Micro-Adventures")
 render_adventure_table(adventures)

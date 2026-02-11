@@ -21,7 +21,7 @@ Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` ge
 - Gmail-Versand mit HTML + ICS Attachment
 - Wiederholversuche mit exponentiellem Backoff für externe Calls
 - Kalenderähnlicher Bereich mit **Abenteuer des Tages**
-- Übersichtstabelle aller Abenteuer
+- Aufklappbare Liste (Drop-down/Expander) aller Abenteuer ohne zusätzliche Tabelle
 - Helles, kontrastreiches UI-Theme mit `Hintergrund.png` als App-Hintergrund
 - Zentrales Begrüßungsbild aus lokalem Asset (`20251219_155329.jpg`) im oberen Bereich der Landing-Page, stabil über `st.image` eingebunden
 - Aufgeräumter Hero-Bereich ohne zusätzlichen Titel-/Caption-Text über dem Hauptinhalt
