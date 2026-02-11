@@ -80,18 +80,10 @@ inject_custom_styles(Path("Hintergrund.png"))
 
 top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
 with top_col_center:
-    st.markdown(
-        """
-        <div style="text-align: center;">
-            <img
-                src="https://mikrocarla.streamlit.app/~/+/media/6cc1938609a68cb1c9c1f2e7e0605e6223a758892645b624a34b08bf.jpg"
-                alt="Willkommen! / Welcome!"
-                style="width: 30%; min-width: 180px; height: auto;"
-            />
-            <p style="margin-top: 0.5rem;">Willkommen! / Welcome!</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    st.image(
+        image="20251219_155329.jpg",
+        caption="Willkommen! / Welcome!",
+        width=240,
     )
 
 st.title("🌿 Mikroabenteuer mit Carla / Micro Adventures with Carla")
