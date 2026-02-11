@@ -24,7 +24,7 @@ Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` ge
 - Aufklappbare Liste (Drop-down/Expander) aller Abenteuer ohne zusätzliche Tabelle
 - Helles, kontrastreiches UI-Theme mit `Hintergrund.png` als App-Hintergrund
 - Zentrales Begrüßungsbild aus lokalem Asset (`20251219_155329.jpg`) im oberen Bereich der Landing-Page, stabil über `st.image` eingebunden
-- Aufgeräumter Hero-Bereich ohne zusätzlichen Titel-/Caption-Text über dem Hauptinhalt
+- Hero-Bereich mit zentrierter, zweisprachiger Headline „Kleine Abenteuer. Große Erinnerungen 🎂 / Small adventures. Big memories.“ direkt oberhalb des Begrüßungsbildes
 - Detailansicht pro Abenteuer über `st.expander`
 
 ## Daily Scheduler aktivieren
