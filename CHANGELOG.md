@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Über dem Begrüßungsbild wird jetzt zentriert die Headline „Kleine Abenteuer. Große Erinnerungen 🎂“ angezeigt, ergänzt um die englische Zeile „Small adventures. Big memories.“.
+- EN: A centered headline “Kleine Abenteuer. Große Erinnerungen 🎂” is now shown above the welcome image, complemented by the English line “Small adventures. Big memories.”.
 - DE: Die Sektion „Alle Mikroabenteuer“ wurde in „Alternative Mikroabenteuer“ umbenannt und die zusätzliche Übersichtstabelle entfernt; die Abenteuer bleiben über Drop-down-Elemente (`st.expander`) erreichbar.
 - EN: Renamed the “All Micro-Adventures” section to “Alternative Micro-Adventures” and removed the extra overview table; adventures remain accessible via drop-down expanders (`st.expander`).
 - DE: Den gesamten im Header sichtbaren Begrüßungstext entfernt (Bild-Caption, Hero-Titel und Hero-Untertitel), sodass im oberen Seitenbereich nur noch das Bild angezeigt wird.

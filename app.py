@@ -70,6 +70,17 @@ inject_custom_styles(Path("Hintergrund.png"))
 
 top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
 with top_col_center:
+    st.markdown(
+        """
+        <h2 style="text-align: center; margin-bottom: 0.3rem;">
+            Kleine Abenteuer. Große Erinnerungen 🎂
+        </h2>
+        <p style="text-align: center; margin-top: 0; margin-bottom: 0.8rem; color: #4b5563;">
+            Small adventures. Big memories.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
     st.image(
         image="20251219_155329.jpg",
         width=240,
