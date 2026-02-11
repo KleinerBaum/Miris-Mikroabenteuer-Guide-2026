@@ -1,4 +1,5 @@
 import base64
+import os
 from datetime import date
 from pathlib import Path
 
@@ -7,6 +8,7 @@ import streamlit as st
 from mikroabenteuer.config import APP_TITLE
 from mikroabenteuer.data_loader import load_adventures
 from mikroabenteuer.openai_settings import configure_openai_api_key
+from mikroabenteuer.scheduler import start_scheduler
 from mikroabenteuer.ui.details import render_adventure_details
 from mikroabenteuer.ui.table import render_adventure_table
 
@@ -82,6 +84,13 @@ st.caption("Kleine Abenteuer. Große Erinnerungen. / Small adventures. Big memor
 
 configure_openai_api_key()
 
+if os.getenv("ENABLE_DAILY_SCHEDULER", "0") == "1":
+    try:
+        start_scheduler()
+    except Exception:
+        st.warning(
+            "Scheduler konnte nicht gestartet werden / Scheduler could not be started.",
+        )
 
 adventures = load_adventures()
 
