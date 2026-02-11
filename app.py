@@ -14,8 +14,8 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("🌿 Mikroabenteuer mit Carla / Micro Adventures with Carla")
-st.caption("Kleine Abenteuer. Große Erinnerungen. / Small adventures. Big memories.")
+st.title("🌿 Mikroabenteuer mit Carla")
+st.caption("Kleine Abenteuer. Große Erinnerungen.")
 
 configure_openai_api_key()
 
@@ -26,9 +26,9 @@ today = date.today().isoformat()
 todays_adventure = adventures[hash(today) % len(adventures)]
 
 st.divider()
-st.header("📅 Abenteuer des Tages / Adventure of the Day")
+st.header("📅 Abenteuer des Tages")
 render_adventure_details(todays_adventure, expanded=True)
 
 st.divider()
-st.header("🗺 Alle Mikroabenteuer / All Micro Adventures")
+st.header("🗺 Alle Mikroabenteuer")
 render_adventure_table(adventures)
