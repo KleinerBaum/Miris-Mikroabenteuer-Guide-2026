@@ -1,0 +1,1 @@
+"""Mikroabenteuer package."""

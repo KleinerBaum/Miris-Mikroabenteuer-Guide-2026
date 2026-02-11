@@ -1,0 +1,42 @@
+import streamlit as st
+
+from mikroabenteuer.config import DEFAULT_REISEAPOTHEKE
+from mikroabenteuer.models import Adventure
+
+
+def render_adventure_details(adventure: Adventure, expanded: bool = False) -> None:
+    st.subheader(adventure.title)
+    st.markdown(f"**Ort / Location:** {adventure.location}")
+    st.markdown(f"**Dauer / Duration:** {adventure.duration}")
+
+    st.markdown("### ✨ Tagesmotto / Daily Motto")
+    st.info(adventure.intro_quote)
+
+    st.markdown("### 🧭 Die Idee / The Idea")
+    st.write(adventure.description)
+
+    st.markdown("### 🎒 Vorbereitung / Preparation")
+    for item in adventure.preparation:
+        st.markdown(f"- {item}")
+
+    st.markdown("### 🚶 Ablauf / Steps")
+    for step in adventure.steps:
+        st.markdown(f"- {step}")
+
+    st.markdown("### 🧠 Warum gut für Carla? / Why it helps Carla")
+    st.success(adventure.child_benefit)
+
+    st.markdown("### 💡 Carla-Tipp des Tages / Carla's Tip of the Day")
+    st.warning(adventure.carla_tip)
+
+    st.markdown("### ⚠ Sicherheit / Safety")
+    for risk in adventure.safety.risks:
+        st.markdown(f"- **Risiko / Risk:** {risk}")
+
+    st.markdown("**Prävention / Prevention:**")
+    for prevention_item in adventure.safety.prevention:
+        st.markdown(f"- {prevention_item}")
+
+    st.markdown("### 🩹 Mini-Reiseapotheke / Mini Travel First-Aid Kit")
+    for item in DEFAULT_REISEAPOTHEKE:
+        st.markdown(f"- {item}")
