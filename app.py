@@ -368,7 +368,7 @@ todays_adventure = adventures[hash(today) % len(adventures)]
 
 st.divider()
 st.header("📅 Abenteuer des Tages / Adventure of the day")
-render_adventure_details(todays_adventure, expanded=True)
+render_adventure_details(todays_adventure, expanded=True, key_prefix="today")
 
 st.divider()
 st.header("🗺 Alternative Mikroabenteuer / Alternative micro-adventures")
