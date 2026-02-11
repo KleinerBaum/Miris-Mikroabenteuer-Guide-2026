@@ -14,6 +14,11 @@ api_key = "<dein-key>"
 Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` gesetzt, falls die Umgebungsvariable fehlt.
 
 ## Features
+- Conversion-orientierte, zweisprachige Landingpage (DE/EN) im Funnel-Aufbau: Aufmerksamkeit → Relevanz → Vertrauen → Auswahl → Handlung
+- Hero-Sektion mit klaren CTA-Pfaden („Jetzt Mikroabenteuer entdecken“, „Nach Jahreszeit filtern")
+- Problem-/Lösungssektion, Mikroabenteuer-Erklärung, Wirkungsargumentation und 3-Schritte-Startformel
+- Filterbare Abenteuerkarten nach Jahreszeit, Dauer, Alter und Stimmung inkl. „Details ansehen“-CTA je Karte
+- Lead-Element für kostenlose Ideenliste und emotionaler Abschluss-CTA für Wiederkehr/Start
 - Wetterbasierte Abenteuerauswahl für Düsseldorf (Open-Meteo)
 - Täglicher Scheduler (`08:20`, Europe/Berlin) für Abenteuer-Mail
 - RFC-konformer ICS-Builder für Kalendereinladungen
@@ -81,6 +86,9 @@ pip install -r requirements.txt
 ```bash
 streamlit run app.py
 ```
+
+## Landingpage-Screenshot
+- Aktuelle Funnel-Landingpage: `browser:/tmp/codex_browser_invocations/405e90d1146ed5ee/artifacts/landingpage-funnel-firefox.png`
 
 ## Tests
 ```bash
