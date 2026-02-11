@@ -16,6 +16,8 @@ st.set_page_config(
     layout="wide",
 )
 
+st.title("🌿 Mikroabenteuer mit Carla")
+st.caption("Kleine Abenteuer. Große Erinnerungen.")
 
 def inject_custom_styles(background_path: Path) -> None:
     """Inject a light, readable theme with a custom background image."""
@@ -86,9 +88,9 @@ today = date.today().isoformat()
 todays_adventure = adventures[hash(today) % len(adventures)]
 
 st.divider()
-st.header("📅 Abenteuer des Tages / Adventure of the Day")
+st.header("📅 Abenteuer des Tages")
 render_adventure_details(todays_adventure, expanded=True)
 
 st.divider()
-st.header("🗺 Alle Mikroabenteuer / All Micro Adventures")
+st.header("🗺 Alle Mikroabenteuer")
 render_adventure_table(adventures)

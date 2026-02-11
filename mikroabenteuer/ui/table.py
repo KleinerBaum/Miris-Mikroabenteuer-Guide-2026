@@ -11,9 +11,9 @@ def render_adventure_table(adventures: List[Adventure]) -> None:
     df = pd.DataFrame(
         [
             {
-                "Titel / Title": adventure.title,
-                "Ort / Location": adventure.location,
-                "Dauer / Duration": adventure.duration,
+                "Titel": adventure.title,
+                "Ort": adventure.location,
+                "Dauer": adventure.duration,
             }
             for adventure in adventures
         ]

@@ -2,7 +2,7 @@
 
 Eine lokale Streamlit-MVP-App für "Mikroabenteuer mit Carla".
 
-## Konfiguration / Configuration
+## Konfiguration
 - OpenAI API-Schlüssel wird bevorzugt aus `OPENAI_API_KEY` gelesen.
 - Fallback: Streamlit Secrets in `.streamlit/secrets.toml` im Format:
 
