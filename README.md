@@ -98,6 +98,8 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Variante-A-Importlayout (`src` als kanonischer Runtime-Root) vervollständigt: fehlende `src`-Module `openai_settings.py` und `retry.py` wurden ergänzt, damit `src.mikroabenteuer.*` ohne Fallback auf das Root-Paket importierbar bleibt.
 - `ActivitySearchCriteria` wurde um `max_suggestions` + `to_llm_params()` erweitert; ergänzende Ergebnis-/Wettermodelle (`ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) sind nun kanonisch in `src/mikroabenteuer/models.py` definiert.
 - `to_llm_params()` liefert nun zusätzlich `available_minutes`; `ActivitySuggestion` deckt den Orchestrator-Vertrag mit `end_time`, `location` und `description` vollständig ab.
+- Paketstruktur final vereinheitlicht: `src` ist jetzt explizit als Top-Level-Paket markiert (`src/__init__.py`), damit `src.mikroabenteuer.*` der eindeutige, kanonische Importpfad bleibt.
+- Neuer Strukturtest stellt sicher, dass alle `from .xyz import ...`-Referenzen in `src/mikroabenteuer/` auf tatsächlich vorhandene Module zeigen und keine Legacy-Root-Imports (`mikroabenteuer.*`) mehr in diesem Paket verwendet werden.
 
 ## Daily Scheduler aktivieren
 Der Scheduler wird nur gestartet, wenn die Umgebungsvariable gesetzt ist:
