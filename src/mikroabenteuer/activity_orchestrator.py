@@ -6,7 +6,7 @@ from typing import Callable, Literal
 
 import httpx
 
-from mikroabenteuer.models import (
+from src.mikroabenteuer.models import (
     ActivitySearchCriteria,
     ActivitySuggestion,
     ActivitySuggestionResult,
@@ -14,11 +14,11 @@ from mikroabenteuer.models import (
     WeatherCondition,
     WeatherSummary,
 )
-from mikroabenteuer.openai_activity_service import suggest_activities
+from src.mikroabenteuer.openai_activity_service import suggest_activities
 
 # Optional: reuse existing retry helper if present
 try:
-    from mikroabenteuer.retry import retry_with_backoff
+    from src.mikroabenteuer.retry import retry_with_backoff
 except Exception:  # pragma: no cover
 
     def retry_with_backoff(fn, *args, **kwargs):
