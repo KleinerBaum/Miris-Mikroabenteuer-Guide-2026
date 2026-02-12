@@ -135,3 +135,10 @@ mypy .
 - Nur minimale OAuth-Scopes verwenden (`calendar.events`, `calendar.readonly`, `gmail.send`)
 - Keine API-Keys oder PII loggen
 - Externe Requests mit Timeouts + Backoff absichern
+
+## Neu: Vollständige `src/mikroabenteuer`-Integration in der Landing-Page
+- Die Landing-Page nutzt jetzt direkt die neuen Module aus `src/mikroabenteuer` (Konfiguration, Seed-Daten, Wetter, Recommender, OpenAI-Generierung).
+- Daily-Ansicht unterstützt Export als JSON, Markdown und ICS.
+- Optionaler Automation-Block erlaubt das manuelle Auslösen des Daily-Jobs (inkl. optionalem Gmail-/Calendar-Flow bei vorhandenen OAuth-Credentials).
+- Bei KI-Generierung werden verständliche Fehlhinweise und automatische Wiederholversuche mit exponentiellem Backoff verwendet.
+- Neue UI-Texte sind weiterhin DE/EN gehalten.

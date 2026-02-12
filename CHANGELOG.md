@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Die Landing-Page wurde auf die neuen Module unter `src/mikroabenteuer` umgestellt (Config, Seed, Wetter, Recommender, OpenAI-Planung) und konsistent integriert.
+- EN: The landing page now uses the new modules under `src/mikroabenteuer` (config, seed, weather, recommender, OpenAI planning) in a consistent integration.
+- DE: Export-Flow erweitert: Tagesplan kann jetzt direkt als JSON, Markdown und ICS heruntergeladen werden.
+- EN: Export flow extended: the daily plan can now be downloaded directly as JSON, Markdown, and ICS.
+- DE: Neuer optionaler Automation-Bereich zum manuellen Auslösen des Daily-Jobs (inkl. optionalem Gmail-/Google-Calendar-Versand bei konfigurierten Credentials).
+- EN: Added an optional automation area to manually run the daily job (including optional Gmail/Google Calendar delivery when credentials are configured).
+- DE: Für KI-Textgenerierung wurden in der UI verständliche Fehlhinweise plus Retry mit exponentiellem Backoff ergänzt.
+- EN: For AI text generation, the UI now provides clear error hints plus retry with exponential backoff.
 - DE: Alle relevanten UI- und Mail-Texte wurden auf die exklusive Zielgruppe „Miri (Mutter) und Carla (Tochter)" angepasst.
 - EN: All relevant UI and email texts were adjusted for the exclusive audience “Miri (mother) and Carla (daughter)”.
 - DE: Die Landingpage wurde visuell entschlackt und neu strukturiert: kompakter Hero, klarer 3-Schritte-Einstieg, Fokus auf Filter/Karten und reduzierter Abschlussbereich.
@@ -50,6 +58,7 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- Landing-Page integriert jetzt die neue `src`-Architektur inklusive Exporte (JSON/Markdown/ICS) und optionaler Daily-Automation.
 - App-Texte adressieren jetzt durchgehend Miri und Carla statt allgemein Familien.
 - Landingpage ist jetzt deutlich übersichtlicher und führt Nutzer:innen mit weniger Ablenkung schneller zur Abenteuerauswahl.
 - OAuth2-Setup für Kalender + Gmail ist nun vorbereitet (Consent-Screen-Konfiguration, Desktop-Client-Datei in `secrets/`, lokale Token-Erzeugung).

@@ -28,11 +28,25 @@ class Theme:
 
 THEMES: List[Theme] = [
     Theme("nature", {"DE": "Natur", "EN": "Nature"}, ["Natur"]),
-    Theme("movement", {"DE": "Bewegung", "EN": "Movement"}, ["Bewegung", "Motorik", "Abenteuer"]),
-    Theme("creative", {"DE": "Kreativ", "EN": "Creative"}, ["Kreativ", "Musik", "Sprache"]),
+    Theme(
+        "movement",
+        {"DE": "Bewegung", "EN": "Movement"},
+        ["Bewegung", "Motorik", "Abenteuer"],
+    ),
+    Theme(
+        "creative", {"DE": "Kreativ", "EN": "Creative"}, ["Kreativ", "Musik", "Sprache"]
+    ),
     Theme("learning", {"DE": "Lernen", "EN": "Learning"}, ["Lernen"]),
-    Theme("mindfulness", {"DE": "Achtsamkeit", "EN": "Mindfulness"}, ["Achtsamkeit", "Ruhig"]),
-    Theme("social", {"DE": "Sozial", "EN": "Social"}, ["Sozial", "Werte", "Bonding", "Alltag"]),
+    Theme(
+        "mindfulness",
+        {"DE": "Achtsamkeit", "EN": "Mindfulness"},
+        ["Achtsamkeit", "Ruhig"],
+    ),
+    Theme(
+        "social",
+        {"DE": "Sozial", "EN": "Social"},
+        ["Sozial", "Werte", "Bonding", "Alltag"],
+    ),
     Theme("water", {"DE": "Wasser", "EN": "Water"}, ["Wasser"]),
     Theme("rain", {"DE": "Regen", "EN": "Rain"}, ["Regen"]),
     Theme("wind", {"DE": "Wind", "EN": "Wind"}, ["Wind"]),

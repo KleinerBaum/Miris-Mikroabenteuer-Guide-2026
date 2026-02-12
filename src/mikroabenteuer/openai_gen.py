@@ -1,7 +1,6 @@
 # src/mikroabenteuer/openai_gen.py
 from __future__ import annotations
 
-from dataclasses import asdict
 from typing import Optional
 
 from .config import AppConfig
@@ -9,17 +8,25 @@ from .models import ActivitySearchCriteria, MicroAdventure
 from .weather import WeatherSummary
 
 
-def _fallback_daily_markdown(adventure: MicroAdventure, criteria: ActivitySearchCriteria, weather: Optional[WeatherSummary]) -> str:
+def _fallback_daily_markdown(
+    adventure: MicroAdventure,
+    criteria: ActivitySearchCriteria,
+    weather: Optional[WeatherSummary],
+) -> str:
     weather_line = "Wetter: (nicht geladen)"
     if weather:
         parts = []
         if weather.temperature_max_c is not None:
             parts.append(f"max {weather.temperature_max_c:.0f}°C")
         if weather.precipitation_probability_max is not None:
-            parts.append(f"Regenwahrscheinlichkeit {weather.precipitation_probability_max:.0f}%")
+            parts.append(
+                f"Regenwahrscheinlichkeit {weather.precipitation_probability_max:.0f}%"
+            )
         if weather.windspeed_max_kmh is not None:
             parts.append(f"Wind {weather.windspeed_max_kmh:.0f} km/h")
-        weather_line = "Wetter: " + (", ".join(parts) if parts else ", ".join(weather.derived_tags))
+        weather_line = "Wetter: " + (
+            ", ".join(parts) if parts else ", ".join(weather.derived_tags)
+        )
 
     return f"""# Mikroabenteuer des Tages 🌿
 
@@ -119,7 +126,10 @@ Abenteuer‑Seed:
         resp = client.responses.create(
             model=cfg.openai_model,
             input=[
-                {"role": "developer", "content": "Du bist ein zuverlässiger, vorsichtiger Outdoor‑Planer für Kleinkinder. Keine erfundenen Fakten."},
+                {
+                    "role": "developer",
+                    "content": "Du bist ein zuverlässiger, vorsichtiger Outdoor‑Planer für Kleinkinder. Keine erfundenen Fakten.",
+                },
                 {"role": "user", "content": prompt},
             ],
             tools=tools,

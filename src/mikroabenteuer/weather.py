@@ -35,9 +35,16 @@ def derive_weather_tags(
 ) -> List[str]:
     tags: List[str] = []
 
-    if precipitation_probability_max is not None and precipitation_probability_max >= 40:
+    if (
+        precipitation_probability_max is not None
+        and precipitation_probability_max >= 40
+    ):
         tags.append("Regen")
-    if precipitation_sum_mm is not None and precipitation_sum_mm >= 0.5 and "Regen" not in tags:
+    if (
+        precipitation_sum_mm is not None
+        and precipitation_sum_mm >= 0.5
+        and "Regen" not in tags
+    ):
         tags.append("Regen")
     if windspeed_max_kmh is not None and windspeed_max_kmh >= 25:
         tags.append("Wind")
@@ -53,7 +60,9 @@ def derive_weather_tags(
     return tags
 
 
-def fetch_weather_for_day(day: date, timezone: str = DEFAULT_TIMEZONE) -> WeatherSummary:
+def fetch_weather_for_day(
+    day: date, timezone: str = DEFAULT_TIMEZONE
+) -> WeatherSummary:
     """
     Fetch daily forecast from Open-Meteo for Düsseldorf.
     No API key required.

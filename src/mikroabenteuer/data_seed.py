@@ -460,17 +460,33 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Bonus: Riesenblasen oder zwei auf einmal (wenn möglich).",
                 "Abschluss: 1 letzte Blase + High‑Five, bevor Müdigkeit kommt.",
             ],
-            preparation=["Seifenblasen einpacken.", "Kleidung: die auch klebrig werden darf."],
+            preparation=[
+                "Seifenblasen einpacken.",
+                "Kleidung: die auch klebrig werden darf.",
+            ],
             packing_list=["Seifenblasenlösung + Puster", "Feuchttücher", "Wasser"],
-            execution_tips=["Auf Gras pusten (weniger Rutschgefahr).", "Kurz und fröhlich beenden – nicht bis zum Kippmoment."],
-            variations=["Abendsonnen‑Blasen (sehr schön).", "Blasen zählen: eins, zwei, viele."],
-            toddler_benefits=["Auge‑Hand‑Koordination", "Atemkontrolle (spielerisch)", "Frustrationstoleranz (Blasen platzen)"],
+            execution_tips=[
+                "Auf Gras pusten (weniger Rutschgefahr).",
+                "Kurz und fröhlich beenden – nicht bis zum Kippmoment.",
+            ],
+            variations=[
+                "Abendsonnen‑Blasen (sehr schön).",
+                "Blasen zählen: eins, zwei, viele.",
+            ],
+            toddler_benefits=[
+                "Auge‑Hand‑Koordination",
+                "Atemkontrolle (spielerisch)",
+                "Frustrationstoleranz (Blasen platzen)",
+            ],
             carla_tip="Wenn Carla frustriert ist: „Die Blase war schüchtern – wir probieren’s zusammen.“",
             risks=["Seifenlösung im Auge", "Rutschgefahr auf glattem Untergrund"],
-            mitigations=["Auf Gras bleiben", "Wasser/Feuchttuch zum Spülen", "Keine Seifenpfützen auf Asphalt"],
+            mitigations=[
+                "Auf Gras bleiben",
+                "Wasser/Feuchttuch zum Spülen",
+                "Keine Seifenpfützen auf Asphalt",
+            ],
             tags=["Bewegung", "Kreativ", "Ruhig"],
         ),
-
         # 2) Enten-Zählerei am Wasser
         MicroAdventure(
             slug="enten-zaehlerei",
@@ -489,17 +505,31 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Kreise im Wasser beobachten: Was macht Wellen?",
                 "Abschluss: Enten winken + Hände reinigen (falls Kontakt zu Geländern).",
             ],
-            preparation=["Wasser‑Regel vorher: Carla bleibt bei dir (Handkontakt möglich)."],
+            preparation=[
+                "Wasser‑Regel vorher: Carla bleibt bei dir (Handkontakt möglich)."
+            ],
             packing_list=["Wasser", "Feuchttücher"],
-            execution_tips=["Nicht füttern.", "Lieber kurze Beobachtungs‑Slots statt zu lange sitzen."],
-            variations=["Vogel‑Farben suchen (braun, weiß, schwarz).", "Spuren‑Suche am Ufer (mit Abstand)."],
-            toddler_benefits=["Fokus & Achtsamkeit", "Sprache (groß/klein, schnell/langsam)", "Selbstregulation durch ruhiges Schauen"],
+            execution_tips=[
+                "Nicht füttern.",
+                "Lieber kurze Beobachtungs‑Slots statt zu lange sitzen.",
+            ],
+            variations=[
+                "Vogel‑Farben suchen (braun, weiß, schwarz).",
+                "Spuren‑Suche am Ufer (mit Abstand).",
+            ],
+            toddler_benefits=[
+                "Fokus & Achtsamkeit",
+                "Sprache (groß/klein, schnell/langsam)",
+                "Selbstregulation durch ruhiges Schauen",
+            ],
             carla_tip="Sag nicht „Gefahr“, sag: „Wir bleiben hier zusammen.“",
             risks=["Sturz ins Wasser (Hauptthema)", "Rutschige Stellen am Ufer"],
-            mitigations=["1‑Armlängen‑Regel + Carla innen, du außen", "Rutschige Kanten meiden"],
+            mitigations=[
+                "1‑Armlängen‑Regel + Carla innen, du außen",
+                "Rutschige Kanten meiden",
+            ],
             tags=["Natur", "Ruhig", "Lernen"],
         ),
-
         # 3) Blätter-Safari
         MicroAdventure(
             slug="blaetter-safari",
@@ -519,16 +549,26 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Abschluss: Alles zurückgeben oder 1–2 Blätter zum Basteln mitnehmen.",
             ],
             preparation=["Bei Mundphase: nur große Blätter, kein Kleinkram."],
-            packing_list=["Feuchttücher", "Wasser", "Optional: kleine Tüte für 1–2 Blätter"],
-            execution_tips=["Nicht reißen – nur Bodenfunde.", "Erfolg = Finden, nicht Perfektion."],
+            packing_list=[
+                "Feuchttücher",
+                "Wasser",
+                "Optional: kleine Tüte für 1–2 Blätter",
+            ],
+            execution_tips=[
+                "Nicht reißen – nur Bodenfunde.",
+                "Erfolg = Finden, nicht Perfektion.",
+            ],
             variations=["Herbst: Farben‑Safari", "Winter: Zapfen‑Safari statt Blätter"],
-            toddler_benefits=["Kategorisieren", "Wortschatz (rau/glatt, groß/klein)", "Selbstwirksamkeit (ich finde etwas)"],
+            toddler_benefits=[
+                "Kategorisieren",
+                "Wortschatz (rau/glatt, groß/klein)",
+                "Selbstwirksamkeit (ich finde etwas)",
+            ],
             carla_tip="Wenn Carla alles umsortiert: „Neue Version!“ – nicht korrigieren.",
             risks=["Schmutzige Hände", "Kleinteile im Mund (bei Samen/kleinen Teilen)"],
             mitigations=["Feuchttücher", "Große Funde bevorzugen"],
             tags=["Natur", "Ruhig", "Kreativ"],
         ),
-
         # 4) Farben-Fotojagd
         MicroAdventure(
             slug="farben-fotojagd",
@@ -549,15 +589,24 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Handy‑Regel: Fotos nur im Stehen."],
             packing_list=["Wasser", "Optional: Handy"],
-            execution_tips=["Nicht korrigieren, wenn Carla kreativ ist.", "Lieber 2 Farben fertig als 4 mit Stress."],
-            variations=["Indoor‑Farbenjagd bei Regen", "Formen + Farben kombinieren (Profi)"],
-            toddler_benefits=["Visuelle Suche", "Sprache (Farben & Adjektive)", "Gemeinsame Aufmerksamkeit"],
+            execution_tips=[
+                "Nicht korrigieren, wenn Carla kreativ ist.",
+                "Lieber 2 Farben fertig als 4 mit Stress.",
+            ],
+            variations=[
+                "Indoor‑Farbenjagd bei Regen",
+                "Formen + Farben kombinieren (Profi)",
+            ],
+            toddler_benefits=[
+                "Visuelle Suche",
+                "Sprache (Farben & Adjektive)",
+                "Gemeinsame Aufmerksamkeit",
+            ],
             carla_tip="Wenn Carla keine Lust hat: nur 1 Farbe („Heute ist alles grün“).",
             risks=["Ablenkung durch Handy", "Stolpern beim Suchen im Laufen"],
             mitigations=["Stehenbleiben‑Regel", "Handy kurz halten"],
             tags=["Lernen", "Ruhig", "Kreativ"],
         ),
-
         # 5) Geräusche-Bingo
         MicroAdventure(
             slug="geraeusche-bingo",
@@ -578,15 +627,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Erwartung klein: 3 Geräusche reichen."],
             packing_list=["Wasser"],
-            execution_tips=["Nicht zu lange still sitzen – Bewegung einbauen.", "Wenn es laut ist: Geräusche vergleichen statt suchen."],
+            execution_tips=[
+                "Nicht zu lange still sitzen – Bewegung einbauen.",
+                "Wenn es laut ist: Geräusche vergleichen statt suchen.",
+            ],
             variations=["Regen‑Bingo", "Wind‑Bingo"],
-            toddler_benefits=["Auditive Aufmerksamkeit", "Sprache & Rhythmus", "Selbstregulation"],
+            toddler_benefits=[
+                "Auditive Aufmerksamkeit",
+                "Sprache & Rhythmus",
+                "Selbstregulation",
+            ],
             carla_tip="Wenn Carla unruhig wird: Geräusche‑Bingo im Gehen machen.",
             risks=["Überreizung bei lauter Umgebung"],
             mitigations=["Ruhige Spots wählen", "Kurze Slots"],
             tags=["Ruhig", "Lernen", "Achtsamkeit"],
         ),
-
         # 6) Mini-Picknick
         MicroAdventure(
             slug="mini-picknick",
@@ -605,17 +660,31 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Mini‑Spiel: 3 Dinge zeigen (Baum, Wolke, Vogel).",
                 "Abschluss: Müll‑Check + Hände sauber.",
             ],
-            preparation=["Snacks kleinkind‑sicher vorbereiten (Trauben schneiden etc.)."],
+            preparation=[
+                "Snacks kleinkind‑sicher vorbereiten (Trauben schneiden etc.)."
+            ],
             packing_list=["Decke", "Wasser", "Snackbox", "Feuchttücher"],
-            execution_tips=["Besser 35 Minuten gut als 90 Minuten klebrig.", "Wenn Carla nicht sitzen will: Picknick auf 2 Minuten reduzieren."],
-            variations=["Thermos‑Ritual im Winter", "Blätter‑Snack (nur anschauen) im Herbst"],
-            toddler_benefits=["Selbstregulation (Pause üben)", "Rituale (Start/Ende)", "Autonomie (auswählen/helfen)"],
+            execution_tips=[
+                "Besser 35 Minuten gut als 90 Minuten klebrig.",
+                "Wenn Carla nicht sitzen will: Picknick auf 2 Minuten reduzieren.",
+            ],
+            variations=[
+                "Thermos‑Ritual im Winter",
+                "Blätter‑Snack (nur anschauen) im Herbst",
+            ],
+            toddler_benefits=[
+                "Selbstregulation (Pause üben)",
+                "Rituale (Start/Ende)",
+                "Autonomie (auswählen/helfen)",
+            ],
             carla_tip="Wenn Carla nicht sitzt: Aufgabe geben („Du bist Kellnerin“).",
             risks=["Verschlucken bei Snacks", "Sonne/Überhitzung"],
-            mitigations=["Nur altersgerechte Snacks", "Schatten + Wasser + kurze Slots"],
+            mitigations=[
+                "Nur altersgerechte Snacks",
+                "Schatten + Wasser + kurze Slots",
+            ],
             tags=["Ruhig", "Bonding", "Alltag"],
         ),
-
         # 7) Pfützen-Labor
         MicroAdventure(
             slug="pfuetzen-labor",
@@ -636,15 +705,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Ersatzsocken einpacken (Game‑Changer)."],
             packing_list=["Stiefel", "Regenhose", "Ersatzsocken", "Feuchttücher"],
-            execution_tips=["Kurz halten – Auskühlung killt die Stimmung.", "Keine Straßenpfützen, kein Ölfilm."],
+            execution_tips=[
+                "Kurz halten – Auskühlung killt die Stimmung.",
+                "Keine Straßenpfützen, kein Ölfilm.",
+            ],
             variations=["Regen‑Orchester (wenn Carla nicht springen will)."],
             toddler_benefits=["Ursache/Wirkung", "Grobmotorik", "Muttraining"],
             carla_tip="Wenn Kleidung nervt: 2‑Minuten‑Version – einmal gucken, einmal platschen, fertig.",
             risks=["Rutschen", "Auskühlung", "Schmutzwasser"],
-            mitigations=["Griffiger Untergrund, kein Rennen", "Kurze Dauer + warm anziehen", "Hände reinigen"],
+            mitigations=[
+                "Griffiger Untergrund, kein Rennen",
+                "Kurze Dauer + warm anziehen",
+                "Hände reinigen",
+            ],
             tags=["Regen", "Bewegung", "Lernen"],
         ),
-
         # 8) Schatten-Jagd
         MicroAdventure(
             slug="schatten-jagd",
@@ -665,15 +740,20 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Sonnencreme/Cap bei starkem Licht."],
             packing_list=["Wasser", "Optional: Cap"],
-            execution_tips=["Rennen nur auf übersichtlichen Strecken.", "Nicht auf Radwegen spielen."],
+            execution_tips=[
+                "Rennen nur auf übersichtlichen Strecken.",
+                "Nicht auf Radwegen spielen.",
+            ],
             variations=["Wenn bewölkt: Formen‑Schnitzeljagd statt Schatten."],
             toddler_benefits=["Raumwahrnehmung", "Körpergefühl", "Humor & Bindung"],
             carla_tip="Wenn Carla Regeln nicht mag: mach’s zum Rollenspiel („Schatten ist ein Tier“).",
             risks=["Stolpern beim Rennen", "Sonne/Hitze"],
-            mitigations=["Kurze Rennstrecken, klare Endpunkte", "Schattenpausen + Wasser"],
+            mitigations=[
+                "Kurze Rennstrecken, klare Endpunkte",
+                "Schattenpausen + Wasser",
+            ],
             tags=["Bewegung", "Spaß", "Sonne"],
         ),
-
         # 9) Wolkenkino
         MicroAdventure(
             slug="wolkenkino",
@@ -694,15 +774,20 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Nicht zu lange – 25–35 Minuten sind oft perfekt."],
             packing_list=["Optional: Decke", "Wasser"],
-            execution_tips=["Wenn Carla nicht liegen will: Wolkenkino im Stehen + kurze Stopps."],
+            execution_tips=[
+                "Wenn Carla nicht liegen will: Wolkenkino im Stehen + kurze Stopps."
+            ],
             variations=["Wind‑Modus: Wolkenrennen („welche ist schneller?“)"],
-            toddler_benefits=["Sprache & Fantasie", "Gemeinsame Aufmerksamkeit", "Runterregulation"],
+            toddler_benefits=[
+                "Sprache & Fantasie",
+                "Gemeinsame Aufmerksamkeit",
+                "Runterregulation",
+            ],
             carla_tip="Wenn Carla nur Quatsch macht: mitgehen – Fantasie ist das Ziel.",
             risks=["Sonne/Überhitzung", "Insekten (Wiese)"],
             mitigations=["Schattenpausen", "Kurze Dauer"],
             tags=["Ruhig", "Kreativ", "Achtsamkeit"],
         ),
-
         # 10) Spielplatz-Tour
         MicroAdventure(
             slug="spielplatz-tour",
@@ -723,15 +808,25 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Vorab ankündigen: Nach Mission 3 gehen wir (Transitions)."],
             packing_list=["Wasser", "Feuchttücher", "Optional: kleiner Snack"],
-            execution_tips=["Missionen kurz halten, Pausen einbauen.", "Bei Nässe Geräte prüfen oder Missionen anpassen."],
+            execution_tips=[
+                "Missionen kurz halten, Pausen einbauen.",
+                "Bei Nässe Geräte prüfen oder Missionen anpassen.",
+            ],
             variations=["Weg‑Missionen statt Spielplatz, wenn Carla nicht hin will."],
-            toddler_benefits=["Grobmotorik", "Risikokompetenz", "Sozialkompetenz (warten/teilen)"],
+            toddler_benefits=[
+                "Grobmotorik",
+                "Risikokompetenz",
+                "Sozialkompetenz (warten/teilen)",
+            ],
             carla_tip="Bei ‚ich will nicht weg‘: Countdown + Abschiedsritual („Spielplatz winken“).",
             risks=["Sturz", "Sand im Auge", "Konflikte mit anderen Kindern"],
-            mitigations=["Tempo reduzieren, klare Sätze", "Wasser/Feuchttuch", "Praktisch moderieren („du zuerst, dann …“)"],
+            mitigations=[
+                "Tempo reduzieren, klare Sätze",
+                "Wasser/Feuchttuch",
+                "Praktisch moderieren („du zuerst, dann …“)",
+            ],
             tags=["Bewegung", "Sozial", "Spielplatz"],
         ),
-
         # 11) Stein-Mandala
         MicroAdventure(
             slug="steine-mandala",
@@ -752,15 +847,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Bei Mundphase: lieber Blätter/Zapfen statt Steine."],
             packing_list=["Feuchttücher", "Optional: kleines Tuch als Atelier"],
-            execution_tips=["Steine bleiben am Boden.", "Wenn geworfen wird: Spiel wechseln."],
+            execution_tips=[
+                "Steine bleiben am Boden.",
+                "Wenn geworfen wird: Spiel wechseln.",
+            ],
             variations=["Herbst: Blätter‑Mandala", "Winter: Stöcke auf Schnee (kurz)"],
-            toddler_benefits=["Feinmotorik", "Planung & Kognition", "Frustrationstoleranz"],
+            toddler_benefits=[
+                "Feinmotorik",
+                "Planung & Kognition",
+                "Frustrationstoleranz",
+            ],
             carla_tip="Wenn Carla alles zerstört: „Oh! Remix!“ – nicht korrigieren.",
             risks=["Verschlucken (kleine Steine)", "Werfen"],
             mitigations=["Nur große Steine", "Regel + sofortiger Wechsel bei Werfen"],
             tags=["Ruhig", "Kreativ", "Feinmotorik"],
         ),
-
         # 12) Balancier-Pfad
         MicroAdventure(
             slug="balancierpfad",
@@ -781,15 +882,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Schuhe mit Grip.", "Bei Nässe lieber auslassen."],
             packing_list=["Wasser"],
-            execution_tips=["Kurze Etappen, viele kleine Erfolge.", "Stopp‑Regel üben."],
+            execution_tips=[
+                "Kurze Etappen, viele kleine Erfolge.",
+                "Stopp‑Regel üben.",
+            ],
             variations=["Indoor: Tape‑Linie im Flur (Schlechtwetter)."],
-            toddler_benefits=["Vestibulärsystem (Gleichgewicht)", "Propriozeption", "Selbstvertrauen"],
+            toddler_benefits=[
+                "Vestibulärsystem (Gleichgewicht)",
+                "Propriozeption",
+                "Selbstvertrauen",
+            ],
             carla_tip="Wenn Carla nicht will: du balancierst, Carla ist Punkte‑Richterin.",
             risks=["Sturz", "Rutschgefahr bei Nässe"],
             mitigations=["Niedrige Elemente, Handkontakt", "Bei Nässe Spiel wechseln"],
             tags=["Bewegung", "Fokus", "Motorik"],
         ),
-
         # 13) Mini-Foto-Geschichte
         MicroAdventure(
             slug="foto-geschichte",
@@ -809,7 +916,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Foto‑Tokens: Carla bekommt z. B. 3 Foto‑Drück‑Chancen."],
             packing_list=["Optional: Handy", "Wasser"],
-            execution_tips=["Handy zwischen Stationen weg.", "Keine fremden Personen/Kinder erkennbar fotografieren."],
+            execution_tips=[
+                "Handy zwischen Stationen weg.",
+                "Keine fremden Personen/Kinder erkennbar fotografieren.",
+            ],
             variations=["3‑Foto‑Story statt 6", "Indoor‑Story bei Regen"],
             toddler_benefits=["Narratives Denken", "Gedächtnisabruf", "Sprache"],
             carla_tip="Beste Frage: „Und dann?“ (statt „Was ist das?“).",
@@ -817,7 +927,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Fotos nur im Stehen, nicht beim Laufen"],
             tags=["Kreativ", "Sprache", "Ruhig"],
         ),
-
         # 14) Duft-Memo
         MicroAdventure(
             slug="duft-memo",
@@ -837,7 +946,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Bei Allergie/Empfindlichkeit: kurz halten, Blüten optional."],
             packing_list=["Feuchttücher", "Wasser"],
-            execution_tips=["Nur bekannte, harmlose Dinge riechen.", "Wenn Carla unruhig wird: in Bewegung weiterspielen."],
+            execution_tips=[
+                "Nur bekannte, harmlose Dinge riechen.",
+                "Wenn Carla unruhig wird: in Bewegung weiterspielen.",
+            ],
             variations=["Fühl‑Memo (glatt/rau/weich)"],
             toddler_benefits=["Sensorik", "Sprache (Adjektive)", "Achtsamkeit"],
             carla_tip="Wenn Carla überall „Pups“ riecht: nicht korrigieren – Humor nutzen.",
@@ -845,7 +957,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Kurz halten, Hände reinigen", "Blüten nur aus Distanz"],
             tags=["Achtsamkeit", "Ruhig", "Natur"],
         ),
-
         # 15) Bank-Hopping
         MicroAdventure(
             slug="bank-hopping",
@@ -864,15 +975,24 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Vorab Limit setzen (z. B. 4 Bänke)."],
             packing_list=["Wasser", "Optional: Snack"],
-            execution_tips=["Bank nah am Radweg? Lieber weiter.", "Nicht zu viel Stationen – sonst Endlosmodus."],
+            execution_tips=[
+                "Bank nah am Radweg? Lieber weiter.",
+                "Nicht zu viel Stationen – sonst Endlosmodus.",
+            ],
             variations=["Unterstände‑Hopping bei Regen"],
-            toddler_benefits=["Transitionskompetenz", "Strukturgefühl", "Autonomie (Auswahl)"],
+            toddler_benefits=[
+                "Transitionskompetenz",
+                "Strukturgefühl",
+                "Autonomie (Auswahl)",
+            ],
             carla_tip="Wenn Carla nicht weiterwill: U‑Boot‑Story („Wir tauchen zur nächsten Bank auf“).",
             risks=["Bank nahe Radweg", "Zu lange sitzen im Winter"],
-            mitigations=["Ruhige Bänke wählen", "Im Winter Bank nur als kurzer Checkpoint"],
+            mitigations=[
+                "Ruhige Bänke wählen",
+                "Im Winter Bank nur als kurzer Checkpoint",
+            ],
             tags=["Alltag", "Ruhig", "Sozial"],
         ),
-
         # 16) Formen-Schnitzeljagd
         MicroAdventure(
             slug="formen-schnitzeljagd",
@@ -892,7 +1012,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Dreieck ist optional – kann selten sein."],
             packing_list=["Wasser"],
-            execution_tips=["Erst stehen, dann suchen.", "Wenn Dreieck fehlt: „seltenes Tier“ draus machen."],
+            execution_tips=[
+                "Erst stehen, dann suchen.",
+                "Wenn Dreieck fehlt: „seltenes Tier“ draus machen.",
+            ],
             variations=["Nur 1 Form („Heute nur Kreise“)."],
             toddler_benefits=["Visuelle Wahrnehmung", "Kategorisieren", "Sprache"],
             carla_tip="„Ungefähr rund“ ist korrekt. Kein Korrigieren nötig.",
@@ -900,7 +1023,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Stehenbleiben‑Regel", "Ruhige Wege"],
             tags=["Lernen", "Ruhig", "Fokus"],
         ),
-
         # 17) Mini-Botaniker
         MicroAdventure(
             slug="mini-botaniker",
@@ -921,7 +1043,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Grundregel: Nichts in den Mund, nichts pflücken."],
             packing_list=["Feuchttücher", "Wasser"],
-            execution_tips=["Bei Unsicherheit: nur anschauen.", "Wenn Carla nicht stehen will: Aufgaben im Gehen."],
+            execution_tips=[
+                "Bei Unsicherheit: nur anschauen.",
+                "Wenn Carla nicht stehen will: Aufgaben im Gehen.",
+            ],
             variations=["Herbst: Samenstände/Blätterfarben", "Winter: Rinden‑Safari"],
             toddler_benefits=["Achtsamkeit", "Wortschatz", "Respekt/Empathie"],
             carla_tip="Regeln über Rolle: „Forscher sind vorsichtig“ statt „Nein!“.",
@@ -929,7 +1054,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Nur bekannte Dinge anfassen", "Hände reinigen, kurz halten"],
             tags=["Natur", "Ruhig", "Lernen"],
         ),
-
         # 18) Wind-Orchester
         MicroAdventure(
             slug="wind-orchester",
@@ -950,7 +1074,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Bei Sturm: nicht machen."],
             packing_list=["Tuch/Band", "Wasser"],
-            execution_tips=["Wind chill beachten: warm anziehen, kurz halten.", "Abstand zu anderen Kindern."],
+            execution_tips=[
+                "Wind chill beachten: warm anziehen, kurz halten.",
+                "Abstand zu anderen Kindern.",
+            ],
             variations=["Wenn kein Wind: Schatten‑Jagd oder Geräusche‑Bingo."],
             toddler_benefits=["Koordination", "Impulskontrolle (Stop/Go)", "Sensorik"],
             carla_tip="Carla kann Dirigentin sein – du spielst mit.",
@@ -958,7 +1085,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Schichten, kurze Dauer", "Kurzes weiches Band"],
             tags=["Bewegung", "Kreativ", "Wind"],
         ),
-
         # 19) Spuren-Suche
         MicroAdventure(
             slug="spuren-suche",
@@ -979,15 +1105,20 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Nach Regen: rutschige Stellen einplanen."],
             packing_list=["Feuchttücher", "Wasser"],
-            execution_tips=["Stehenbleiben zum Schauen.", "Tretminen scannen (Hundekot/Müll)."],
+            execution_tips=[
+                "Stehenbleiben zum Schauen.",
+                "Tretminen scannen (Hundekot/Müll).",
+            ],
             variations=["Schnee‑Spuren im Winter", "Schatten‑Spuren bei Trockenheit"],
             toddler_benefits=["Beobachtung", "Vergleich", "Sprache & Hypothesen"],
             carla_tip="Wenn Carla „Dino!“ sagt: akzeptieren. Das ist Kleinkind‑Logik – und sie funktioniert.",
             risks=["Müll/Hundekot", "Rutschgefahr"],
-            mitigations=["Nur Wege, du scannst zuerst", "Griffige Schuhe, Tempo runter"],
+            mitigations=[
+                "Nur Wege, du scannst zuerst",
+                "Griffige Schuhe, Tempo runter",
+            ],
             tags=["Detektiv", "Lernen", "Natur"],
         ),
-
         # 20) Mini-Müllhelden
         MicroAdventure(
             slug="muell-helden",
@@ -1008,7 +1139,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Optional Handschuhe oder Greifer."],
             packing_list=["Mülltüte", "Handschuhe optional", "Feuchttücher"],
-            execution_tips=["Kurz halten. Sicherheit > Menge.", "Bei gefährlichem Müll: nicht anfassen."],
+            execution_tips=[
+                "Kurz halten. Sicherheit > Menge.",
+                "Bei gefährlichem Müll: nicht anfassen.",
+            ],
             variations=["3‑Teile‑Mission (Mini‑Version)."],
             toddler_benefits=["Selbstwirksamkeit", "Regeln praktisch üben", "Teamwork"],
             carla_tip="Kein „Ih“. Frame positiv: „Wir helfen dem Park.“",
@@ -1016,7 +1150,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Carla fasst nichts an", "Nur sichere Teile, Hände reinigen"],
             tags=["Sozial", "Alltag", "Werte"],
         ),
-
         # 21) Dämmerungsrunde
         MicroAdventure(
             slug="abend-daemmerungsrunde",
@@ -1037,15 +1170,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Reflektor/helle Kleidung.", "Klare Wegstrecke vorher sagen."],
             packing_list=["Optional: kleine Taschenlampe", "Wasser (klein)"],
-            execution_tips=["Nur beleuchtete, übersichtliche Wege.", "Kurz halten – Müdigkeit beachten."],
+            execution_tips=[
+                "Nur beleuchtete, übersichtliche Wege.",
+                "Kurz halten – Müdigkeit beachten.",
+            ],
             variations=["Fenster‑Dämmerung: Laternen vom Fenster zählen (Indoor)."],
-            toddler_benefits=["Mut im sicheren Rahmen", "Übergang Tag→Abend", "Rituale (schlafhilfreich)"],
+            toddler_benefits=[
+                "Mut im sicheren Rahmen",
+                "Übergang Tag→Abend",
+                "Rituale (schlafhilfreich)",
+            ],
             carla_tip="Wenn Carla Angst bekommt: Gefühl benennen, umdrehen, fertig. Kein Überreden.",
             risks=["Sichtbarkeit", "Abgelegene Bereiche", "Müdigkeit"],
             mitigations=["Beleuchtete Wege, Handkontakt", "Sehr kurze Dauer"],
             tags=["Achtsamkeit", "Ruhig", "Abend"],
         ),
-
         # 22) Wetter-Detektiv
         MicroAdventure(
             slug="wetter-detektiv",
@@ -1064,17 +1203,28 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Temperatur fühlen: Sonne vs. Schatten (kurz).",
                 "Mini‑Report: Carla sagt „Heute ist …“ (kalt/warm/windig).",
             ],
-            preparation=["Passende Kleidung wählen – das Abenteuer ist auch ein „Anzieh‑Lernmoment“."],
+            preparation=[
+                "Passende Kleidung wählen – das Abenteuer ist auch ein „Anzieh‑Lernmoment“."
+            ],
             packing_list=["Wasser", "Optional: kleines Band/Tuch"],
-            execution_tips=["Kurze Stopps, nicht zu theoretisch.", "Wenn es regnet: Regen‑Orchester statt Report."],
-            variations=["Indoor: Wetterreport am Fenster", "Profi: 3 Symbole malen (Wolke/Sonne/Wind)"],
-            toddler_benefits=["Ursache/Wirkung", "Sprache (Wetterwörter)", "Achtsamkeit (beobachten statt hetzen)"],
+            execution_tips=[
+                "Kurze Stopps, nicht zu theoretisch.",
+                "Wenn es regnet: Regen‑Orchester statt Report.",
+            ],
+            variations=[
+                "Indoor: Wetterreport am Fenster",
+                "Profi: 3 Symbole malen (Wolke/Sonne/Wind)",
+            ],
+            toddler_benefits=[
+                "Ursache/Wirkung",
+                "Sprache (Wetterwörter)",
+                "Achtsamkeit (beobachten statt hetzen)",
+            ],
             carla_tip="Keine Korrektur („falsch“). Du ergänzt: „Ja – und ich spüre auch Wind!“",
             risks=["Sonne/Hitze oder Kälte (je nach Tag)"],
             mitigations=["Dauer an Wetter anpassen, Wasser/Schichten"],
             tags=["Lernen", "Achtsamkeit", "Alltag"],
         ),
-
         # 23) Kreide-Wegekunst
         MicroAdventure(
             slug="kreide-wegekunst",
@@ -1095,15 +1245,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Feuchttücher für Kreidehände."],
             packing_list=["Kreide", "Feuchttücher", "Wasser"],
-            execution_tips=["Nicht auf sensiblen Flächen (Denkmäler etc.).", "Nur im Stehen malen, nicht im Rennen."],
+            execution_tips=[
+                "Nicht auf sensiblen Flächen (Denkmäler etc.).",
+                "Nur im Stehen malen, nicht im Rennen.",
+            ],
             variations=["Bei Nässe: Indoor‑Malen oder Punkte‑Version (kurz)."],
-            toddler_benefits=["Feinmotorik", "Selbstwirksamkeit", "Kreativität ohne Leistungsdruck"],
+            toddler_benefits=[
+                "Feinmotorik",
+                "Selbstwirksamkeit",
+                "Kreativität ohne Leistungsdruck",
+            ],
             carla_tip="Wenn Carla nicht malen will: du malst, Carla läuft die Linie ab.",
             risks=["Kreidestaub im Auge", "Radweg‑Nähe"],
             mitigations=["Hände reinigen, nicht pusten", "Ruhige Stelle wählen"],
             tags=["Kreativ", "Ruhig", "Motorik"],
         ),
-
         # 24) Mini-Schatzkarte
         MicroAdventure(
             slug="mini-schatzkarte",
@@ -1124,15 +1280,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Route klein halten (max. 3 Punkte)."],
             packing_list=["Zettel + Stift", "Wasser", "Optional: Snack"],
-            execution_tips=["An Gabelungen stehen bleiben, dann entscheiden.", "Karte ist Symbol, kein Vertrag."],
+            execution_tips=[
+                "An Gabelungen stehen bleiben, dann entscheiden.",
+                "Karte ist Symbol, kein Vertrag.",
+            ],
             variations=["2‑Punkte‑Version", "Indoor‑Schatzkarte bei Regen"],
-            toddler_benefits=["Sequenzdenken", "Orientierung an Landmarken", "Autonomie"],
+            toddler_benefits=[
+                "Sequenzdenken",
+                "Orientierung an Landmarken",
+                "Autonomie",
+            ],
             carla_tip="Wenn Carla unentschlossen ist: 3 Sekunden – dann wählst du.",
             risks=["Vorauslaufen an Kreuzungen/Gabelungen"],
             mitigations=["Handkontakt an Übergängen", "Ruhige Wege"],
             tags=["Detektiv", "Lernen", "Bewegung"],
         ),
-
         # 25) Stock-Trommeln
         MicroAdventure(
             slug="stoecke-trommeln",
@@ -1153,7 +1315,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Abstand zu anderen Kindern/Menschen einplanen."],
             packing_list=["Feuchttücher"],
-            execution_tips=["Wenn es zu wild wird: leise‑Modus oder Spielwechsel.", "Keine Stöcke in Gesichtshöhe."],
+            execution_tips=[
+                "Wenn es zu wild wird: leise‑Modus oder Spielwechsel.",
+                "Keine Stöcke in Gesichtshöhe.",
+            ],
             variations=["Indoor: Kissen‑Trommeln", "Wind‑Orchester statt Trommeln"],
             toddler_benefits=["Rhythmus & Timing", "Impulskontrolle", "Turn‑Taking"],
             carla_tip="Carla kann Dirigentin sein – du trommelst.",
@@ -1161,7 +1326,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Kurze Stöcke, klare Regel", "Bei „Hauen“ sofort Wechsel"],
             tags=["Kreativ", "Musik", "Bewegung"],
         ),
-
         # 26) Mini-Bootrennen
         MicroAdventure(
             slug="mini-bootrennen",
@@ -1184,13 +1348,16 @@ def seed_adventures() -> List[MicroAdventure]:
             packing_list=["Feuchttücher", "Wasser"],
             execution_tips=["Kein Rennen am Wasser.", "Rutschige Stellen meiden."],
             variations=["Bei Rutschgefahr: Enten‑Zählerei statt Bootrennen."],
-            toddler_benefits=["Geduld & Beobachtung", "Ursache/Wirkung", "Sprache (schnell/langsam)"],
+            toddler_benefits=[
+                "Geduld & Beobachtung",
+                "Ursache/Wirkung",
+                "Sprache (schnell/langsam)",
+            ],
             carla_tip="Wenn Carla näher will: „Boote fahren ohne uns“ + neue Blätter suchen.",
             risks=["Ausrutschen/Ufer", "Schmutzwasser/Hygiene"],
             mitigations=["Abstand halten, griffige Stelle", "Hände reinigen"],
             tags=["Natur", "Ruhig", "Wasser"],
         ),
-
         # 27) Mini-Geschenke für Bäume
         MicroAdventure(
             slug="mini-geschenke-fuer-baeume",
@@ -1211,7 +1378,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Bei Mundphase: nur große Blätter/Äste, keine Kleinteile."],
             packing_list=["Feuchttücher", "Wasser"],
-            execution_tips=["Nicht an Pflanzen reißen.", "Klein halten – 10 Minuten Kunst reichen."],
+            execution_tips=[
+                "Nicht an Pflanzen reißen.",
+                "Klein halten – 10 Minuten Kunst reichen.",
+            ],
             variations=["Herbst: Blätterfarben‑Kranz", "Winter: Stöcke‑Stern (kurz)"],
             toddler_benefits=["Empathie/Respekt", "Feinmotorik", "Symbolisches Denken"],
             carla_tip="Wenn Carla zerstört/umsortiert: „Neue Version!“ – das ist der Prozess.",
@@ -1219,7 +1389,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Große Funde", "Hände reinigen"],
             tags=["Kreativ", "Ruhig", "Natur"],
         ),
-
         # 28) Morgentau-Expedition
         MicroAdventure(
             slug="morgentau-expedition",
@@ -1240,7 +1409,10 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Wasserdichte Schuhe oder Ersatzsocken empfehlenswert."],
             packing_list=["Wasser", "Feuchttücher", "Optional: Ersatzsocken"],
-            execution_tips=["Kurz halten – Morgentau ist kalt.", "Auf rutschigen Wegen vorsichtig."],
+            execution_tips=[
+                "Kurz halten – Morgentau ist kalt.",
+                "Auf rutschigen Wegen vorsichtig.",
+            ],
             variations=["Mit Lupe beobachten (optional)."],
             toddler_benefits=["Sensorik", "Achtsamkeit", "Ruhiger Start in den Tag"],
             carla_tip="Wenn Carla müde ist: nur 1 Glitzer‑Spot, dann Ende.",
@@ -1248,7 +1420,6 @@ def seed_adventures() -> List[MicroAdventure]:
             mitigations=["Kurze Dauer, warm anziehen", "Griffige Wege"],
             tags=["Achtsamkeit", "Ruhig", "Natur"],
         ),
-
         # 29) Regen-Orchester
         MicroAdventure(
             slug="regen-orchester",
@@ -1269,15 +1440,25 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Regenkleidung.", "Bei Gewitter: abbrechen."],
             packing_list=["Regenjacke", "Optional: Regenschirm", "Wasser"],
-            execution_tips=["Kurz halten, warm bleiben.", "Bei glatten Wegen kein Rennen."],
+            execution_tips=[
+                "Kurz halten, warm bleiben.",
+                "Bei glatten Wegen kein Rennen.",
+            ],
             variations=["Indoor: Regen am Fenster hören + beschreiben."],
-            toddler_benefits=["Auditive Wahrnehmung", "Impulskontrolle", "Flexibilität bei „schlechtem Wetter“"],
+            toddler_benefits=[
+                "Auditive Wahrnehmung",
+                "Impulskontrolle",
+                "Flexibilität bei „schlechtem Wetter“",
+            ],
             carla_tip="Nenn den Regen einen Trommler – Story macht’s leichter.",
             risks=["Auskühlung", "Rutschgefahr", "Gewitter"],
-            mitigations=["Kurze Dauer, Schichten", "Ruhige, griffige Wege", "Bei Gewitter sofort rein"],
+            mitigations=[
+                "Kurze Dauer, Schichten",
+                "Ruhige, griffige Wege",
+                "Bei Gewitter sofort rein",
+            ],
             tags=["Regen", "Achtsamkeit", "Musik"],
         ),
-
         # 30) Impro-Drachen mit Tuch
         MicroAdventure(
             slug="drachen-impro",
@@ -1297,15 +1478,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Kein Sturm – nur moderater Wind."],
             packing_list=["Tuch/Band", "Wasser"],
-            execution_tips=["Abstand halten, keine Stöcke nötig.", "Bei Nässe kein Sprint."],
+            execution_tips=[
+                "Abstand halten, keine Stöcke nötig.",
+                "Bei Nässe kein Sprint.",
+            ],
             variations=["Wenn kein Wind: Schatten‑Jagd oder Formen‑Schnitzeljagd."],
-            toddler_benefits=["Grobmotorik", "Tempo dosieren", "Kausalität (Wind/Tempo → Bewegung)"],
+            toddler_benefits=[
+                "Grobmotorik",
+                "Tempo dosieren",
+                "Kausalität (Wind/Tempo → Bewegung)",
+            ],
             carla_tip="Carla darf bestimmen: schnell/langsam. Kontrolle senkt Widerstand.",
             risks=["Auskühlung (Windchill)", "Stolpern beim Rennen"],
             mitigations=["Schichten, kurze Dauer", "Nur sichere Laufstrecken"],
             tags=["Bewegung", "Wind", "Spaß"],
         ),
-
         # 31) Schatten-Theater
         MicroAdventure(
             slug="schatten-theater",
@@ -1326,15 +1513,21 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Sonnencreme/Cap bei starker Sonne."],
             packing_list=["Wasser"],
-            execution_tips=["Kurz halten, nicht in praller Sonne überziehen.", "Wenn bewölkt: Figuren‑Theater ohne Schatten."],
+            execution_tips=[
+                "Kurz halten, nicht in praller Sonne überziehen.",
+                "Wenn bewölkt: Figuren‑Theater ohne Schatten.",
+            ],
             variations=["Indoor: Lampe + Wand (zu Hause)."],
-            toddler_benefits=["Sprache & Erzählstruktur", "Symbolisches Denken", "Gemeinsame Aufmerksamkeit"],
+            toddler_benefits=[
+                "Sprache & Erzählstruktur",
+                "Symbolisches Denken",
+                "Gemeinsame Aufmerksamkeit",
+            ],
             carla_tip="Wenn Carla nicht will: 1 Figur + 1 Gag reicht oft.",
             risks=["Sonne/Hitze", "Im Weg stehen (Radweg)"],
             mitigations=["Schattenpausen, Wasser", "Ruhige Stelle wählen"],
             tags=["Kreativ", "Ruhig", "Sprache"],
         ),
-
         # 32) Baumstamm-Parcours
         MicroAdventure(
             slug="baumstamm-parcours",
@@ -1355,15 +1548,24 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Nur bei trockenem, nicht glattem Holz."],
             packing_list=["Pflaster (optional)", "Wasser"],
-            execution_tips=["Bei Nässe auslassen.", "Grenze: mehr Wiederholung statt mehr Höhe."],
+            execution_tips=[
+                "Bei Nässe auslassen.",
+                "Grenze: mehr Wiederholung statt mehr Höhe.",
+            ],
             variations=["Boden‑Lava‑Spiel ohne Klettern (wenn zu glatt)."],
-            toddler_benefits=["Gleichgewicht", "Motorisches Planen", "Mut + Risikokompetenz"],
+            toddler_benefits=[
+                "Gleichgewicht",
+                "Motorisches Planen",
+                "Mut + Risikokompetenz",
+            ],
             carla_tip="Wenn Carla „noch höher“ will: „Heute nur die niedrigen Drachen“ + Alternative anbieten.",
             risks=["Sturz", "Splitter/raue Stellen"],
-            mitigations=["Niedrige Elemente, Griffnähe", "Oberfläche prüfen, ggf. wechseln"],
+            mitigations=[
+                "Niedrige Elemente, Griffnähe",
+                "Oberfläche prüfen, ggf. wechseln",
+            ],
             tags=["Bewegung", "Motorik", "Abenteuer"],
         ),
-
         # 33) Käfer-Detektive (aus Seed‑V2)
         MicroAdventure(
             slug="kaefer-detektive",
@@ -1386,19 +1588,32 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Optional eine kleine Lupe einpacken (geht auch ohne).",
                 "Wenn Carla gerade viel „Mund‑Phase“ hat: eher schauen als sammeln.",
             ],
-            packing_list=["Feuchttücher / Handreinigung", "Wasser + kleiner Snack", "Optional: Lupe"],
+            packing_list=[
+                "Feuchttücher / Handreinigung",
+                "Wasser + kleiner Snack",
+                "Optional: Lupe",
+            ],
             execution_tips=[
                 "Kleinkind‑Tempo: lieber 3 Mini‑Funde als 1 Stunde Suche.",
                 "Wenn nichts zu sehen ist: „Unsichtbarer Käfer‑Tag“ – dann Geräusche oder Spuren‑Suche.",
             ],
-            variations=["Regen‑Variante: Regen‑Orchester oder Spuren‑Suche auf nassem Boden.", "Profi: Käfer‑Farben suchen (schwarz, braun, rot)."],
-            toddler_benefits=["Aufmerksamkeit & Fokus", "Sprache: beschreiben/benennen", "Respekt vor Lebewesen"],
+            variations=[
+                "Regen‑Variante: Regen‑Orchester oder Spuren‑Suche auf nassem Boden.",
+                "Profi: Käfer‑Farben suchen (schwarz, braun, rot).",
+            ],
+            toddler_benefits=[
+                "Aufmerksamkeit & Fokus",
+                "Sprache: beschreiben/benennen",
+                "Respekt vor Lebewesen",
+            ],
             carla_tip="Wenn Carla anfassen will: Alternative geben – „Zeig ganz nah dran, ohne zu berühren.“",
             risks=["Insektenstich (selten)", "Schmutzige Hände → Hände im Gesicht"],
-            mitigations=["Nicht im hohen Gras wühlen, Abstand halten", "Hände reinigen"],
+            mitigations=[
+                "Nicht im hohen Gras wühlen, Abstand halten",
+                "Hände reinigen",
+            ],
             tags=["Natur", "Lernen", "Detektiv", "Ruhig"],
         ),
-
         # 34) Sonnenblumen-Zählung (aus Seed‑V2)
         MicroAdventure(
             slug="sonnenblumen-zaehlung",
@@ -1417,17 +1632,29 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Vergleich: Welche ist größer/kleiner?",
                 "Abschluss: 1 gelbe Sache fotografieren oder zeichnen (optional).",
             ],
-            preparation=["Kein Pflücken: nur schauen.", "Bei Pollenempfindlichkeit: kurz halten."],
+            preparation=[
+                "Kein Pflücken: nur schauen.",
+                "Bei Pollenempfindlichkeit: kurz halten.",
+            ],
             packing_list=["Wasser", "Feuchttücher", "Optional: Handy für 1 Foto"],
-            execution_tips=["Zahlen sind Bonus – „Zeig mir Gelb“ reicht.", "Wenn keine Blüten da sind: gelbe Objekte/Schilder nutzen."],
-            variations=["Profi: Gelb + Kreis kombinieren.", "Regen: Indoor‑Gelb‑Suche."],
-            toddler_benefits=["Frühe Mathe‑Intuition (mehr/weniger)", "Visuelle Suche", "Sprache (Farben)"],
+            execution_tips=[
+                "Zahlen sind Bonus – „Zeig mir Gelb“ reicht.",
+                "Wenn keine Blüten da sind: gelbe Objekte/Schilder nutzen.",
+            ],
+            variations=[
+                "Profi: Gelb + Kreis kombinieren.",
+                "Regen: Indoor‑Gelb‑Suche.",
+            ],
+            toddler_benefits=[
+                "Frühe Mathe‑Intuition (mehr/weniger)",
+                "Visuelle Suche",
+                "Sprache (Farben)",
+            ],
             carla_tip="Nicht korrigieren: „Ich sehe auch viele – lass uns zusammen schauen.“",
             risks=["Allergie/Pollen (je nach Saison)"],
             mitigations=["Kurz halten, Hände reinigen, Distanz zu Blüten"],
             tags=["Lernen", "Ruhig", "Natur"],
         ),
-
         # 35) Frost-Spaziergang (aus Seed‑V2)
         MicroAdventure(
             slug="frost-spaziergang",
@@ -1446,17 +1673,30 @@ def seed_adventures() -> List[MicroAdventure]:
                 "2 kurze Laufstücke, damit Carla warm bleibt.",
                 "Abschluss: Wärme‑Bank kurz oder direkt nach Hause.",
             ],
-            preparation=["Schichten: warm + winddicht, Mütze/Handschuhe.", "Dauer bewusst kurz planen."],
-            packing_list=["Mütze/Handschuhe", "Optional: warmes Getränk", "Optional: Ersatzhandschuhe"],
-            execution_tips=["Kein Klettern/Balancieren bei Glätte.", "Wechsel: schauen → laufen → schauen."],
+            preparation=[
+                "Schichten: warm + winddicht, Mütze/Handschuhe.",
+                "Dauer bewusst kurz planen.",
+            ],
+            packing_list=[
+                "Mütze/Handschuhe",
+                "Optional: warmes Getränk",
+                "Optional: Ersatzhandschuhe",
+            ],
+            execution_tips=[
+                "Kein Klettern/Balancieren bei Glätte.",
+                "Wechsel: schauen → laufen → schauen.",
+            ],
             variations=["Schnee: Fußspuren zählen.", "Ohne Frost: Dämmerungsrunde."],
-            toddler_benefits=["Körperwahrnehmung", "Achtsamkeit (Geräusche/Luft)", "Winter‑Mut"],
+            toddler_benefits=[
+                "Körperwahrnehmung",
+                "Achtsamkeit (Geräusche/Luft)",
+                "Winter‑Mut",
+            ],
             carla_tip="Erst Gefühl benennen („du frierst“), dann Lösung (kurz rennen).",
             risks=["Ausrutschen", "Auskühlung"],
             mitigations=["Griffige Wege, Tempo runter", "Kurz halten, warm anziehen"],
             tags=["Winter", "Ruhig", "Achtsamkeit"],
         ),
-
         # 36) Mini-Kompass-Abenteuer (aus Seed‑V2)
         MicroAdventure(
             slug="mini-kompass-abenteuer",
@@ -1477,15 +1717,24 @@ def seed_adventures() -> List[MicroAdventure]:
             ],
             preparation=["Endpunkt vorher festlegen, damit es nicht endlos wird."],
             packing_list=["Wasser + Snack", "Optional: Zettel + Stift (Mini‑Map)"],
-            execution_tips=["Links/rechts nicht erzwingen – Entscheidungsspiel reicht.", "Wenn Carla alles will: zwei Optionen anbieten."],
-            variations=["Indoor‑Version mit 2 Abzweigungen.", "Profi: „Immer zur Sonne“ (nur Story)."],
-            toddler_benefits=["Selbstwirksamkeit (Entscheiden)", "Sequenzdenken", "Richtungsbegriffe"],
+            execution_tips=[
+                "Links/rechts nicht erzwingen – Entscheidungsspiel reicht.",
+                "Wenn Carla alles will: zwei Optionen anbieten.",
+            ],
+            variations=[
+                "Indoor‑Version mit 2 Abzweigungen.",
+                "Profi: „Immer zur Sonne“ (nur Story).",
+            ],
+            toddler_benefits=[
+                "Selbstwirksamkeit (Entscheiden)",
+                "Sequenzdenken",
+                "Richtungsbegriffe",
+            ],
             carla_tip="Wenn Carla nicht wählen kann: 3 Sekunden, dann wählst du – Druck rausnehmen.",
             risks=["Spontanes Abbiegen nahe Radwegen"],
             mitigations=["An Gabelungen stoppen + Handkontakt", "Ruhige Wege"],
             tags=["Lernen", "Bewegung", "Detektiv"],
         ),
-
         # 37) Natur-Farblabor (aus Seed‑V2)
         MicroAdventure(
             slug="natur-farblabor",
@@ -1504,17 +1753,29 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Palette legen: hell → dunkel sortieren.",
                 "Abschluss: Foto optional, alles zurückgeben.",
             ],
-            preparation=["Optional: kleines Tuch als Atelier.", "Bei Mundphase: nur große Blätter."],
+            preparation=[
+                "Optional: kleines Tuch als Atelier.",
+                "Bei Mundphase: nur große Blätter.",
+            ],
             packing_list=["Optional: kleines Tuch", "Feuchttücher", "Wasser"],
-            execution_tips=["Für 2,5: hell/dunkel reicht.", "Jede Wahl feiern – keine falschen Farben."],
-            variations=["Herbst: Rot/Orange‑Palette", "Indoor‑Palette mit Haushaltsobjekten"],
-            toddler_benefits=["Sortieren & visuelle Wahrnehmung", "Feinmotorik", "Kreativität"],
+            execution_tips=[
+                "Für 2,5: hell/dunkel reicht.",
+                "Jede Wahl feiern – keine falschen Farben.",
+            ],
+            variations=[
+                "Herbst: Rot/Orange‑Palette",
+                "Indoor‑Palette mit Haushaltsobjekten",
+            ],
+            toddler_benefits=[
+                "Sortieren & visuelle Wahrnehmung",
+                "Feinmotorik",
+                "Kreativität",
+            ],
             carla_tip="Umsortieren ist Lernen: „Neue Version!“",
             risks=["Kleinteile im Mund", "Schmutzige Hände"],
             mitigations=["Große Funde, bei Mundphase nur schauen", "Hände reinigen"],
             tags=["Kreativ", "Ruhig", "Natur"],
         ),
-
         # 38) Hunde-Beobachtungsrunde (aus Seed‑V2)
         MicroAdventure(
             slug="hunde-beobachtungsrunde",
@@ -1534,16 +1795,32 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Abschluss: Hände reinigen + „Danke, Hunde“.",
             ],
             preparation=["Carla‑Regel üben: Stop‑Hand + „Darf ich streicheln?“"],
-            packing_list=["Feuchttücher", "Wasser", "Optional: Snack (Übergang nach Kontakt)"],
-            execution_tips=["Carla darf nie hinrennen.", "Ein Hund reicht – sonst wird’s zu viel."],
-            variations=["Regen: Pfotenabdrücke als Spuren‑Suche.", "Indoor: Hundebuch + Geräusche."],
-            toddler_benefits=["Sozialregeln & Empathie", "Impulskontrolle", "Sprache (beschreiben)"],
+            packing_list=[
+                "Feuchttücher",
+                "Wasser",
+                "Optional: Snack (Übergang nach Kontakt)",
+            ],
+            execution_tips=[
+                "Carla darf nie hinrennen.",
+                "Ein Hund reicht – sonst wird’s zu viel.",
+            ],
+            variations=[
+                "Regen: Pfotenabdrücke als Spuren‑Suche.",
+                "Indoor: Hundebuch + Geräusche.",
+            ],
+            toddler_benefits=[
+                "Sozialregeln & Empathie",
+                "Impulskontrolle",
+                "Sprache (beschreiben)",
+            ],
             carla_tip="Wenn Carla losstürmt: ruhig blocken + „Stopp. Fragen.“ (kein Schimpfen).",
             risks=["Hund erschrickt → Anspringen/Biss (selten)", "Hygiene"],
-            mitigations=["Nur mit Erlaubnis + ruhige Hunde, Abstand halten", "Hände reinigen"],
+            mitigations=[
+                "Nur mit Erlaubnis + ruhige Hunde, Abstand halten",
+                "Hände reinigen",
+            ],
             tags=["Tiere", "Sozial", "Lernen"],
         ),
-
         # 39) Park-Geschichten-Bank (aus Seed‑V2)
         MicroAdventure(
             slug="park-geschichten-bank",
@@ -1562,11 +1839,20 @@ def seed_adventures() -> List[MicroAdventure]:
                 "Akt 3: Lösung (Carla entscheidet) + Happy End.",
                 "Optional: Blatt/Stock als Requisit (nur Bodenfunde).",
             ],
-            preparation=["Wenn Carla nicht sitzen will: Story im Gehen erzählen (Bank nur Start)."],
+            preparation=[
+                "Wenn Carla nicht sitzen will: Story im Gehen erzählen (Bank nur Start)."
+            ],
             packing_list=["Wasser", "Optional: Notizbuch (1 Satz festhalten)"],
-            execution_tips=["Ping‑Pong‑Sätze halten Tempo.", "Frage: „Und dann?“ statt „Warum?“"],
+            execution_tips=[
+                "Ping‑Pong‑Sätze halten Tempo.",
+                "Frage: „Und dann?“ statt „Warum?“",
+            ],
             variations=["Abend: Laternen‑Story", "Regen: Indoor am Fenster"],
-            toddler_benefits=["Sprache & Narratives Denken", "Bindung (gemeinsamer Fokus)", "Emotionen spielerisch verarbeiten"],
+            toddler_benefits=[
+                "Sprache & Narratives Denken",
+                "Bindung (gemeinsamer Fokus)",
+                "Emotionen spielerisch verarbeiten",
+            ],
             carla_tip="Wenn Carla nur Quatsch sagt: übertreiben und mitgehen – Humor ist Kooperation.",
             risks=["Zu lange sitzen → Unruhe", "Bank am Radweg"],
             mitigations=["5–10 Minuten Story, dann weiter", "Ruhige Bank wählen"],
