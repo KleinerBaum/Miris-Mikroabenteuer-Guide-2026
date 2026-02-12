@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Die E-Mail-Vorschau im Export rendert jetzt die Mail direkt in der Oberfläche; der HTML-Quelltext ist weiterhin optional über "HTML-Code anzeigen" verfügbar.
+- EN: The email preview in the export section now renders the email directly in the UI; the HTML source remains optionally available via "Show HTML source".
 - DE: OpenAI-Strict-Output kompatibel gemacht: `source_urls` und `sources` in `src/mikroabenteuer/models.py` verwenden jetzt validierte `str`-URLs statt `AnyUrl`, damit das JSON-Schema kein nicht unterstütztes `format: "uri"` mehr enthält.
 - EN: Made OpenAI strict outputs compatible: `source_urls` and `sources` in `src/mikroabenteuer/models.py` now use validated `str` URLs instead of `AnyUrl`, so the JSON schema no longer contains unsupported `format: "uri"`.
 - DE: Contract-Test ergänzt, der sicherstellt, dass das generierte Schema für `ActivitySuggestionResult` keinen `uri`-Formatwert enthält.

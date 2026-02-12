@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Literal, Optional, cast
 
 import streamlit as st
+import streamlit.components.v1 as components
 from pydantic import ValidationError
 
 ROOT = Path(__file__).resolve().parent
@@ -331,10 +332,20 @@ def _render_export_block(
         picked, criteria, criteria.date, markdown, weather
     )
     with st.expander(_t(lang, "E-Mail Vorschau", "Email preview"), expanded=False):
-        st.code(
-            email_html[:3000] + ("..." if len(email_html) > 3000 else ""),
-            language="html",
+        st.caption(
+            _t(
+                lang,
+                "So sieht die E-Mail im Postfach aus. Den HTML-Code kannst du optional unten aufklappen.",
+                "This is how the email looks in the inbox. You can optionally expand the HTML source below.",
+            )
         )
+        components.html(email_html, height=680, scrolling=True)
+
+        with st.expander(_t(lang, "HTML-Code anzeigen", "Show HTML source")):
+            st.code(
+                email_html[:3000] + ("..." if len(email_html) > 3000 else ""),
+                language="html",
+            )
 
 
 def _render_automation_block(
