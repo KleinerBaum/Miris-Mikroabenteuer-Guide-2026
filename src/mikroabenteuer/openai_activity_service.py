@@ -10,8 +10,8 @@ from .models import (
     ActivitySearchCriteria,
     ActivitySuggestionResult,
     SearchStrategy,
+    WeatherSummary,
 )
-from .weather import WeatherSummary
 
 from .openai_settings import (
     configure_openai_api_key,
