@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Sidebar-Filter und Formular „Wetter & Events“ teilen jetzt einen gemeinsamen `ActivitySearchCriteria`-State in `st.session_state["criteria"]`; beide Ansichten sind synchronisiert und nutzen identische Suchparameter.
+- EN: Sidebar filters and the “Weather & Events” form now share one `ActivitySearchCriteria` state in `st.session_state["criteria"]`; both views are synchronized and use identical search parameters.
 - DE: Die E-Mail-Vorschau im Export rendert jetzt die Mail direkt in der Oberfläche; der HTML-Quelltext ist weiterhin optional über "HTML-Code anzeigen" verfügbar.
 - EN: The email preview in the export section now renders the email directly in the UI; the HTML source remains optionally available via "Show HTML source".
 - DE: OpenAI-Strict-Output kompatibel gemacht: `source_urls` und `sources` in `src/mikroabenteuer/models.py` verwenden jetzt validierte `str`-URLs statt `AnyUrl`, damit das JSON-Schema kein nicht unterstütztes `format: "uri"` mehr enthält.
