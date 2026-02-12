@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Suchvertrag auf einen kanonischen Pfad konsolidiert (`src/mikroabenteuer/models.py`): Aufrufer in App, Recommender und Export nutzen jetzt einheitlich `plz`, `date`, `time_window`, `topics`; Zeitfenster werden konsistent validiert und serialisiert.
+- EN: Consolidated the search contract to one canonical path (`src/mikroabenteuer/models.py`): callers in app, recommender, and export now consistently use `plz`, `date`, `time_window`, and `topics`; time windows are validated and serialized consistently.
 - DE: Neues „Activity Search (NEW)“-Schema in `mikroabenteuer/models.py` ergänzt (inkl. `TimeWindow`, `ActivitySearchCriteria`, `WeatherReport`, `SearchStrategy`, `ActivitySuggestion`, `ActivityPlan`) mit strikter Validierung (`extra="forbid"`).
 - EN: Added a new “Activity Search (NEW)” schema section in `mikroabenteuer/models.py` (including `TimeWindow`, `ActivitySearchCriteria`, `WeatherReport`, `SearchStrategy`, `ActivitySuggestion`, `ActivityPlan`) with strict validation (`extra="forbid"`).
 - DE: Die Landing-Page wurde auf die neuen Module unter `src/mikroabenteuer` umgestellt (Config, Seed, Wetter, Recommender, OpenAI-Planung) und konsistent integriert.

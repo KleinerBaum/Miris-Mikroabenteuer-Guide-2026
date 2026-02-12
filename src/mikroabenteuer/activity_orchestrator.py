@@ -1,7 +1,6 @@
 # mikroabenteuer/activity_orchestrator.py
 from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import date as date_t
 from typing import Callable, Literal
 
@@ -21,6 +20,7 @@ from mikroabenteuer.openai_activity_service import suggest_activities
 try:
     from mikroabenteuer.retry import retry_with_backoff
 except Exception:  # pragma: no cover
+
     def retry_with_backoff(fn, *args, **kwargs):
         return fn()
 
@@ -54,19 +54,34 @@ def _weather_condition_from_open_meteo_code(code: int | None) -> WeatherConditio
 
 def _build_strategy(weather: WeatherSummary) -> SearchStrategy:
     # Basic weather-dependent bias
-    if weather.condition in (WeatherCondition.rainy, WeatherCondition.stormy, WeatherCondition.snowy):
+    if weather.condition in (
+        WeatherCondition.rainy,
+        WeatherCondition.stormy,
+        WeatherCondition.snowy,
+    ):
         return SearchStrategy(
             indoor_bias=0.8,
             outdoor_bias=0.2,
             rationale_de_en="Regen/Unwetter → mehr Indoor / Rain/storm → prefer indoor",
             query_hints=["indoor", "museum", "ausstellung", "kino", "café", "workshop"],
         )
-    if weather.condition in (WeatherCondition.sunny, WeatherCondition.cloudy, WeatherCondition.foggy):
+    if weather.condition in (
+        WeatherCondition.sunny,
+        WeatherCondition.cloudy,
+        WeatherCondition.foggy,
+    ):
         return SearchStrategy(
             indoor_bias=0.35,
             outdoor_bias=0.65,
             rationale_de_en="Okayes Wetter → mehr Outdoor / decent weather → prefer outdoor",
-            query_hints=["outdoor", "wanderung", "spaziergang", "park", "aussichtspunkt", "radtour"],
+            query_hints=[
+                "outdoor",
+                "wanderung",
+                "spaziergang",
+                "park",
+                "aussichtspunkt",
+                "radtour",
+            ],
         )
     return SearchStrategy(
         indoor_bias=0.5,
@@ -76,7 +91,9 @@ def _build_strategy(weather: WeatherSummary) -> SearchStrategy:
     )
 
 
-def _get_lat_lon_for_de_postal_code(plz: str, *, timeout_s: float = 6.0) -> tuple[float, float, str | None, str | None]:
+def _get_lat_lon_for_de_postal_code(
+    plz: str, *, timeout_s: float = 6.0
+) -> tuple[float, float, str | None, str | None]:
     """
     Geocode via Zippopotam: https://api.zippopotam.us/de/{plz}
     Returns (lat, lon, city, region/state).
@@ -98,7 +115,9 @@ def _get_lat_lon_for_de_postal_code(plz: str, *, timeout_s: float = 6.0) -> tupl
     return lat, lon, city, region
 
 
-def _fetch_open_meteo_daily(lat: float, lon: float, target_date: date_t, *, timeout_s: float = 8.0) -> dict:
+def _fetch_open_meteo_daily(
+    lat: float, lon: float, target_date: date_t, *, timeout_s: float = 8.0
+) -> dict:
     """
     Uses Open-Meteo daily forecast when possible, else archive for past.
     Forecast horizon is limited; if date is too far in the future, it may fail.
@@ -107,19 +126,25 @@ def _fetch_open_meteo_daily(lat: float, lon: float, target_date: date_t, *, time
     is_past = target_date < today
 
     # Open-Meteo endpoints
-    base = "https://archive-api.open-meteo.com/v1/archive" if is_past else "https://api.open-meteo.com/v1/forecast"
+    base = (
+        "https://archive-api.open-meteo.com/v1/archive"
+        if is_past
+        else "https://api.open-meteo.com/v1/forecast"
+    )
 
     params = {
         "latitude": lat,
         "longitude": lon,
-        "daily": ",".join([
-            "weather_code",
-            "temperature_2m_max",
-            "temperature_2m_min",
-            "precipitation_sum",
-            "precipitation_probability_max",
-            "wind_speed_10m_max",
-        ]),
+        "daily": ",".join(
+            [
+                "weather_code",
+                "temperature_2m_max",
+                "temperature_2m_min",
+                "precipitation_sum",
+                "precipitation_probability_max",
+                "wind_speed_10m_max",
+            ]
+        ),
         "timezone": "Europe/Berlin",
         "start_date": target_date.isoformat(),
         "end_date": target_date.isoformat(),
@@ -131,12 +156,14 @@ def _fetch_open_meteo_daily(lat: float, lon: float, target_date: date_t, *, time
         return r.json()
 
 
-def get_weather_summary(criteria: ActivitySearchCriteria, *, progress_cb: ProgressCb | None = None) -> WeatherSummary:
+def get_weather_summary(
+    criteria: ActivitySearchCriteria, *, progress_cb: ProgressCb | None = None
+) -> WeatherSummary:
     _progress(progress_cb, "Wetter abrufen … / Fetching weather …")
 
     def _call() -> WeatherSummary:
-        lat, lon, city, region = _get_lat_lon_for_de_postal_code(criteria.postal_code)
-        raw = _fetch_open_meteo_daily(lat, lon, criteria.target_date)
+        lat, lon, city, region = _get_lat_lon_for_de_postal_code(criteria.plz)
+        raw = _fetch_open_meteo_daily(lat, lon, criteria.date)
 
         daily = raw.get("daily") or {}
         # arrays of length 1 because start_date=end_date
@@ -194,7 +221,7 @@ def _score_suggestion(
 
     # Budget
     if s.expected_cost_eur is not None:
-        score += 1.5 if s.expected_cost_eur <= criteria.budget_max_eur else -2.0
+        score += 1.5 if s.expected_cost_eur <= criteria.budget_eur_max else -2.0
 
     # Indoor/outdoor bias
     if s.indoor_outdoor.value == "indoor":
@@ -206,7 +233,7 @@ def _score_suggestion(
 
     # Themes match (heuristic: look for theme codes in reason/title)
     blob = (s.title + " " + s.reason_de_en).lower()
-    for t in criteria.themes:
+    for t in criteria.topics:
         if t in blob:
             score += 0.3
 
@@ -222,7 +249,11 @@ def prioritize_suggestions(
     seen = set()
     uniq: list[ActivitySuggestion] = []
     for s in suggestions:
-        key = (s.title.strip().lower(), s.date.isoformat(), getattr(s.start_time, "isoformat", lambda: None)())
+        key = (
+            s.title.strip().lower(),
+            s.date.isoformat(),
+            getattr(s.start_time, "isoformat", lambda: None)(),
+        )
         if key in seen:
             continue
         seen.add(key)
@@ -284,7 +315,9 @@ def orchestrate_activity_search(
 
     # 4) Prioritize + enforce deterministic weather
     result.weather = weather
-    result.warnings_de_en = list(dict.fromkeys((result.warnings_de_en or []) + warnings))
+    result.warnings_de_en = list(
+        dict.fromkeys((result.warnings_de_en or []) + warnings)
+    )
     result.errors_de_en = list(dict.fromkeys((result.errors_de_en or []) + errors))
     result.suggestions = prioritize_suggestions(result.suggestions, criteria, strategy)
 
@@ -302,7 +335,9 @@ def orchestrate_activity_search(
     result.sources = out[:30]
 
     if not result.suggestions:
-        result.warnings_de_en.append("Keine Treffer / No results. Radius/Themen/Budget prüfen.")
+        result.warnings_de_en.append(
+            "Keine Treffer / No results. Radius/Topics/Budget prüfen."
+        )
 
     _progress(progress_cb, "Fertig / Done")
     return result

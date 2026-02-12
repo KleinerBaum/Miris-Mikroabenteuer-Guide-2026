@@ -15,13 +15,18 @@ from mikroabenteuer.models import (
 # --- Import your existing config helpers (NO secrets in logs) ----------------
 try:
     # TODO: adjust import path to your project
-    from mikroabenteuer.openai_config import configure_openai_api_key, resolve_openai_api_key
+    from mikroabenteuer.openai_config import (
+        configure_openai_api_key,
+        resolve_openai_api_key,
+    )
 except Exception:  # pragma: no cover
+
     def configure_openai_api_key() -> None:  # type: ignore
         return None
 
     def resolve_openai_api_key() -> str | None:  # type: ignore
         import os
+
         return os.getenv("OPENAI_API_KEY")
 
 
@@ -30,6 +35,7 @@ try:
     # TODO: adjust import path to your project
     from mikroabenteuer.retry import retry_with_backoff
 except Exception:  # pragma: no cover
+
     def retry_with_backoff(fn: Callable[[], object], *args, **kwargs):  # type: ignore
         return fn()
 
@@ -73,10 +79,10 @@ Kriterien / Criteria:
 {strategy_block}
 
 Regeln / Rules:
-- Suche innerhalb von Radius {params["radius_km"]} km um PLZ {params["postal_code"]}.
-- Zieltag: {params["target_date"]}, Zeitfenster: {params["time_start"]}–{params["time_end"]}.
-- Budget: <= {params["budget_max_eur"]} EUR (Obergrenze). Wenn Kosten unbekannt, schätze konservativ oder markiere als unknown.
-- Themen (codes): {params["themes"]}.
+- Suche innerhalb von Radius {params["radius_km"]} km um PLZ {params["plz"]}.
+- Zieltag: {params["date"]}, Zeitfenster: {params["time_start"]}–{params["time_end"]}.
+- Budget: <= {params["budget_eur_max"]} EUR (Obergrenze). Wenn Kosten unbekannt, schätze konservativ oder markiere als unknown.
+- Themen (codes): {params["topics"]}.
 - Gib maximal {params["max_suggestions"]} Vorschläge.
 
 Output-Anforderungen:
@@ -123,7 +129,7 @@ def suggest_activities(
 
     client = OpenAI(
         api_key=api_key,
-        base_url=base_url,   # None => default (or env OPENAI_BASE_URL)
+        base_url=base_url,  # None => default (or env OPENAI_BASE_URL)
         timeout=timeout_s,
         max_retries=sdk_max_retries,
     )
@@ -131,17 +137,23 @@ def suggest_activities(
     tools: list[dict] = [{"type": "web_search"}]
 
     # If we have geo context, pass it to web_search for better local results :contentReference[oaicite:5]{index=5}
-    if weather and weather.country_code and (weather.city or weather.region or weather.timezone):
-        tools = [{
-            "type": "web_search",
-            "user_location": {
-                "type": "approximate",
-                "country": weather.country_code,
-                "city": weather.city or "",
-                "region": weather.region or "",
-                "timezone": weather.timezone or "",
+    if (
+        weather
+        and weather.country_code
+        and (weather.city or weather.region or weather.timezone)
+    ):
+        tools = [
+            {
+                "type": "web_search",
+                "user_location": {
+                    "type": "approximate",
+                    "country": weather.country_code,
+                    "city": weather.city or "",
+                    "region": weather.region or "",
+                    "timezone": weather.timezone or "",
+                },
             }
-        }]
+        ]
 
     sys_msg = _build_system_instructions()
     user_msg = _build_user_prompt(criteria, weather, strategy)
@@ -156,13 +168,17 @@ def suggest_activities(
             ],
             tools=tools,  # enables web search :contentReference[oaicite:7]{index=7}
             tool_choice="auto",
-            include=["web_search_call.action.sources"],  # include sources metadata :contentReference[oaicite:8]{index=8}
+            include=[
+                "web_search_call.action.sources"
+            ],  # include sources metadata :contentReference[oaicite:8]{index=8}
             text_format=ActivitySuggestionResult,
         )
 
         parsed: ActivitySuggestionResult | None = getattr(resp, "output_parsed", None)
         if parsed is None:
-            raise RuntimeError("No structured output parsed from response (output_parsed is None).")
+            raise RuntimeError(
+                "No structured output parsed from response (output_parsed is None)."
+            )
         return parsed
 
     try:
