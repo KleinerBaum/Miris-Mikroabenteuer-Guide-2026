@@ -9,7 +9,7 @@ import time as time_module
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Literal, Optional, cast
 
 import streamlit as st
 from pydantic import ValidationError
@@ -28,7 +28,13 @@ from src.mikroabenteuer.constants import (
 from src.mikroabenteuer.data_seed import seed_adventures
 from src.mikroabenteuer.email_templates import render_daily_email_html
 from src.mikroabenteuer.ics import build_ics_event
-from src.mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure
+from src.mikroabenteuer.models import (
+    ActivitySearchCriteria,
+    TimeWindow,
+    WeatherCondition as EventWeatherCondition,
+    WeatherSummary as EventWeatherSummary,
+    MicroAdventure,
+)
 from src.mikroabenteuer.openai_gen import generate_daily_markdown
 from src.mikroabenteuer.recommender import filter_adventures, pick_daily_adventure
 from src.mikroabenteuer.scheduler import run_daily_job_once
@@ -373,11 +379,31 @@ class OpenAIActivityService:
         try:
             from src.mikroabenteuer.openai_activity_service import suggest_activities
 
+            event_weather: EventWeatherSummary | None = None
+            if weather is not None:
+                event_weather = EventWeatherSummary(
+                    condition=EventWeatherCondition.unknown,
+                    summary_de_en="Wetter lokal geladen / Weather loaded locally",
+                    temperature_min_c=weather.temperature_min_c,
+                    temperature_max_c=weather.temperature_max_c,
+                    precipitation_probability_pct=(
+                        int(weather.precipitation_probability_max)
+                        if weather.precipitation_probability_max is not None
+                        else None
+                    ),
+                    precipitation_sum_mm=weather.precipitation_sum_mm,
+                    wind_speed_max_kmh=weather.windspeed_max_kmh,
+                    country_code="DE",
+                    city="Düsseldorf",
+                    timezone=self.cfg.timezone,
+                    data_source="open-meteo",
+                )
+
             result = suggest_activities(
                 criteria,
                 mode="genau" if mode == "genau" else "schnell",
                 base_url=os.getenv("OPENAI_BASE_URL") or None,
-                weather=weather,
+                weather=event_weather,
             )
             return {
                 "suggestions": list(getattr(result, "suggestions", [])),
@@ -524,14 +550,14 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             plz=plz,
             radius_km=radius_km,
             date=target_date,
-            time_window={
-                "start": start_time,
-                "end": (
+            time_window=TimeWindow(
+                start=start_time,
+                end=(
                     datetime.combine(target_date, start_time)
                     + timedelta(minutes=int(available_minutes))
                 ).time(),
-            },
-            effort=effort,
+            ),
+            effort=cast(Literal["niedrig", "mittel", "hoch"], effort),
             budget_eur_max=float(budget),
             topics=topics,
         )
@@ -550,7 +576,11 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
     _service, orchestrator = _get_activity_orchestrator(cfg)
     status_box = st.empty()
-    payload = orchestrator.run(criteria, mode=mode, on_status=status_box.info)
+
+    def _status_update(message: str) -> None:
+        status_box.info(message)
+
+    payload = orchestrator.run(criteria, mode=mode, on_status=_status_update)
     status_box.success(_t(lang, "Fertig.", "Done."))
 
     weather = payload.get("weather")

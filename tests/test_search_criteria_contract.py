@@ -5,7 +5,7 @@ from datetime import date, time
 import pytest
 from pydantic import ValidationError
 
-from src.mikroabenteuer.models import ActivitySearchCriteria
+from src.mikroabenteuer.models import ActivitySearchCriteria, TimeWindow
 
 
 def test_topics_are_normalized_and_deduplicated() -> None:
@@ -13,7 +13,7 @@ def test_topics_are_normalized_and_deduplicated() -> None:
         plz="40215",
         radius_km=5.0,
         date=date(2026, 1, 20),
-        time_window={"start": time(9, 0), "end": time(10, 30)},
+        time_window=TimeWindow(start=time(9, 0), end=time(10, 30)),
         effort="mittel",
         budget_eur_max=20.0,
         topics=[" Natur ", "natur", "KREATIV", ""],
@@ -30,7 +30,7 @@ def test_time_window_order_is_validated() -> None:
             plz="40215",
             radius_km=5.0,
             date=date(2026, 1, 20),
-            time_window={"start": time(10, 0), "end": time(10, 0)},
+            time_window=TimeWindow(start=time(10, 0), end=time(10, 0)),
             effort="mittel",
             budget_eur_max=20.0,
             topics=[],
@@ -42,7 +42,7 @@ def test_available_minutes_is_derived_from_time_window() -> None:
         plz="40215",
         radius_km=5.0,
         date=date(2026, 1, 20),
-        time_window={"start": time(9, 30), "end": time(11, 0)},
+        time_window=TimeWindow(start=time(9, 30), end=time(11, 0)),
         effort="mittel",
         budget_eur_max=20.0,
         topics=[],
@@ -63,7 +63,7 @@ def test_boundary_values_are_supported(radius_km: float, budget_eur_max: float) 
         plz="40215",
         radius_km=radius_km,
         date=date(2026, 1, 20),
-        time_window={"start": time(9, 0), "end": time(9, 30)},
+        time_window=TimeWindow(start=time(9, 0), end=time(9, 30)),
         effort="niedrig",
         budget_eur_max=budget_eur_max,
         topics=["outdoor"],
@@ -79,7 +79,7 @@ def test_too_many_topics_raise_validation_error() -> None:
             plz="40215",
             radius_km=5.0,
             date=date(2026, 1, 20),
-            time_window={"start": time(9, 0), "end": time(10, 0)},
+            time_window=TimeWindow(start=time(9, 0), end=time(10, 0)),
             effort="mittel",
             budget_eur_max=20.0,
             topics=[f"topic-{idx}" for idx in range(9)],

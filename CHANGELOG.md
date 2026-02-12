@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Import-Konflikt im Wetter-&-Events-Flow behoben: `openai_activity_service` und `activity_orchestrator` nutzen jetzt Relative-Imports (`from .models ...`) auf das `src`-Paket, wodurch Kollisionen mit dem Root-Paket `mikroabenteuer` vermieden werden.
+- EN: Fixed import conflict in the weather/events flow: `openai_activity_service` and `activity_orchestrator` now use relative imports (`from .models ...`) targeting the `src` package, avoiding collisions with the root `mikroabenteuer` package.
+- DE: Such-Contract vervollständigt (`max_suggestions`, `to_llm_params`, `ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) und durch neue Contract-Tests abgesichert.
+- EN: Completed the search contract (`max_suggestions`, `to_llm_params`, `ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) and covered it with new contract tests.
 - DE: Suchvertrag auf einen kanonischen Pfad konsolidiert (`src/mikroabenteuer/models.py`): Aufrufer in App, Recommender und Export nutzen jetzt einheitlich `plz`, `date`, `time_window`, `topics`; Zeitfenster werden konsistent validiert und serialisiert.
 - EN: Consolidated the search contract to one canonical path (`src/mikroabenteuer/models.py`): callers in app, recommender, and export now consistently use `plz`, `date`, `time_window`, and `topics`; time windows are validated and serialized consistently.
 - DE: Neues „Activity Search (NEW)“-Schema in `mikroabenteuer/models.py` ergänzt (inkl. `TimeWindow`, `ActivitySearchCriteria`, `WeatherReport`, `SearchStrategy`, `ActivitySuggestion`, `ActivityPlan`) mit strikter Validierung (`extra="forbid"`).
@@ -68,6 +72,8 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- Wetter-&-Events-Recherche ist wieder lauffähig, weil der Importvertrag jetzt eindeutig auf dem `src`-Paket basiert.
+- Activity-Suche verwendet einen konsistenten Modellvertrag inkl. `max_suggestions` und stabilen LLM-Prompt-Parametern.
 - Landing-Page integriert jetzt die neue `src`-Architektur inklusive Exporte (JSON/Markdown/ICS) und optionaler Daily-Automation.
 - Export- und Vorschau-Elemente sind kontrastoptimiert und damit in hellen/dunklen Zuständen besser zugänglich.
 - App-Texte adressieren jetzt durchgehend Miri und Carla statt allgemein Familien.

@@ -1,43 +1,22 @@
 # mikroabenteuer/openai_activity_service.py
 from __future__ import annotations
 
-from typing import Callable, Literal
+from typing import Literal
 
 from pydantic import ValidationError
 
-from src.mikroabenteuer.models import (
+from .models import (
     ActivitySearchCriteria,
     ActivitySuggestionResult,
     SearchStrategy,
     WeatherSummary,
 )
 
-# --- Import your existing config helpers (NO secrets in logs) ----------------
-try:
-    # TODO: adjust import path to your project
-    from src.mikroabenteuer.openai_config import (
-        configure_openai_api_key,
-        resolve_openai_api_key,
-    )
-except Exception:  # pragma: no cover
-
-    def configure_openai_api_key() -> None:  # type: ignore
-        return None
-
-    def resolve_openai_api_key() -> str | None:  # type: ignore
-        import os
-
-        return os.getenv("OPENAI_API_KEY")
-
-
-# --- Import your existing retry helper --------------------------------------
-try:
-    # TODO: adjust import path to your project
-    from src.mikroabenteuer.retry import retry_with_backoff
-except Exception:  # pragma: no cover
-
-    def retry_with_backoff(fn: Callable[[], object], *args, **kwargs):  # type: ignore
-        return fn()
+from mikroabenteuer.openai_settings import (
+    configure_openai_api_key,
+    resolve_openai_api_key,
+)
+from mikroabenteuer.retry import retry_with_backoff
 
 
 def _build_system_instructions() -> str:
@@ -182,7 +161,7 @@ def suggest_activities(
         return parsed
 
     try:
-        result = retry_with_backoff(_call_openai)
+        result = retry_with_backoff(max_attempts=3, base_delay=0.5)(_call_openai)()
     except ValidationError as ve:
         # In case your retry_with_backoff does not retry validation errors, surface clearly.
         raise RuntimeError(f"Structured output validation failed: {ve}") from ve
