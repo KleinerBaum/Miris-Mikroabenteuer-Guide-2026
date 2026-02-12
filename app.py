@@ -368,7 +368,7 @@ def main() -> None:
         )
     )
     st.dataframe(
-        [a.summary_row() for a in filtered], use_container_width=True, hide_index=True
+        [a.summary_row() for a in filtered], width="stretch", hide_index=True
     )
 
     for a in filtered:
