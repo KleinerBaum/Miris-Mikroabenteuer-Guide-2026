@@ -1,6 +1,54 @@
-# Miris-Mikroabenteuer-Guide-2026
+# 🌿 Mikroabenteuer mit Carla
 
-Eine lokale Streamlit-MVP-App für **Miri (Mutter) und Carla (Tochter)** – erweitert um Daily-Automation als SaaS-Basis.
+Eine Streamlit-Webapp für tägliche Mikroabenteuer rund um Düsseldorf (Fokus: Volksgarten / Südpark).
+Die App basiert auf einer Seed-Bibliothek von Aktivitäten mit Detailansichten und V2-Klassifikation
+(Saison/Wetter/Energie/Schwierigkeit/Safety/Mood/Alter), damit Filter und spätere LLM-Aufrufe konsistente Parameter haben.
+
+---
+
+## Features (aktuell / geplant)
+
+**Aktuell:**
+- Seed-Bibliothek (`src/mikroabenteuer/data_seed.py`)
+- Täglicher Vorschlag (deterministisch pro Datum, wenn implementiert in `recommender.py`)
+- Übersicht + Detailansichten (Accordion/Expander)
+- Safety-Hinweise pro Aktivität (Basis)
+
+**Vorbereitet (V2 Meta vorhanden, UI kann darauf filtern):**
+- Filter nach Saison, Wetter, Energie, Safety, Alter, Mood
+
+**Geplant (Roadmap):**
+- Wetterbasierte Auswahl / lokale Tipps
+- Daily Email Versand + ICS (später)
+
+---
+
+## Quickstart (lokal)
+
+### 1) Repo + venv
+
+```bash
+git clone <repo-url>
+cd mikroabenteuer-mit-carla
+
+python -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+# .venv\Scripts\activate   # Windows
+```
+
+### 2) Abhängigkeiten installieren
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3) App starten
+
+```bash
+streamlit run app.py
+```
+
+---
 
 ## Konfiguration
 - OpenAI API-Schlüssel wird bevorzugt aus `OPENAI_API_KEY` gelesen.
