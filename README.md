@@ -92,6 +92,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Hero-Bereich mit zentrierter, zweisprachiger Headline „Miri & Carla: Kleine Abenteuer. Große Erinnerungen 🎂 / Miri & Carla: Small adventures. Big memories.“ direkt oberhalb des Begrüßungsbildes
 - Detailansicht pro Abenteuer über `st.expander`
 - Neues naturverbundenes Farbkonzept in der UI (Primary Dark Green, Mint, Terracotta, Marigold, Sky Blue, Lavender, Cream, Charcoal) für klare visuelle Hierarchie und bessere Lesbarkeit.
+- Neue Sektion „Wetter & Events / Weather & Events“ mit validierten Suchkriterien, orchestrierter Event-Recherche und Darstellung von Wetter, Warnungen, Treffern und Quellen.
 
 ## Daily Scheduler aktivieren
 Der Scheduler wird nur gestartet, wenn die Umgebungsvariable gesetzt ist:

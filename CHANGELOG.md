@@ -49,6 +49,8 @@
 - EN: Added `mikroabenteuer/ui/__init__.py` and switched package internals to relative imports to prevent intermittent `KeyError` import failures during Streamlit reloads.
 - DE: UI-Farbpalette in `app.py` auf einen naturverbundenen Kanon (Dark Green, Mint, Terracotta, Marigold, Sky Blue, Lavender, Cream, Charcoal) umgestellt; Sidebar, Expander und Buttons folgen jetzt einer konsistenten visuellen Hierarchie.
 - EN: Updated the UI color palette in `app.py` to a nature-inspired set (Dark Green, Mint, Terracotta, Marigold, Sky Blue, Lavender, Cream, Charcoal); sidebar, expanders, and buttons now follow a consistent visual hierarchy.
+- DE: Neue UI-Sektion „Wetter & Events“ ergänzt, inkl. Resource-Factory (`@st.cache_resource`) für `OpenAIActivityService` + `ActivityOrchestrator`, validierter Kriterien-Erfassung und Ausgabe von Wetter, Hinweisen, Events sowie Quellen.
+- EN: Added a new “Weather & Events” UI section including a resource factory (`@st.cache_resource`) for `OpenAIActivityService` + `ActivityOrchestrator`, validated criteria input, and rendering of weather, warnings, events, and sources.
 - Wetterservice (`Open-Meteo`) für Düsseldorf inkl. typed API-Parsing und Retry-Backoff.
 - Adventure Engine mit wetterbasierter Auswahl (Regen/Sonne/Wind/Kalt).
 - Daily Scheduler (APScheduler) mit Cron 08:20 (Europe/Berlin).
@@ -73,3 +75,4 @@
 - Das Projekt unterstützt jetzt automatisierte tägliche Abenteuer-Mails als SaaS-nahe Basis.
 - Für Production wird ein HTTPS-Reverse-Proxy (z. B. Nginx + Let's Encrypt) empfohlen.
 - Wetter-Standort kann jetzt per `WEATHER_LAT`/`WEATHER_LON` gesetzt werden; die Abenteuerauswahl priorisiert bei Mehrfachtreffern den Volksgarten.
+- Neue Wetter-&-Events-Sektion liefert zusätzliche, quellenbasierte Event-Vorschläge mit klaren Status- und Fehlerhinweisen direkt im Main-Flow.
