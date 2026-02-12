@@ -16,7 +16,7 @@ from .models import (
 )
 from .openai_activity_service import suggest_activities
 
-from mikroabenteuer.retry import retry_with_backoff
+from .retry import retry_with_backoff
 
 
 ProgressCb = Callable[[str], None]

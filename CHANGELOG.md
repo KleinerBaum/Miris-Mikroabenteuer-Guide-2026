@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Variante A (`src` als einziger Import-Root) wurde technisch vervollständigt: `src/mikroabenteuer/retry.py` und `src/mikroabenteuer/openai_settings.py` ergänzt, plus paketlokaler Retry-Import im Orchestrator korrigiert.
+- EN: Completed variant A (`src` as the single import root): added `src/mikroabenteuer/retry.py` and `src/mikroabenteuer/openai_settings.py`, plus fixed the orchestrator to use package-local retry import.
 - DE: Import-Konflikt im Wetter-&-Events-Flow behoben: `openai_activity_service` und `activity_orchestrator` nutzen jetzt Relative-Imports (`from .models ...`) auf das `src`-Paket, wodurch Kollisionen mit dem Root-Paket `mikroabenteuer` vermieden werden.
 - EN: Fixed import conflict in the weather/events flow: `openai_activity_service` and `activity_orchestrator` now use relative imports (`from .models ...`) targeting the `src` package, avoiding collisions with the root `mikroabenteuer` package.
 - DE: Such-Contract vervollständigt (`max_suggestions`, `to_llm_params`, `ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) und durch neue Contract-Tests abgesichert.
