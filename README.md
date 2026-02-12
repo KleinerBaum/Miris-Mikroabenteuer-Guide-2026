@@ -74,7 +74,8 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 ## Features
 - Activity-Search-Datenvertrag erweitert: `ActivitySearchCriteria` verwendet jetzt stabile Contract-Felder `plz`, `radius_km`, `date`, `time_window`, `effort`, `budget_eur_max`, `topics` sowie strikt validierte Vorschlags- und Planmodelle.
 - Konsolidierter Such-Contract mit einer Quelle der Wahrheit in `src/mikroabenteuer/models.py`; App, Recommender, Export und Scheduler verwenden konsistente Feldnamen inkl. `topics`-Normalisierung und `time_window`-Ableitung.
-- Neu strukturierte, zweisprachige Landingpage (DE/EN) mit klarer Hierarchie: Hero, 3-Schritte-Orientierung, Filterbereich, Karten und kompakter Abschluss
+- Neu strukturierte Landingpage mit klarer Hierarchie: Hero, 3-Schritte-Orientierung, Filterbereich, Karten und kompakter Abschluss
+- UI ist aktuell auf Deutsch fokussiert; die Sprachauswahl wurde entfernt.
 - Reduzierte Hero-Sektion mit primärem CTA („Jetzt Abenteuer auswählen / Pick an adventure now") und direktem Scroll-Hinweis
 - Kompakter Orientierungskasten „So funktioniert's / How it works" für schnellen Einstieg
 - Filterbare Abenteuerkarten nach Jahreszeit, Dauer, Alter und Stimmung inkl. „Details ansehen“-CTA je Karte

@@ -147,14 +147,10 @@ def _get_weather(day_iso: str, tz: str) -> WeatherSummary:
 def _criteria_sidebar(
     cfg: AppConfig,
 ) -> tuple[Optional[ActivitySearchCriteria], Language]:
-    st.sidebar.header("Suche / Search")
-    lang: Language = st.sidebar.selectbox(
-        "Sprache / Language", options=["DE", "EN"], index=0
-    )
+    st.sidebar.header("Suche")
+    lang: Language = "DE"
 
-    day_val = st.sidebar.date_input(
-        _t(lang, "Datum / Date", "Date / Datum"), value=date.today()
-    )
+    day_val = st.sidebar.date_input(_t(lang, "Datum", "Date"), value=date.today())
 
     available_minutes = st.sidebar.number_input(
         _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
@@ -166,7 +162,7 @@ def _criteria_sidebar(
 
     raw: dict[str, Any] = {
         "plz": st.sidebar.text_input(
-            _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
+            _t(lang, "PLZ", "Postal code"),
             value=cfg.default_postal_code,
             help=_t(
                 lang,
@@ -183,7 +179,7 @@ def _criteria_sidebar(
         ),
         "date": day_val,
         "effort": st.sidebar.selectbox(
-            _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
+            _t(lang, "Aufwand", "Aufwand"),
             options=["niedrig", "mittel", "hoch"],
             index=["niedrig", "mittel", "hoch"].index(
                 cfg.default_effort
@@ -200,7 +196,7 @@ def _criteria_sidebar(
             step=1.0,
         ),
         "topics": st.sidebar.multiselect(
-            _t(lang, "Themen / Themes", "Themes / Themen"),
+            _t(lang, "Themen", "Themen"),
             options=theme_options(lang),
             default=[],
             format_func=lambda x: theme_label(x, lang),
@@ -276,10 +272,10 @@ def _render_adventure_details(a: MicroAdventure, lang: Language) -> None:
     cols[2].metric(_t(lang, "Kinderwagen", "Stroller"), "✅" if a.stroller_ok else "—")
     cols[3].metric(_t(lang, "Sicherheit", "Safety"), a.safety_level)
 
-    st.markdown("### " + _t(lang, "Startpunkt", "Start point"))
+    st.markdown("### " + _t(lang, "Startpunkt", "Startpunkt"))
     st.write(a.start_point)
 
-    st.markdown("### " + _t(lang, "Ablauf", "Steps"))
+    st.markdown("### " + _t(lang, "Ablauf", "Ablauf"))
     for step in a.route_steps:
         st.write(f"- {step}")
 
@@ -321,7 +317,7 @@ def _render_export_block(
         duration_minutes=picked.duration_minutes,
     )
     st.download_button(
-        label="ICS herunterladen / Download ICS",
+        label="ICS herunterladen",
         data=ics_bytes,
         file_name="mikroabenteuer.ics",
         mime="text/calendar",
@@ -343,11 +339,9 @@ def _render_automation_block(
     with st.expander(
         _t(lang, "Automation (optional)", "Automation (optional)"), expanded=False
     ):
-        send_email = st.checkbox("E-Mail senden / Send email", value=False)
-        create_calendar_event = st.checkbox(
-            "Kalendereintrag erstellen / Create calendar event", value=False
-        )
-        if st.button("Daily-Job jetzt ausführen / Run daily job now"):
+        send_email = st.checkbox("E-Mail senden", value=False)
+        create_calendar_event = st.checkbox("Kalendereintrag erstellen", value=False)
+        if st.button("Daily-Job jetzt ausführen"):
             try:
                 result = run_daily_job_once(
                     cfg,
@@ -383,7 +377,7 @@ class OpenAIActivityService:
             if weather is not None:
                 event_weather = EventWeatherSummary(
                     condition=EventWeatherCondition.unknown,
-                    summary_de_en="Wetter lokal geladen / Weather loaded locally",
+                    summary_de_en="Wetter lokal geladen",
                     temperature_min_c=weather.temperature_min_c,
                     temperature_max_c=weather.temperature_max_c,
                     precipitation_probability_pct=(
@@ -415,9 +409,7 @@ class OpenAIActivityService:
             return {
                 "suggestions": [],
                 "sources": [],
-                "warnings": [
-                    f"OpenAI-Suche aktuell nicht verfügbar / OpenAI search currently unavailable: {exc}"
-                ],
+                "warnings": [f"OpenAI-Suche aktuell nicht verfügbar: {exc}"],
                 "errors": [],
             }
 
@@ -437,19 +429,19 @@ class ActivityOrchestrator:
         warnings: list[str] = []
 
         if on_status:
-            on_status("Wetter wird geladen … / Loading weather …")
+            on_status("Wetter wird geladen …")
         weather: Optional[WeatherSummary] = None
         if st.session_state.get("use_weather", True):
             weather = _get_weather(criteria.date.isoformat(), self.cfg.timezone)
 
         if on_status:
-            on_status("Events werden recherchiert … / Researching events …")
+            on_status("Events werden recherchiert …")
         event_result = self.openai_service.search_events(criteria, weather, mode)
         warnings.extend(event_result.get("warnings", []))
         warnings.extend(event_result.get("errors", []))
 
         if on_status:
-            on_status("Suche abgeschlossen / Search finished")
+            on_status("Suche abgeschlossen")
 
         return {
             "weather": weather,
@@ -481,12 +473,10 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
         top_left, top_right = st.columns(2)
         with top_left:
             plz = st.text_input(
-                _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
+                _t(lang, "PLZ", "PLZ"),
                 value=cfg.default_postal_code,
             )
-            target_date = st.date_input(
-                _t(lang, "Datum / Date", "Date / Datum"), value=date.today()
-            )
+            target_date = st.date_input(_t(lang, "Datum", "Datum"), value=date.today())
             start_time = st.time_input(
                 _t(lang, "Startzeit", "Start time"), value=time(hour=9, minute=0)
             )
@@ -506,7 +496,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 value=float(cfg.default_radius_km),
             )
             effort = st.selectbox(
-                _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
+                _t(lang, "Aufwand", "Aufwand"),
                 options=["niedrig", "mittel", "hoch"],
                 index=["niedrig", "mittel", "hoch"].index(
                     cfg.default_effort
@@ -523,7 +513,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 step=1.0,
             )
             topics = st.multiselect(
-                _t(lang, "Themen / Themes", "Themes / Themen"),
+                _t(lang, "Themen", "Themen"),
                 options=theme_options(lang),
                 default=[],
                 format_func=lambda x: theme_label(x, lang),
@@ -626,7 +616,7 @@ def main() -> None:
     cfg = load_config()
     inject_custom_styles(ROOT / "Hintergrund.png")
 
-    st.title("Mikroabenteuer mit Carla / Micro-adventures with Carla")
+    st.title("Mikroabenteuer mit Carla")
     top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
     with top_col_center:
         st.image(image="20251219_155329.jpg", width=240)

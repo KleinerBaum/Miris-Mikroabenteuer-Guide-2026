@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Die Sidebar-Sprachauswahl wurde entfernt; die App-Oberfläche zeigt Nutzertexte jetzt standardmäßig nur auf Deutsch an.
+- EN: Removed the sidebar language switch; the app UI now displays user-facing text in German by default.
 - DE: `requirements.txt` pinnt `pydantic` jetzt reproduzierbar auf `>=2.6,<3`, damit Deployments zuverlässig Pydantic v2 verwenden.
 - EN: `requirements.txt` now reproducibly pins `pydantic` to `>=2.6,<3` so deployments reliably use Pydantic v2.
 - DE: Paketlayout final auf einen kanonischen Root festgezogen: `src/__init__.py` ergänzt, sodass `src.mikroabenteuer.*` als eindeutiger Importpfad fungiert (statt impliziter Namespace-Auflösung).
