@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Paketlayout final auf einen kanonischen Root festgezogen: `src/__init__.py` ergänzt, sodass `src.mikroabenteuer.*` als eindeutiger Importpfad fungiert (statt impliziter Namespace-Auflösung).
+- EN: Finalized the package layout to one canonical root: added `src/__init__.py` so `src.mikroabenteuer.*` acts as the unambiguous import path (instead of implicit namespace resolution).
+- DE: Neuer Strukturtest (`tests/test_src_package_structure.py`) prüft automatisiert, dass alle relativen Importe in `src/mikroabenteuer/` auf existente Module zeigen und keine Legacy-Root-Importe nutzen.
+- EN: Added a structural test (`tests/test_src_package_structure.py`) to automatically verify that all relative imports in `src/mikroabenteuer/` resolve to existing modules and avoid legacy root imports.
 - DE: Variante A (`src` als einziger Import-Root) wurde technisch vervollständigt: `src/mikroabenteuer/retry.py` und `src/mikroabenteuer/openai_settings.py` ergänzt, plus paketlokaler Retry-Import im Orchestrator korrigiert.
 - EN: Completed variant A (`src` as the single import root): added `src/mikroabenteuer/retry.py` and `src/mikroabenteuer/openai_settings.py`, plus fixed the orchestrator to use package-local retry import.
 - DE: Import-Konflikt im Wetter-&-Events-Flow behoben: `openai_activity_service` und `activity_orchestrator` nutzen jetzt Relative-Imports (`from .models ...`) auf das `src`-Paket, wodurch Kollisionen mit dem Root-Paket `mikroabenteuer` vermieden werden.
