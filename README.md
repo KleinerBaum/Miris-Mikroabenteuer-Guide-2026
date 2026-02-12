@@ -96,6 +96,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Neue Sektion „Wetter & Events / Weather & Events“ mit validierten Suchkriterien, orchestrierter Event-Recherche und Darstellung von Wetter, Warnungen, Treffern und Quellen.
 - Importvertrag für Wetter-&-Events-Module stabilisiert: `src/mikroabenteuer/openai_activity_service.py` und `src/mikroabenteuer/activity_orchestrator.py` verwenden jetzt paketlokale Relative-Imports auf `src/mikroabenteuer/models.py` statt kollidierender Root-Pfade.
 - `ActivitySearchCriteria` wurde um `max_suggestions` + `to_llm_params()` erweitert; ergänzende Ergebnis-/Wettermodelle (`ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) sind nun kanonisch in `src/mikroabenteuer/models.py` definiert.
+- `to_llm_params()` liefert nun zusätzlich `available_minutes`; `ActivitySuggestion` deckt den Orchestrator-Vertrag mit `end_time`, `location` und `description` vollständig ab.
 
 ## Daily Scheduler aktivieren
 Der Scheduler wird nur gestartet, wenn die Umgebungsvariable gesetzt ist:
