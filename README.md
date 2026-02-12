@@ -174,6 +174,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+## Abhängigkeiten / Dependencies
+- `pydantic` ist auf `>=2.6,<3` begrenzt, damit in Deployments (z. B. Streamlit Cloud) stabil Pydantic v2 aufgelöst wird.
+- `pydantic` is constrained to `>=2.6,<3` so deployments (e.g., Streamlit Cloud) consistently resolve Pydantic v2.
+
+
 ## App starten
 ```bash
 streamlit run app.py
