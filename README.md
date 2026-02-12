@@ -93,6 +93,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Aufklappbare Liste (Drop-down/Expander) aller Abenteuer ohne zusätzliche Tabelle
 - Helles, kontrastreiches UI-Theme mit `Hintergrund.png` als App-Hintergrund
 - Verbesserte Kontraste in Export- und Aktions-Elementen: Download-/Action-Buttons sowie die E-Mail-Vorschau sind jetzt ohne Hover gut lesbar.
+- E-Mail-Vorschau im Export zeigt jetzt standardmäßig das gerenderte Layout (statt primär Roh-HTML); der HTML-Quelltext bleibt optional über einen separaten Aufklapper verfügbar.
 - Zentrales Begrüßungsbild aus lokalem Asset (`20251219_155329.jpg`) im oberen Bereich der Landing-Page, stabil über `st.image` eingebunden
 - Hero-Bereich mit zentrierter, zweisprachiger Headline „Miri & Carla: Kleine Abenteuer. Große Erinnerungen 🎂 / Miri & Carla: Small adventures. Big memories.“ direkt oberhalb des Begrüßungsbildes
 - Detailansicht pro Abenteuer über `st.expander`
