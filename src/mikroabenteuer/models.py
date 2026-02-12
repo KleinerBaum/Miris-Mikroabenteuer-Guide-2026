@@ -4,16 +4,16 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date as dt_date, datetime, time
 from enum import Enum
-from typing import List, Literal
+from typing import Annotated, List, Literal
 
 from pydantic import (
-    AnyUrl,
     BaseModel,
     ConfigDict,
     Field,
     field_validator,
     model_validator,
 )
+from pydantic.functional_validators import AfterValidator
 
 from .constants import (
     DIFFICULTY_LEVELS,
@@ -128,6 +128,15 @@ def ensure_unique_slugs(adventures: List[MicroAdventure]) -> None:
 Effort = Literal["niedrig", "mittel", "hoch"]
 
 TOPICS_MAX_ITEMS = 8
+
+
+def validate_http_url(value: str) -> str:
+    if value.startswith(("http://", "https://")):
+        return value
+    raise ValueError("URL must start with http:// or https://")
+
+
+HttpUrlStr = Annotated[str, AfterValidator(validate_http_url)]
 
 
 class TimeWindow(BaseModel):
@@ -304,7 +313,7 @@ class ActivitySuggestion(BaseModel):
     indoor_outdoor: IndoorOutdoor = IndoorOutdoor.mixed
     description: str = ""
     reason_de_en: str
-    source_urls: List[AnyUrl] = Field(default_factory=list)
+    source_urls: List[HttpUrlStr] = Field(default_factory=list)
 
 
 class ActivitySuggestionResult(BaseModel):
@@ -312,6 +321,6 @@ class ActivitySuggestionResult(BaseModel):
 
     weather: WeatherSummary | None = None
     suggestions: List[ActivitySuggestion] = Field(default_factory=list)
-    sources: List[AnyUrl] = Field(default_factory=list)
+    sources: List[HttpUrlStr] = Field(default_factory=list)
     warnings_de_en: List[str] = Field(default_factory=list)
     errors_de_en: List[str] = Field(default_factory=list)

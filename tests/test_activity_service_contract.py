@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
 from datetime import date, time
 
 from src.mikroabenteuer.models import (
     ActivitySearchCriteria,
+    ActivitySuggestionResult,
     IndoorOutdoor,
     TimeWindow,
     WeatherCondition,
@@ -55,3 +57,10 @@ def test_openai_activity_prompt_uses_extended_contract_types() -> None:
     assert "Gib maximal" in prompt
     assert "40215" in prompt
     assert IndoorOutdoor.mixed.value == "mixed"
+
+
+def test_activity_suggestion_schema_avoids_uri_format_for_openai_strict_mode() -> None:
+    schema = ActivitySuggestionResult.model_json_schema()
+    schema_text = json.dumps(schema)
+
+    assert '"format": "uri"' not in schema_text
