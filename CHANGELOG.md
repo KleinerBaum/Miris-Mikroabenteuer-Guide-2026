@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: `requirements.txt` enthält jetzt explizit `openai>=1.0`, damit das OpenAI-SDK reproduzierbar im Ziel-Environment installiert wird.
+- EN: `requirements.txt` now explicitly includes `openai>=1.0` so the OpenAI SDK is reproducibly installed in the target environment.
+- DE: `src/mikroabenteuer/openai_activity_service.py` fängt `ImportError` beim OpenAI-Import nun explizit ab und gibt eine klare zweisprachige Installationsanleitung aus.
+- EN: `src/mikroabenteuer/openai_activity_service.py` now explicitly catches `ImportError` for the OpenAI import and returns a clear bilingual installation hint.
 - DE: `requirements.txt` pinnt `pydantic` jetzt reproduzierbar auf `>=2.6,<3`, damit Deployments zuverlässig Pydantic v2 verwenden.
 - EN: `requirements.txt` now reproducibly pins `pydantic` to `>=2.6,<3` so deployments reliably use Pydantic v2.
 - DE: Paketlayout final auf einen kanonischen Root festgezogen: `src/__init__.py` ergänzt, sodass `src.mikroabenteuer.*` als eindeutiger Importpfad fungiert (statt impliziter Namespace-Auflösung).
