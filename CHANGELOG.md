@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: `requirements.txt` pinnt `pydantic` jetzt reproduzierbar auf `>=2.6,<3`, damit Deployments zuverlässig Pydantic v2 verwenden.
+- EN: `requirements.txt` now reproducibly pins `pydantic` to `>=2.6,<3` so deployments reliably use Pydantic v2.
 - DE: Paketlayout final auf einen kanonischen Root festgezogen: `src/__init__.py` ergänzt, sodass `src.mikroabenteuer.*` als eindeutiger Importpfad fungiert (statt impliziter Namespace-Auflösung).
 - EN: Finalized the package layout to one canonical root: added `src/__init__.py` so `src.mikroabenteuer.*` acts as the unambiguous import path (instead of implicit namespace resolution).
 - DE: Neuer Strukturtest (`tests/test_src_package_structure.py`) prüft automatisiert, dass alle relativen Importe in `src/mikroabenteuer/` auf existente Module zeigen und keine Legacy-Root-Importe nutzen.

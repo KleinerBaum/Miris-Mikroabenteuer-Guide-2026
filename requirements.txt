@@ -1,5 +1,5 @@
 streamlit>=1.32
-pydantic>=2.6
+pydantic>=2.6,<3
 pyyaml>=6.0
 pandas>=2.2
 requests>=2.32
