@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: OpenAI-Strict-Output kompatibel gemacht: `source_urls` und `sources` in `src/mikroabenteuer/models.py` verwenden jetzt validierte `str`-URLs statt `AnyUrl`, damit das JSON-Schema kein nicht unterstütztes `format: "uri"` mehr enthält.
+- EN: Made OpenAI strict outputs compatible: `source_urls` and `sources` in `src/mikroabenteuer/models.py` now use validated `str` URLs instead of `AnyUrl`, so the JSON schema no longer contains unsupported `format: "uri"`.
+- DE: Contract-Test ergänzt, der sicherstellt, dass das generierte Schema für `ActivitySuggestionResult` keinen `uri`-Formatwert enthält.
+- EN: Added a contract test to ensure the generated `ActivitySuggestionResult` schema does not contain the `uri` format value.
 - DE: `requirements.txt` enthält jetzt explizit `openai>=1.0`, damit das OpenAI-SDK reproduzierbar im Ziel-Environment installiert wird.
 - EN: `requirements.txt` now explicitly includes `openai>=1.0` so the OpenAI SDK is reproducibly installed in the target environment.
 - DE: `src/mikroabenteuer/openai_activity_service.py` fängt `ImportError` beim OpenAI-Import nun explizit ab und gibt eine klare zweisprachige Installationsanleitung aus.
