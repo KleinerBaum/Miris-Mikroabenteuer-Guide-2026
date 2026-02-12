@@ -91,6 +91,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Zentrales Begrüßungsbild aus lokalem Asset (`20251219_155329.jpg`) im oberen Bereich der Landing-Page, stabil über `st.image` eingebunden
 - Hero-Bereich mit zentrierter, zweisprachiger Headline „Miri & Carla: Kleine Abenteuer. Große Erinnerungen 🎂 / Miri & Carla: Small adventures. Big memories.“ direkt oberhalb des Begrüßungsbildes
 - Detailansicht pro Abenteuer über `st.expander`
+- Neues naturverbundenes Farbkonzept in der UI (Primary Dark Green, Mint, Terracotta, Marigold, Sky Blue, Lavender, Cream, Charcoal) für klare visuelle Hierarchie und bessere Lesbarkeit.
 
 ## Daily Scheduler aktivieren
 Der Scheduler wird nur gestartet, wenn die Umgebungsvariable gesetzt ist:

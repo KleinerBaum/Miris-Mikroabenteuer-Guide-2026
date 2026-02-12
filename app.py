@@ -49,42 +49,76 @@ def inject_custom_styles(background_path: Path) -> None:
     st.markdown(
         f"""
         <style>
+            :root {{
+                --primary-dark-green: #00715D;
+                --primary-mint: #A4D4AE;
+                --accent-terracotta: #D98556;
+                --accent-marigold: #F4B400;
+                --secondary-sky-blue: #80C7CF;
+                --secondary-lavender: #B8B1D3;
+                --background-cream: #F9F4E7;
+                --text-charcoal: #2F353D;
+                --line-soft: #E3E6E9;
+            }}
             .stApp {{
                 background: linear-gradient(
-                    rgba(255, 255, 255, 0.87),
-                    rgba(255, 255, 255, 0.87)
+                    rgba(249, 244, 231, 0.92),
+                    rgba(249, 244, 231, 0.92)
                 ), url("data:image/png;base64,{background_b64}");
                 background-size: cover;
                 background-position: center;
                 background-attachment: fixed;
-                color: #1f2937;
+                color: var(--text-charcoal);
             }}
-            h1, h2, h3, .stCaption, p, label {{ color: #1f2937 !important; }}
+            h1, h2, h3, .stCaption, p, label {{ color: var(--text-charcoal) !important; }}
             .stDownloadButton button,
             .stButton button {{
-                background-color: #1f2937 !important;
-                color: #f9fafb !important;
-                border: 1px solid #111827 !important;
+                background-color: var(--primary-dark-green) !important;
+                color: #ffffff !important;
+                border: 1px solid #00584a !important;
             }}
             .stDownloadButton button:hover,
             .stButton button:hover {{
-                background-color: #111827 !important;
-                color: #ffffff !important;
+                background-color: var(--primary-mint) !important;
+                color: var(--text-charcoal) !important;
+                border-color: #7fbb8f !important;
             }}
             .stDownloadButton button:disabled {{
-                background-color: #e5e7eb !important;
-                color: #374151 !important;
-                border-color: #d1d5db !important;
+                background-color: var(--line-soft) !important;
+                color: #515862 !important;
+                border-color: #c7cfd4 !important;
+            }}
+            [data-testid="stSidebar"] {{
+                background-color: rgba(128, 199, 207, 0.22) !important;
+                border-right: 1px solid var(--line-soft);
+            }}
+            [data-testid="stExpander"] {{
+                border: 1px solid var(--line-soft) !important;
+                border-radius: 0.75rem !important;
+                background-color: rgba(184, 177, 211, 0.2);
+            }}
+            .stExpander summary {{
+                background-color: var(--primary-dark-green) !important;
+                border-radius: 0.75rem !important;
             }}
             .stExpander [data-testid="stExpanderToggleIcon"],
             .stExpander summary p,
             .stExpander summary span {{
-                color: #f3f4f6 !important;
+                color: #ffffff !important;
             }}
             .stExpander div[data-testid="stExpanderDetails"] pre,
             .stExpander div[data-testid="stExpanderDetails"] code,
             .stExpander div[data-testid="stExpanderDetails"] span {{
-                color: #f9fafb !important;
+                color: var(--text-charcoal) !important;
+            }}
+            .stMetric,
+            [data-testid="stMetricValue"],
+            [data-testid="stMetricLabel"] {{
+                color: var(--text-charcoal) !important;
+            }}
+            .stAlert {{
+                border: 1px solid var(--line-soft) !important;
+                background-color: rgba(164, 212, 174, 0.2) !important;
             }}
         </style>
         """,
@@ -367,9 +401,7 @@ def main() -> None:
             f"{len(filtered)} matching adventures (of {len(adventures)}).",
         )
     )
-    st.dataframe(
-        [a.summary_row() for a in filtered], width="stretch", hide_index=True
-    )
+    st.dataframe([a.summary_row() for a in filtered], width="stretch", hide_index=True)
 
     for a in filtered:
         with st.expander(
