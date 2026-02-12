@@ -3,6 +3,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Neues „Activity Search (NEW)“-Schema in `mikroabenteuer/models.py` ergänzt (inkl. `TimeWindow`, `ActivitySearchCriteria`, `WeatherReport`, `SearchStrategy`, `ActivitySuggestion`, `ActivityPlan`) mit strikter Validierung (`extra="forbid"`).
+- EN: Added a new “Activity Search (NEW)” schema section in `mikroabenteuer/models.py` (including `TimeWindow`, `ActivitySearchCriteria`, `WeatherReport`, `SearchStrategy`, `ActivitySuggestion`, `ActivityPlan`) with strict validation (`extra="forbid"`).
 - DE: Die Landing-Page wurde auf die neuen Module unter `src/mikroabenteuer` umgestellt (Config, Seed, Wetter, Recommender, OpenAI-Planung) und konsistent integriert.
 - EN: The landing page now uses the new modules under `src/mikroabenteuer` (config, seed, weather, recommender, OpenAI planning) in a consistent integration.
 - DE: Export-Flow erweitert: Tagesplan kann jetzt direkt als JSON, Markdown und ICS heruntergeladen werden.

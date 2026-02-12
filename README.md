@@ -72,6 +72,7 @@ Wenn `WEATHER_LAT`/`WEATHER_LON` nicht gesetzt sind, nutzt die App automatisch V
 Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`, `6.7735`) gesetzt werden.
 
 ## Features
+- Activity-Search-Datenvertrag erweitert: `ActivitySearchCriteria` verwendet jetzt stabile Contract-Felder `plz`, `radius_km`, `date`, `time_window`, `effort`, `budget_eur_max`, `topics` sowie strikt validierte Vorschlags- und Planmodelle.
 - Neu strukturierte, zweisprachige Landingpage (DE/EN) mit klarer Hierarchie: Hero, 3-Schritte-Orientierung, Filterbereich, Karten und kompakter Abschluss
 - Reduzierte Hero-Sektion mit primärem CTA („Jetzt Abenteuer auswählen / Pick an adventure now") und direktem Scroll-Hinweis
 - Kompakter Orientierungskasten „So funktioniert's / How it works" für schnellen Einstieg
