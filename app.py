@@ -8,7 +8,8 @@ import sys
 import time
 from datetime import date
 from pathlib import Path
-from typing import Any, Optional
+from dataclasses import dataclass
+from typing import Any, Callable, Optional
 
 import streamlit as st
 from pydantic import ValidationError
@@ -319,6 +320,234 @@ def _render_automation_block(
                 )
 
 
+@dataclass
+class OpenAIActivityService:
+    cfg: AppConfig
+
+    def search_events(
+        self,
+        criteria: ActivitySearchCriteria,
+        weather: Optional[WeatherSummary],
+        mode: str,
+    ) -> dict[str, Any]:
+        try:
+            from src.mikroabenteuer.openai_activity_service import suggest_activities
+
+            result = suggest_activities(
+                criteria,
+                mode="genau" if mode == "genau" else "schnell",
+                base_url=os.getenv("OPENAI_BASE_URL") or None,
+                weather=weather,
+            )
+            return {
+                "suggestions": list(getattr(result, "suggestions", [])),
+                "sources": list(getattr(result, "sources", [])),
+                "warnings": list(getattr(result, "warnings_de_en", [])),
+                "errors": list(getattr(result, "errors_de_en", [])),
+            }
+        except Exception as exc:
+            return {
+                "suggestions": [],
+                "sources": [],
+                "warnings": [
+                    f"OpenAI-Suche aktuell nicht verfügbar / OpenAI search currently unavailable: {exc}"
+                ],
+                "errors": [],
+            }
+
+
+@dataclass
+class ActivityOrchestrator:
+    cfg: AppConfig
+    openai_service: OpenAIActivityService
+
+    def run(
+        self,
+        criteria: ActivitySearchCriteria,
+        *,
+        mode: str,
+        on_status: Optional[Callable[[str], None]] = None,
+    ) -> dict[str, Any]:
+        warnings: list[str] = []
+
+        if on_status:
+            on_status("Wetter wird geladen … / Loading weather …")
+        weather: Optional[WeatherSummary] = None
+        if st.session_state.get("use_weather", True):
+            weather = _get_weather(criteria.day.isoformat(), self.cfg.timezone)
+
+        if on_status:
+            on_status("Events werden recherchiert … / Researching events …")
+        event_result = self.openai_service.search_events(criteria, weather, mode)
+        warnings.extend(event_result.get("warnings", []))
+        warnings.extend(event_result.get("errors", []))
+
+        if on_status:
+            on_status("Suche abgeschlossen / Search finished")
+
+        return {
+            "weather": weather,
+            "warnings": list(dict.fromkeys(warnings)),
+            "events": event_result.get("suggestions", []),
+            "sources": event_result.get("sources", []),
+        }
+
+
+@st.cache_resource(show_spinner=False)
+def _get_activity_orchestrator(
+    cfg: AppConfig,
+) -> tuple[OpenAIActivityService, ActivityOrchestrator]:
+    openai_service = OpenAIActivityService(cfg=cfg)
+    return openai_service, ActivityOrchestrator(cfg=cfg, openai_service=openai_service)
+
+
+def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
+    st.subheader(_t(lang, "Wetter & Events", "Weather & Events"))
+    st.caption(
+        _t(
+            lang,
+            "Lokale Vorschläge mit Wetter-Check und Live-Quellen.",
+            "Local suggestions with weather check and live sources.",
+        )
+    )
+
+    with st.form("weather_events_form", clear_on_submit=False):
+        top_left, top_right = st.columns(2)
+        with top_left:
+            postal_code = st.text_input(
+                _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
+                value=cfg.default_postal_code,
+            )
+            target_day = st.date_input(
+                _t(lang, "Datum / Date", "Date / Datum"), value=date.today()
+            )
+            start_time = st.time_input(
+                _t(lang, "Startzeit (optional)", "Start time (optional)"), value=None
+            )
+            available_minutes = st.number_input(
+                _t(lang, "Zeitbudget (Minuten)", "Time budget (minutes)"),
+                min_value=15,
+                max_value=360,
+                value=int(cfg.default_available_minutes),
+                step=5,
+            )
+        with top_right:
+            radius_km = st.slider(
+                _t(lang, "Radius (km)", "Radius (km)"),
+                min_value=0.5,
+                max_value=50.0,
+                step=0.5,
+                value=float(cfg.default_radius_km),
+            )
+            effort = st.selectbox(
+                _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
+                options=["niedrig", "mittel", "hoch"],
+                index=["niedrig", "mittel", "hoch"].index(
+                    cfg.default_effort
+                    if cfg.default_effort in {"niedrig", "mittel", "hoch"}
+                    else "mittel"
+                ),
+                format_func=lambda x: effort_label(x, lang),
+            )
+            budget = st.number_input(
+                _t(lang, "Budget (max €)", "Budget (max €)"),
+                min_value=0.0,
+                max_value=250.0,
+                value=float(cfg.default_budget_eur),
+                step=1.0,
+            )
+            themes = st.multiselect(
+                _t(lang, "Themen / Themes", "Themes / Themen"),
+                options=theme_options(lang),
+                default=[],
+                format_func=lambda x: theme_label(x, lang),
+            )
+
+        mode = st.radio(
+            _t(lang, "Genauigkeit", "Accuracy"),
+            options=["schnell", "genau"],
+            format_func=lambda m: _t(lang, "Schnell", "Fast")
+            if m == "schnell"
+            else _t(lang, "Genau", "Precise"),
+            horizontal=True,
+        )
+
+        submitted = st.form_submit_button(
+            _t(lang, "Wetter und Events laden", "Load weather and events")
+        )
+
+    if not submitted:
+        return
+
+    try:
+        criteria = ActivitySearchCriteria(
+            postal_code=postal_code,
+            radius_km=radius_km,
+            day=target_day,
+            available_minutes=int(available_minutes),
+            effort=effort,
+            budget_eur_max=float(budget),
+            themes=themes,
+            start_time=start_time,
+            end_time=None,
+        )
+    except ValidationError as exc:
+        st.error(
+            _t(
+                lang,
+                "Bitte prüfe die Eingaben. Details siehe unten.",
+                "Please check your inputs. See details below.",
+            )
+        )
+        for err in exc.errors():
+            loc = ".".join(str(p) for p in err.get("loc", []))
+            st.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+        return
+
+    _service, orchestrator = _get_activity_orchestrator(cfg)
+    status_box = st.empty()
+    payload = orchestrator.run(criteria, mode=mode, on_status=status_box.info)
+    status_box.success(_t(lang, "Fertig.", "Done."))
+
+    weather = payload.get("weather")
+    if weather:
+        st.markdown("#### " + _t(lang, "Wetter", "Weather"))
+        st.write(
+            _t(
+                lang,
+                f"Tags: {', '.join(weather.derived_tags)}",
+                f"Tags: {', '.join(weather.derived_tags)}",
+            )
+        )
+
+    warnings = payload.get("warnings", [])
+    if warnings:
+        st.markdown("#### " + _t(lang, "Hinweise", "Warnings"))
+        for warning in warnings:
+            st.warning(str(warning))
+
+    events = payload.get("events", [])
+    st.markdown("#### " + _t(lang, "Events", "Events"))
+    if not events:
+        st.info(
+            _t(
+                lang,
+                "Aktuell keine Event-Treffer. Bitte Radius/Themen anpassen.",
+                "No event matches right now. Please adjust radius/themes.",
+            )
+        )
+    for event in events:
+        title = str(getattr(event, "title", _t(lang, "Vorschlag", "Suggestion")))
+        reason = str(getattr(event, "reason_de_en", ""))
+        st.markdown(f"- **{title}** — {reason}")
+
+    sources = payload.get("sources", [])
+    if sources:
+        st.markdown("#### " + _t(lang, "Quellen", "Sources"))
+        for source in sources:
+            st.markdown(f"- {source}")
+
+
 def main() -> None:
     cfg = load_config()
     inject_custom_styles(ROOT / "Hintergrund.png")
@@ -354,6 +583,9 @@ def main() -> None:
     daily_md = _generate_markdown_with_retry(cfg, picked, criteria, weather, lang)
     st.markdown(daily_md)
 
+    st.divider()
+    render_wetter_und_events_section(cfg, lang)
+
     _render_export_block(picked, criteria, weather, daily_md, lang)
     _render_automation_block(cfg, criteria, lang)
 
@@ -367,9 +599,7 @@ def main() -> None:
             f"{len(filtered)} matching adventures (of {len(adventures)}).",
         )
     )
-    st.dataframe(
-        [a.summary_row() for a in filtered], width="stretch", hide_index=True
-    )
+    st.dataframe([a.summary_row() for a in filtered], width="stretch", hide_index=True)
 
     for a in filtered:
         with st.expander(
