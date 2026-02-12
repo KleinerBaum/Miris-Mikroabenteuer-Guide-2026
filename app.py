@@ -269,6 +269,29 @@ def _generate_markdown_with_retry(
     return generate_daily_markdown(cfg_runtime, picked, criteria, weather)
 
 
+def _split_daily_markdown(markdown: str) -> tuple[str, str]:
+    lines = markdown.splitlines()
+    content_lines = [line for line in lines if line.strip()]
+    if len(content_lines) < 4:
+        return markdown, ""
+
+    preview_candidates = content_lines[:4]
+    remaining_preview = list(preview_candidates)
+    preview_lines: list[str] = []
+    details_lines: list[str] = []
+
+    for line in lines:
+        if remaining_preview and line == remaining_preview[0]:
+            preview_lines.append(line)
+            remaining_preview.pop(0)
+            continue
+        details_lines.append(line)
+
+    preview = "\n".join(preview_lines).strip()
+    details = "\n".join(details_lines).strip()
+    return preview, details
+
+
 def _render_adventure_details(a: MicroAdventure, lang: Language) -> None:
     st.markdown(f"**{a.title}**  \n{a.short}")
     cols = st.columns(4)
@@ -666,7 +689,14 @@ def main() -> None:
         )
 
     daily_md = _generate_markdown_with_retry(cfg, picked, criteria, weather, lang)
-    st.markdown(daily_md)
+    daily_preview_md, daily_details_md = _split_daily_markdown(daily_md)
+    st.markdown(daily_preview_md)
+    if daily_details_md:
+        with st.expander(
+            _t(lang, "Details anzeigen / ausblenden", "Show / hide details"),
+            expanded=False,
+        ):
+            st.markdown(daily_details_md)
 
     st.divider()
     render_wetter_und_events_section(cfg, lang)
