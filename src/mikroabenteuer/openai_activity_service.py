@@ -5,7 +5,7 @@ from typing import Callable, Literal
 
 from pydantic import ValidationError
 
-from mikroabenteuer.models import (
+from src.mikroabenteuer.models import (
     ActivitySearchCriteria,
     ActivitySuggestionResult,
     SearchStrategy,
@@ -15,7 +15,7 @@ from mikroabenteuer.models import (
 # --- Import your existing config helpers (NO secrets in logs) ----------------
 try:
     # TODO: adjust import path to your project
-    from mikroabenteuer.openai_config import (
+    from src.mikroabenteuer.openai_config import (
         configure_openai_api_key,
         resolve_openai_api_key,
     )
@@ -33,7 +33,7 @@ except Exception:  # pragma: no cover
 # --- Import your existing retry helper --------------------------------------
 try:
     # TODO: adjust import path to your project
-    from mikroabenteuer.retry import retry_with_backoff
+    from src.mikroabenteuer.retry import retry_with_backoff
 except Exception:  # pragma: no cover
 
     def retry_with_backoff(fn: Callable[[], object], *args, **kwargs):  # type: ignore
