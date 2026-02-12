@@ -94,6 +94,8 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Detailansicht pro Abenteuer über `st.expander`
 - Neues naturverbundenes Farbkonzept in der UI (Primary Dark Green, Mint, Terracotta, Marigold, Sky Blue, Lavender, Cream, Charcoal) für klare visuelle Hierarchie und bessere Lesbarkeit.
 - Neue Sektion „Wetter & Events / Weather & Events“ mit validierten Suchkriterien, orchestrierter Event-Recherche und Darstellung von Wetter, Warnungen, Treffern und Quellen.
+- Importvertrag für Wetter-&-Events-Module stabilisiert: `src/mikroabenteuer/openai_activity_service.py` und `src/mikroabenteuer/activity_orchestrator.py` verwenden jetzt paketlokale Relative-Imports auf `src/mikroabenteuer/models.py` statt kollidierender Root-Pfade.
+- `ActivitySearchCriteria` wurde um `max_suggestions` + `to_llm_params()` erweitert; ergänzende Ergebnis-/Wettermodelle (`ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) sind nun kanonisch in `src/mikroabenteuer/models.py` definiert.
 
 ## Daily Scheduler aktivieren
 Der Scheduler wird nur gestartet, wenn die Umgebungsvariable gesetzt ist:

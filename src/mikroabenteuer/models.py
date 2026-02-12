@@ -3,9 +3,17 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date as dt_date, datetime, time
+from enum import Enum
 from typing import List, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    AnyUrl,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from .constants import (
     DIFFICULTY_LEVELS,
@@ -173,6 +181,12 @@ class ActivitySearchCriteria(BaseModel):
         description="Budget upper bound in EUR.",
     )
     topics: List[str] = Field(default_factory=list, description="Topic keys.")
+    max_suggestions: int = Field(
+        default=5,
+        ge=1,
+        le=10,
+        description="Maximum number of returned suggestions.",
+    )
 
     @field_validator("plz")
     @classmethod
@@ -219,3 +233,81 @@ class ActivitySearchCriteria(BaseModel):
         start_dt = datetime.combine(self.date, self.time_window.start)
         end_dt = datetime.combine(self.date, self.time_window.end)
         return int((end_dt - start_dt).total_seconds() // 60)
+
+    def to_llm_params(self) -> dict[str, str | float | int | List[str]]:
+        return {
+            "plz": self.plz,
+            "radius_km": self.radius_km,
+            "date": self.date.isoformat(),
+            "time_start": self.start_time.strftime("%H:%M"),
+            "time_end": self.end_time.strftime("%H:%M"),
+            "effort": self.effort,
+            "budget_eur_max": self.budget_eur_max,
+            "topics": self.topics,
+            "max_suggestions": self.max_suggestions,
+        }
+
+
+class WeatherCondition(str, Enum):
+    sunny = "sunny"
+    cloudy = "cloudy"
+    rainy = "rainy"
+    stormy = "stormy"
+    snowy = "snowy"
+    foggy = "foggy"
+    unknown = "unknown"
+
+
+class IndoorOutdoor(str, Enum):
+    indoor = "indoor"
+    outdoor = "outdoor"
+    mixed = "mixed"
+
+
+class WeatherSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    condition: WeatherCondition
+    summary_de_en: str
+    temperature_min_c: float | None = None
+    temperature_max_c: float | None = None
+    precipitation_probability_pct: int | None = None
+    precipitation_sum_mm: float | None = None
+    wind_speed_max_kmh: float | None = None
+    country_code: str | None = None
+    city: str | None = None
+    region: str | None = None
+    timezone: str | None = None
+    data_source: str | None = None
+
+
+class SearchStrategy(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    indoor_bias: float = Field(ge=0.0, le=1.0)
+    outdoor_bias: float = Field(ge=0.0, le=1.0)
+    rationale_de_en: str
+    query_hints: List[str] = Field(default_factory=list)
+
+
+class ActivitySuggestion(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    reason_de_en: str
+    date: dt_date
+    start_time: time | None = None
+    distance_km: float | None = None
+    expected_cost_eur: float | None = None
+    indoor_outdoor: IndoorOutdoor = IndoorOutdoor.mixed
+    source_urls: List[AnyUrl] = Field(default_factory=list)
+
+
+class ActivitySuggestionResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    weather: WeatherSummary | None = None
+    suggestions: List[ActivitySuggestion] = Field(default_factory=list)
+    sources: List[AnyUrl] = Field(default_factory=list)
+    warnings_de_en: List[str] = Field(default_factory=list)
+    errors_de_en: List[str] = Field(default_factory=list)

@@ -4,9 +4,9 @@ from __future__ import annotations
 from datetime import date as date_t
 from typing import Callable, Literal
 
-import httpx
+import httpx  # type: ignore[import-not-found]
 
-from src.mikroabenteuer.models import (
+from .models import (
     ActivitySearchCriteria,
     ActivitySuggestion,
     ActivitySuggestionResult,
@@ -14,15 +14,9 @@ from src.mikroabenteuer.models import (
     WeatherCondition,
     WeatherSummary,
 )
-from src.mikroabenteuer.openai_activity_service import suggest_activities
+from .openai_activity_service import suggest_activities
 
-# Optional: reuse existing retry helper if present
-try:
-    from src.mikroabenteuer.retry import retry_with_backoff
-except Exception:  # pragma: no cover
-
-    def retry_with_backoff(fn, *args, **kwargs):
-        return fn()
+from mikroabenteuer.retry import retry_with_backoff
 
 
 ProgressCb = Callable[[str], None]
@@ -200,7 +194,7 @@ def get_weather_summary(
             data_source="open-meteo",
         )
 
-    return retry_with_backoff(_call)
+    return retry_with_backoff(max_attempts=3, base_delay=0.5)(_call)()
 
 
 def _score_suggestion(
