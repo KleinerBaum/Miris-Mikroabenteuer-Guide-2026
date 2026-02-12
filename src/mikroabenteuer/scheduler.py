@@ -2,8 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, time
-from typing import Optional
+from datetime import datetime
 
 from .config import AppConfig
 from .data_seed import seed_adventures
@@ -58,7 +57,9 @@ def run_daily_job_once(
         from .gmail_api import send_gmail_message
 
         scopes = ["https://www.googleapis.com/auth/gmail.send"]
-        creds = get_credentials(cfg.google_client_secrets_file, cfg.google_token_file, scopes)
+        creds = get_credentials(
+            cfg.google_client_secrets_file, cfg.google_token_file, scopes
+        )
 
         send_gmail_message(
             creds,
@@ -79,7 +80,9 @@ def run_daily_job_once(
             from .gcal_api import insert_calendar_event
 
             scopes = ["https://www.googleapis.com/auth/calendar.events"]
-            creds = get_credentials(cfg.google_client_secrets_file, cfg.google_token_file, scopes)
+            creds = get_credentials(
+                cfg.google_client_secrets_file, cfg.google_token_file, scopes
+            )
 
             start_dt = datetime.combine(criteria.day, criteria.start_time)
             insert_calendar_event(
@@ -93,7 +96,9 @@ def run_daily_job_once(
                 timezone=cfg.timezone,
             )
 
-    return DailyJobResult(subject=subject, to_email=cfg.gmail_to_email, adventure_slug=adventure.slug)
+    return DailyJobResult(
+        subject=subject, to_email=cfg.gmail_to_email, adventure_slug=adventure.slug
+    )
 
 
 def start_scheduler_0820(
@@ -114,7 +119,12 @@ def start_scheduler_0820(
     sched = BlockingScheduler(timezone=tz)
 
     def _job():
-        run_daily_job_once(cfg, criteria, send_email=send_email, create_calendar_event=create_calendar_event)
+        run_daily_job_once(
+            cfg,
+            criteria,
+            send_email=send_email,
+            create_calendar_event=create_calendar_event,
+        )
 
     sched.add_job(_job, "cron", hour=8, minute=20)
     sched.start()

@@ -75,7 +75,9 @@ def load_config() -> AppConfig:
         enable_web_search=_to_bool(os.getenv("ENABLE_WEB_SEARCH"), default=False),
         openai_api_key=os.getenv("OPENAI_API_KEY") or None,
         openai_model=os.getenv("OPENAI_MODEL", "gpt-5-mini"),
-        google_client_secrets_file=os.getenv("GOOGLE_OAUTH_CLIENT_SECRETS_FILE", "client_secret.json"),
+        google_client_secrets_file=os.getenv(
+            "GOOGLE_OAUTH_CLIENT_SECRETS_FILE", "client_secret.json"
+        ),
         google_token_file=os.getenv("GOOGLE_OAUTH_TOKEN_FILE", "token.json"),
         gmail_from_email=os.getenv("GMAIL_FROM_EMAIL", ""),
         gmail_to_email=os.getenv("GMAIL_TO_EMAIL", ""),

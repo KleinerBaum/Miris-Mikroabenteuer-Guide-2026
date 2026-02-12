@@ -1,39 +1,51 @@
+# ruff: noqa: E402
+from __future__ import annotations
+
 import base64
+import json
 import os
-from dataclasses import dataclass
+import sys
+import time
 from datetime import date
 from pathlib import Path
+from typing import Any, Optional
 
 import streamlit as st
+from pydantic import ValidationError
 
-from mikroabenteuer.config import APP_TITLE
-from mikroabenteuer.data_loader import load_adventures
-from mikroabenteuer.openai_settings import configure_openai_api_key
-from mikroabenteuer.scheduler import start_scheduler
-from mikroabenteuer.ui.details import render_adventure_details
-from mikroabenteuer.ui.table import render_adventure_table
+ROOT = Path(__file__).resolve().parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
-st.set_page_config(
-    page_title=APP_TITLE,
-    page_icon="🌿",
-    layout="wide",
+from src.mikroabenteuer.config import AppConfig, load_config
+from src.mikroabenteuer.constants import (
+    Language,
+    effort_label,
+    theme_label,
+    theme_options,
 )
+from src.mikroabenteuer.data_seed import seed_adventures
+from src.mikroabenteuer.email_templates import render_daily_email_html
+from src.mikroabenteuer.ics import build_ics_event
+from src.mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure
+from src.mikroabenteuer.openai_gen import generate_daily_markdown
+from src.mikroabenteuer.recommender import filter_adventures, pick_daily_adventure
+from src.mikroabenteuer.scheduler import run_daily_job_once
+from src.mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
 
 
-@dataclass(frozen=True)
-class LandingAdventureCard:
-    title: str
-    teaser: str
-    age_group: str
-    duration: str
-    season: str
-    mood: str
+st.set_page_config(page_title="Mikroabenteuer mit Carla", page_icon="🌿", layout="wide")
+
+
+def _t(lang: Language, de: str, en: str) -> str:
+    return de if lang == "DE" else en
 
 
 def inject_custom_styles(background_path: Path) -> None:
-    """Inject a light, readable theme with a custom background image."""
-    background_b64 = base64.b64encode(background_path.read_bytes()).decode("utf-8")
+    if not background_path.exists():
+        return
 
+    background_b64 = base64.b64encode(background_path.read_bytes()).decode("utf-8")
     st.markdown(
         f"""
         <style>
@@ -47,270 +59,307 @@ def inject_custom_styles(background_path: Path) -> None:
                 background-attachment: fixed;
                 color: #1f2937;
             }}
-
-            h1, h2, h3, .stCaption, p, label, span {{
-                color: #1f2937 !important;
-            }}
-
-            [data-testid="stMetric"],
-            [data-testid="stExpander"],
-            [data-testid="stDataFrame"],
-            [data-testid="stMarkdownContainer"] > div,
-            .stTextInput > div > div,
-            .stSelectbox > div > div {{
-                background-color: rgba(255, 255, 255, 0.8);
-                border-radius: 0.8rem;
-            }}
-
-            .stButton > button {{
-                background-color: #374151;
-                color: #ffffff !important;
-                border: none;
-            }}
-
-            .stButton > button p,
-            .stButton > button span {{
-                color: #ffffff !important;
-            }}
-
-            .stButton > button:hover {{
-                background-color: #1f2937;
-            }}
-
-            .landing-card {{
-                background-color: rgba(255, 255, 255, 0.85);
-                border-radius: 0.8rem;
-                padding: 1rem;
-                border: 1px solid rgba(37, 99, 235, 0.2);
-                min-height: 190px;
-            }}
-
-            .landing-proof {{
-                font-weight: 600;
-                color: #065f46;
-            }}
+            h1, h2, h3, .stCaption, p, label, span {{ color: #1f2937 !important; }}
         </style>
         """,
         unsafe_allow_html=True,
     )
 
 
-def render_landing_page(cards: list[LandingAdventureCard]) -> None:
-    """Render a clear, compact bilingual landing page."""
-    st.markdown("# Miris Mikroabenteuer mit Carla / Miri's micro-adventures with Carla")
+@st.cache_data(show_spinner=False)
+def _load_adventures() -> list[MicroAdventure]:
+    return seed_adventures()
 
-    hero_col, steps_col = st.columns([1.7, 1])
-    with hero_col:
-        st.markdown(
-            """
-            ### Schnell raus, gemeinsam erleben / Get outside quickly, experience together
-            Kleine Ideen für Miri und Carla – ohne Planung und ohne lange Vorbereitung.
 
-            Small ideas for Miri and Carla — no planning, no long preparation.
-            """
-        )
-        if st.button(
-            "Jetzt Abenteuer auswählen / Pick an adventure now",
-            use_container_width=True,
-        ):
-            st.info(
-                "Direkt darunter findest du Filter und Abenteuerkarten. / Filters and cards are right below."
-            )
+@st.cache_data(show_spinner=False)
+def _get_weather(day_iso: str, tz: str) -> WeatherSummary:
+    y, m, d = map(int, day_iso.split("-"))
+    return fetch_weather_for_day(date(y, m, d), timezone=tz)
 
-    with steps_col:
-        st.markdown(
-            """
-            #### So funktioniert's / How it works
-            1. Filtern / Filter
-            2. Karte wählen / Choose a card
-            3. Rausgehen / Head outside
-            """
-        )
 
-    proof_col1, proof_col2, proof_col3 = st.columns(3)
-    proof_col1.markdown(
-        "<p class='landing-proof'>✓ ab 3 Jahren / suitable from age 3+</p>",
-        unsafe_allow_html=True,
-    )
-    proof_col2.markdown(
-        "<p class='landing-proof'>✓ spontan möglich / start spontaneously</p>",
-        unsafe_allow_html=True,
-    )
-    proof_col3.markdown(
-        "<p class='landing-proof'>✓ bei jedem Wetter / works all year round</p>",
-        unsafe_allow_html=True,
+def _criteria_sidebar(
+    cfg: AppConfig,
+) -> tuple[Optional[ActivitySearchCriteria], Language]:
+    st.sidebar.header("Suche / Search")
+    lang: Language = st.sidebar.selectbox(
+        "Sprache / Language", options=["DE", "EN"], index=0
     )
 
-    st.divider()
-    st.header("Abenteuer finden / Find an adventure")
-
-    season_options = ["Alle / All"] + sorted({card.season for card in cards})
-    duration_options = ["Alle / All"] + sorted({card.duration for card in cards})
-    age_options = ["Alle / All"] + sorted({card.age_group for card in cards})
-    mood_options = ["Alle / All"] + sorted({card.mood for card in cards})
-
-    filter_col1, filter_col2, filter_col3, filter_col4 = st.columns(4)
-    with filter_col1:
-        selected_season = st.selectbox("Jahreszeit / Season", options=season_options)
-    with filter_col2:
-        selected_duration = st.selectbox("Dauer / Duration", options=duration_options)
-    with filter_col3:
-        selected_age = st.selectbox("Alter / Age", options=age_options)
-    with filter_col4:
-        selected_mood = st.selectbox("Stimmung / Mood", options=mood_options)
-
-    filtered_cards = [
-        card
-        for card in cards
-        if (selected_season == "Alle / All" or card.season == selected_season)
-        and (selected_duration == "Alle / All" or card.duration == selected_duration)
-        and (selected_age == "Alle / All" or card.age_group == selected_age)
-        and (selected_mood == "Alle / All" or card.mood == selected_mood)
-    ]
-
-    if not filtered_cards:
-        st.warning(
-            "Keine Abenteuer für diese Kombination gefunden. / No adventures found for this filter combination.",
-        )
-
-    for row_start in range(0, len(filtered_cards), 3):
-        row_cards = filtered_cards[row_start : row_start + 3]
-        row_columns = st.columns(3)
-        for index, card in enumerate(row_cards):
-            with row_columns[index]:
-                st.markdown(
-                    (
-                        "<div class='landing-card'>"
-                        f"<h4>{card.title}</h4>"
-                        f"<p>{card.teaser}</p>"
-                        f"<p><strong>Alter | Age:</strong> {card.age_group}<br>"
-                        f"<strong>Dauer | Duration:</strong> {card.duration}</p>"
-                        "</div>"
-                    ),
-                    unsafe_allow_html=True,
-                )
-                st.button(
-                    f"Details ansehen / View details · {card.title}",
-                    key=f"details-{card.title}",
-                    use_container_width=True,
-                )
-
-    st.divider()
-    st.header("Warum das gut tut / Why this helps")
-    benefit_col1, benefit_col2, benefit_col3 = st.columns(3)
-    benefit_col1.markdown(
-        "### Bewegung / Movement\nMotorik, Gleichgewicht, Körpergefühl.\n\nMotor skills, balance, body awareness."
-    )
-    benefit_col2.markdown(
-        "### Wahrnehmung / Perception\nAchtsamkeit, Fokus, Sinneserfahrung.\n\nMindfulness, focus, sensory learning."
-    )
-    benefit_col3.markdown(
-        "### Verbindung / Connection\nGemeinsame Erinnerungen.\n\nShared memories for Miri and Carla."
+    day_val = st.sidebar.date_input(
+        _t(lang, "Datum / Date", "Date / Datum"), value=date.today()
     )
 
-    st.divider()
-    st.markdown(
-        """
-        ### Bereit für euer nächstes Erlebnis, Miri & Carla? / Ready for your next outdoor moment, Miri & Carla?
-        Ein Abenteuer, ein kleiner Rucksack, ein erster Schritt – mehr braucht es nicht.
+    raw: dict[str, Any] = {
+        "postal_code": st.sidebar.text_input(
+            _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
+            value=cfg.default_postal_code,
+            help=_t(
+                lang,
+                "5-stellige deutsche PLZ (z. B. 40215).",
+                "5-digit German postal code (e.g. 40215).",
+            ),
+        ),
+        "radius_km": st.sidebar.slider(
+            "Radius (km)",
+            min_value=0.5,
+            max_value=50.0,
+            step=0.5,
+            value=float(cfg.default_radius_km),
+        ),
+        "day": day_val,
+        "available_minutes": st.sidebar.number_input(
+            _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
+            min_value=15,
+            max_value=360,
+            value=int(cfg.default_available_minutes),
+            step=5,
+        ),
+        "effort": st.sidebar.selectbox(
+            _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
+            options=["niedrig", "mittel", "hoch"],
+            index=["niedrig", "mittel", "hoch"].index(
+                cfg.default_effort
+                if cfg.default_effort in {"niedrig", "mittel", "hoch"}
+                else "mittel"
+            ),
+            format_func=lambda x: effort_label(x, lang),
+        ),
+        "budget_eur_max": st.sidebar.number_input(
+            _t(lang, "Budget (max €)", "Budget (max €)"),
+            min_value=0.0,
+            max_value=250.0,
+            value=float(cfg.default_budget_eur),
+            step=1.0,
+        ),
+        "themes": st.sidebar.multiselect(
+            _t(lang, "Themen / Themes", "Themes / Themen"),
+            options=theme_options(lang),
+            default=[],
+            format_func=lambda x: theme_label(x, lang),
+        ),
+        "start_time": None,
+        "end_time": None,
+    }
 
-        One adventure, a small backpack, one first step – that's all you need.
-        """
+    st.session_state["use_weather"] = st.sidebar.toggle(
+        _t(lang, "Wetter berücksichtigen", "Use weather"), value=True
+    )
+    st.session_state["use_ai"] = st.sidebar.toggle(
+        _t(lang, "KI-Text (OpenAI) nutzen", "Use AI text (OpenAI)"),
+        value=cfg.enable_llm,
     )
 
-
-inject_custom_styles(Path("Hintergrund.png"))
-
-top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
-with top_col_center:
-    st.markdown(
-        """
-        <h2 style="text-align: center; margin-bottom: 0.3rem;">
-            Miri & Carla: Kleine Abenteuer. Große Erinnerungen 🎂
-        </h2>
-        <p style="text-align: center; margin-top: 0; margin-bottom: 0.8rem; color: #4b5563;">
-            Miri & Carla: Small adventures. Big memories.
-        </p>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.image(
-        image="20251219_155329.jpg",
-        width=240,
-    )
-
-configure_openai_api_key()
-
-if os.getenv("ENABLE_DAILY_SCHEDULER", "0") == "1":
     try:
-        start_scheduler()
-    except Exception:
-        st.warning(
-            "Scheduler konnte nicht gestartet werden / Scheduler could not be started.",
+        return ActivitySearchCriteria(**raw), lang
+    except ValidationError as exc:
+        st.sidebar.error(_t(lang, "Ungültige Eingaben:", "Invalid inputs:"))
+        for err in exc.errors():
+            loc = ".".join(str(p) for p in err.get("loc", []))
+            st.sidebar.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+        return None, lang
+
+
+def _generate_markdown_with_retry(
+    cfg: AppConfig,
+    picked: MicroAdventure,
+    criteria: ActivitySearchCriteria,
+    weather: Optional[WeatherSummary],
+    lang: Language,
+) -> str:
+    attempts = 3
+    wait_s = 1.0
+    last_err: Optional[Exception] = None
+
+    cfg_payload = {**cfg.__dict__}
+    if not st.session_state.get("use_ai", False):
+        cfg_payload["enable_llm"] = False
+    cfg_runtime = cfg.__class__(**cfg_payload)
+
+    for _ in range(attempts):
+        try:
+            return generate_daily_markdown(cfg_runtime, picked, criteria, weather)
+        except Exception as exc:  # defensive wrapper for UI resilience
+            last_err = exc
+            time.sleep(wait_s)
+            wait_s *= 2
+
+    st.warning(
+        _t(
+            lang,
+            "KI-Erstellung fehlgeschlagen. Es wird eine Fallback-Version angezeigt.",
+            "AI generation failed. A fallback version is shown.",
+        )
+    )
+    if last_err:
+        st.caption(str(last_err))
+    return generate_daily_markdown(cfg_runtime, picked, criteria, weather)
+
+
+def _render_adventure_details(a: MicroAdventure, lang: Language) -> None:
+    st.markdown(f"**{a.title}**  \n{a.short}")
+    cols = st.columns(4)
+    cols[0].metric(_t(lang, "Dauer", "Duration"), f"{a.duration_minutes} min")
+    cols[1].metric(_t(lang, "Distanz", "Distance"), f"{a.distance_km:.1f} km")
+    cols[2].metric(_t(lang, "Kinderwagen", "Stroller"), "✅" if a.stroller_ok else "—")
+    cols[3].metric(_t(lang, "Sicherheit", "Safety"), a.safety_level)
+
+    st.markdown("### " + _t(lang, "Startpunkt", "Start point"))
+    st.write(a.start_point)
+
+    st.markdown("### " + _t(lang, "Ablauf", "Steps"))
+    for step in a.route_steps:
+        st.write(f"- {step}")
+
+
+def _render_export_block(
+    picked: MicroAdventure,
+    criteria: ActivitySearchCriteria,
+    weather: Optional[WeatherSummary],
+    markdown: str,
+    lang: Language,
+) -> None:
+    st.subheader(_t(lang, "Export", "Export"))
+    json_payload = {
+        "criteria": criteria.model_dump(mode="json"),
+        "weather": weather.__dict__ if weather else None,
+        "adventure": picked.__dict__,
+        "markdown": markdown,
+    }
+    st.download_button(
+        label=_t(lang, "JSON herunterladen", "Download JSON"),
+        data=json.dumps(json_payload, ensure_ascii=False, indent=2, default=str),
+        file_name=f"mikroabenteuer-{criteria.day.isoformat()}.json",
+        mime="application/json",
+    )
+    st.download_button(
+        label=_t(lang, "Markdown herunterladen", "Download Markdown"),
+        data=markdown,
+        file_name=f"mikroabenteuer-{criteria.day.isoformat()}.md",
+        mime="text/markdown",
+    )
+
+    ics_bytes = build_ics_event(
+        day=criteria.day,
+        summary=f"Mikroabenteuer: {picked.title}",
+        description=markdown,
+        location=picked.area,
+        tzid="Europe/Berlin",
+        start_time_local=criteria.start_time,
+        duration_minutes=picked.duration_minutes,
+    )
+    st.download_button(
+        label="ICS herunterladen / Download ICS",
+        data=ics_bytes,
+        file_name="mikroabenteuer.ics",
+        mime="text/calendar",
+    )
+
+    email_html = render_daily_email_html(
+        picked, criteria, criteria.day, markdown, weather
+    )
+    with st.expander(_t(lang, "E-Mail Vorschau", "Email preview"), expanded=False):
+        st.code(
+            email_html[:3000] + ("..." if len(email_html) > 3000 else ""),
+            language="html",
         )
 
-adventures = load_adventures()
 
-landing_cards = [
-    LandingAdventureCard(
-        title="🌧 Matschwandern / Mud puddle hiking",
-        teaser="Regen? Perfekt. Rein in die Pfützen. / Rain? Perfect. Jump into puddles.",
-        age_group="3+",
-        duration="30–45 min",
-        season="Herbst / Autumn",
-        mood="Bewegung / Movement",
-    ),
-    LandingAdventureCard(
-        title="🔦 Taschenlampen-Spaziergang / Flashlight walk",
-        teaser="Die Nacht neu entdecken. / Discover the night in a new way.",
-        age_group="4+",
-        duration="20–40 min",
-        season="Winter",
-        mood="Achtsam / Mindful",
-    ),
-    LandingAdventureCard(
-        title="🐾 Tiere beobachten / Observe animals",
-        teaser="Geduld wird zum Abenteuer. / Patience turns into adventure.",
-        age_group="5+",
-        duration="30–60 min",
-        season="Frühling / Spring",
-        mood="Ruhig / Calm",
-    ),
-    LandingAdventureCard(
-        title="🌼 Frühlingspflanzen begrüßen / Welcome spring plants",
-        teaser="Die ersten Farbtupfer finden. / Find the first colorful blooms.",
-        age_group="3+",
-        duration="20–35 min",
-        season="Frühling / Spring",
-        mood="Kreativ / Creative",
-    ),
-    LandingAdventureCard(
-        title="🎯 Waldbingo / Forest bingo",
-        teaser="Natur als Suchspiel. / Turn nature into a treasure hunt.",
-        age_group="4+",
-        duration="30–50 min",
-        season="Sommer / Summer",
-        mood="Kreativ / Creative",
-    ),
-    LandingAdventureCard(
-        title="🌲 Blind durch den Wald / Blindfold forest walk",
-        teaser="Mit allen Sinnen erleben. / Explore with all senses.",
-        age_group="6+",
-        duration="15–30 min",
-        season="Sommer / Summer",
-        mood="Achtsam / Mindful",
-    ),
-]
+def _render_automation_block(
+    cfg: AppConfig, criteria: ActivitySearchCriteria, lang: Language
+) -> None:
+    with st.expander(
+        _t(lang, "Automation (optional)", "Automation (optional)"), expanded=False
+    ):
+        send_email = st.checkbox("E-Mail senden / Send email", value=False)
+        create_calendar_event = st.checkbox(
+            "Kalendereintrag erstellen / Create calendar event", value=False
+        )
+        if st.button("Daily-Job jetzt ausführen / Run daily job now"):
+            try:
+                result = run_daily_job_once(
+                    cfg,
+                    criteria,
+                    send_email=send_email,
+                    create_calendar_event=create_calendar_event,
+                )
+                st.success(f"OK: {result.subject} -> {result.to_email or 'n/a'}")
+            except Exception as exc:
+                st.error(
+                    _t(
+                        lang,
+                        f"Automation fehlgeschlagen: {exc}",
+                        f"Automation failed: {exc}",
+                    )
+                )
 
-render_landing_page(landing_cards)
 
-today = date.today().isoformat()
-todays_adventure = adventures[hash(today) % len(adventures)]
+def main() -> None:
+    cfg = load_config()
+    inject_custom_styles(ROOT / "Hintergrund.png")
 
-st.divider()
-st.header("📅 Abenteuer des Tages / Adventure of the day")
-render_adventure_details(todays_adventure, expanded=True, key_prefix="today")
+    st.title("Mikroabenteuer mit Carla / Micro-adventures with Carla")
+    top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
+    with top_col_center:
+        st.image(image="20251219_155329.jpg", width=240)
 
-st.divider()
-st.header("🗺 Alternative Mikroabenteuer / Alternative micro-adventures")
-render_adventure_table(adventures)
+    criteria, lang = _criteria_sidebar(cfg)
+    adventures = _load_adventures()
+
+    if criteria is None:
+        st.warning(_t(lang, "Bitte Eingaben korrigieren.", "Please fix the inputs."))
+        st.stop()
+
+    weather: Optional[WeatherSummary] = None
+    if st.session_state.get("use_weather", True):
+        weather = _get_weather(criteria.day.isoformat(), cfg.timezone)
+
+    picked, _candidates = pick_daily_adventure(adventures, criteria, weather)
+
+    st.subheader(_t(lang, "Abenteuer des Tages", "Daily adventure"))
+    if weather:
+        st.caption(
+            _t(
+                lang,
+                f"Wetter-Tags: {', '.join(weather.derived_tags)}",
+                f"Weather tags: {', '.join(weather.derived_tags)}",
+            )
+        )
+
+    daily_md = _generate_markdown_with_retry(cfg, picked, criteria, weather, lang)
+    st.markdown(daily_md)
+
+    _render_export_block(picked, criteria, weather, daily_md, lang)
+    _render_automation_block(cfg, criteria, lang)
+
+    st.divider()
+    st.subheader(_t(lang, "Bibliothek", "Library"))
+    filtered = filter_adventures(adventures, criteria)
+    st.caption(
+        _t(
+            lang,
+            f"{len(filtered)} passende Abenteuer (von {len(adventures)}).",
+            f"{len(filtered)} matching adventures (of {len(adventures)}).",
+        )
+    )
+    st.dataframe(
+        [a.summary_row() for a in filtered], use_container_width=True, hide_index=True
+    )
+
+    for a in filtered:
+        with st.expander(
+            f"{a.title} · {a.area} · {a.duration_minutes} min", expanded=False
+        ):
+            _render_adventure_details(a, lang)
+
+    if os.getenv("ENABLE_DAILY_SCHEDULER", "0") == "1":
+        st.info(
+            _t(
+                lang,
+                "Hinweis: Geplanter Scheduler bitte in separatem Prozess via start_scheduler_0820 nutzen.",
+                "Hint: Run scheduled jobs in a separate process via start_scheduler_0820.",
+            )
+        )
+
+
+if __name__ == "__main__":
+    main()

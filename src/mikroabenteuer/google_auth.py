@@ -37,7 +37,9 @@ def get_credentials(
         creds.refresh(Request())
 
     if not creds or not creds.valid:
-        flow = InstalledAppFlow.from_client_secrets_file(client_secrets_file, scopes=scopes)
+        flow = InstalledAppFlow.from_client_secrets_file(
+            client_secrets_file, scopes=scopes
+        )
         # Local server flow for dev
         creds = flow.run_local_server(port=0)
         token_path.write_text(creds.to_json(), encoding="utf-8")

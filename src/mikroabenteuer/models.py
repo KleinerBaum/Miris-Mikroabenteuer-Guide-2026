@@ -44,13 +44,17 @@ class MicroAdventure:
     accessibility: List[str] = field(default_factory=list)
 
     # --- V2 fields ---
-    season_tags: List[str] = field(default_factory=list)  # Frühling/Sommer/Herbst/Winter
+    season_tags: List[str] = field(
+        default_factory=list
+    )  # Frühling/Sommer/Herbst/Winter
     weather_tags: List[str] = field(default_factory=list)  # Sonne/Regen/Wind/...
     energy_level: str = "mittel"  # niedrig | mittel | hoch
     difficulty: str = "leicht"  # leicht | mittel | anspruchsvoll
     age_min: float = 2.0
     age_max: float = 6.0
-    mood_tags: List[str] = field(default_factory=list)  # ruhig | wild | kreativ | neugierig | sozial | fokussiert | entspannend
+    mood_tags: List[str] = field(
+        default_factory=list
+    )  # ruhig | wild | kreativ | neugierig | sozial | fokussiert | entspannend
     safety_level: str = "niedrig"  # niedrig | mittel | erhöht
 
     def validate(self) -> None:
@@ -140,7 +144,9 @@ class ActivitySearchCriteria(BaseModel):
         le=50.0,
         description="Search radius in kilometers.",
     )
-    day: date = Field(default_factory=date.today, description="Date of the planned activity.")
+    day: date = Field(
+        default_factory=date.today, description="Date of the planned activity."
+    )
     available_minutes: int = Field(
         default=60,
         ge=15,
@@ -156,8 +162,12 @@ class ActivitySearchCriteria(BaseModel):
     )
     themes: List[str] = Field(default_factory=list, description="Theme keys.")
     # Optional time window (kept optional but useful for scheduler/ICS)
-    start_time: Optional[time] = Field(default=None, description="Optional preferred start time.")
-    end_time: Optional[time] = Field(default=None, description="Optional preferred end time.")
+    start_time: Optional[time] = Field(
+        default=None, description="Optional preferred start time."
+    )
+    end_time: Optional[time] = Field(
+        default=None, description="Optional preferred end time."
+    )
 
     @field_validator("postal_code")
     @classmethod

@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import hashlib
 import random
-from datetime import date
 from typing import List, Optional, Tuple
 
 from .constants import THEMES
@@ -27,7 +26,12 @@ def _theme_match_tags(theme_key: str) -> List[str]:
 def matches_themes(adventure: MicroAdventure, themes: List[str]) -> bool:
     if not themes:
         return True
-    adv_signals = set(adventure.tags) | set(adventure.weather_tags) | set(adventure.mood_tags) | set(adventure.season_tags)
+    adv_signals = (
+        set(adventure.tags)
+        | set(adventure.weather_tags)
+        | set(adventure.mood_tags)
+        | set(adventure.season_tags)
+    )
     for theme_key in themes:
         wanted = _theme_match_tags(theme_key)
         if any(tag in adv_signals for tag in wanted):
@@ -76,7 +80,12 @@ def score_adventure(
 
     # Themes -> score boost per match
     if criteria.themes:
-        adv_signals = set(adventure.tags) | set(adventure.weather_tags) | set(adventure.mood_tags) | set(adventure.season_tags)
+        adv_signals = (
+            set(adventure.tags)
+            | set(adventure.weather_tags)
+            | set(adventure.mood_tags)
+            | set(adventure.season_tags)
+        )
         for theme_key in criteria.themes:
             wanted = _theme_match_tags(theme_key)
             if any(tag in adv_signals for tag in wanted):
@@ -130,7 +139,14 @@ def pick_daily_adventure(
     top_n = max(3, min(8, len(scored)))
     top = [a for a, _ in scored[:top_n]]
 
-    rng = random.Random(_seed_int(criteria.day.isoformat(), criteria.postal_code, str(criteria.radius_km), criteria.effort))
+    rng = random.Random(
+        _seed_int(
+            criteria.day.isoformat(),
+            criteria.postal_code,
+            str(criteria.radius_km),
+            criteria.effort,
+        )
+    )
     picked = rng.choice(top)
 
     return picked, candidates

@@ -38,13 +38,19 @@ def _simple_markdown_to_html(md: str) -> str:
 
         if esc.startswith("### "):
             close_ul()
-            html_lines.append(f"<h3 style='margin:14px 0 6px 0; font-size:16px;'>{esc[4:]}</h3>")
+            html_lines.append(
+                f"<h3 style='margin:14px 0 6px 0; font-size:16px;'>{esc[4:]}</h3>"
+            )
         elif esc.startswith("## "):
             close_ul()
-            html_lines.append(f"<h2 style='margin:16px 0 8px 0; font-size:18px;'>{esc[3:]}</h2>")
+            html_lines.append(
+                f"<h2 style='margin:16px 0 8px 0; font-size:18px;'>{esc[3:]}</h2>"
+            )
         elif esc.startswith("# "):
             close_ul()
-            html_lines.append(f"<h1 style='margin:0 0 10px 0; font-size:20px;'>{esc[2:]}</h1>")
+            html_lines.append(
+                f"<h1 style='margin:0 0 10px 0; font-size:20px;'>{esc[2:]}</h1>"
+            )
         elif esc.startswith("- "):
             if not in_ul:
                 html_lines.append("<ul style='margin:6px 0 10px 18px; padding:0;'>")
@@ -65,7 +71,11 @@ def render_daily_email_html(
     markdown_body: str,
     weather: Optional[WeatherSummary] = None,
 ) -> str:
-    subtitle_parts = [adventure.area, f"{adventure.duration_minutes} min", f"{adventure.distance_km:.1f} km"]
+    subtitle_parts = [
+        adventure.area,
+        f"{adventure.duration_minutes} min",
+        f"{adventure.distance_km:.1f} km",
+    ]
     if weather:
         subtitle_parts.append(" · ".join(weather.derived_tags))
 
