@@ -239,8 +239,9 @@ class ActivitySearchCriteria(BaseModel):
             "plz": self.plz,
             "radius_km": self.radius_km,
             "date": self.date.isoformat(),
-            "time_start": self.start_time.strftime("%H:%M"),
-            "time_end": self.end_time.strftime("%H:%M"),
+            "time_start": self.start_time.isoformat(),
+            "time_end": self.end_time.isoformat(),
+            "available_minutes": self.available_minutes,
             "effort": self.effort,
             "budget_eur_max": self.budget_eur_max,
             "topics": self.topics,
@@ -294,12 +295,15 @@ class ActivitySuggestion(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     title: str
-    reason_de_en: str
     date: dt_date
     start_time: time | None = None
+    end_time: time | None = None
+    location: str | None = None
     distance_km: float | None = None
     expected_cost_eur: float | None = None
     indoor_outdoor: IndoorOutdoor = IndoorOutdoor.mixed
+    description: str = ""
+    reason_de_en: str
     source_urls: List[AnyUrl] = Field(default_factory=list)
 
 

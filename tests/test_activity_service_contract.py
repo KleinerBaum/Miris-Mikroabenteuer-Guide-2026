@@ -27,8 +27,9 @@ def test_activity_search_criteria_to_llm_params_contains_expected_fields() -> No
     params = criteria.to_llm_params()
 
     assert params["plz"] == "40215"
-    assert params["time_start"] == "09:00"
-    assert params["time_end"] == "10:30"
+    assert params["time_start"] == "09:00:00"
+    assert params["time_end"] == "10:30:00"
+    assert params["available_minutes"] == 90
     assert params["max_suggestions"] == 4
 
 

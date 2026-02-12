@@ -1,7 +1,7 @@
 # src/mikroabenteuer/weather.py
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date
 from typing import List, Optional
 
@@ -13,13 +13,27 @@ from .constants import DEFAULT_TIMEZONE
 @dataclass(frozen=True)
 class WeatherSummary:
     day: date
-    temperature_max_c: Optional[float]
-    temperature_min_c: Optional[float]
-    precipitation_probability_max: Optional[float]
-    precipitation_sum_mm: Optional[float]
-    windspeed_max_kmh: Optional[float]
+    condition: str = "unknown"
+    summary_de_en: str = "Unbekannt / Unknown"
+    temperature_max_c: Optional[float] = None
+    temperature_min_c: Optional[float] = None
+    precipitation_probability_pct: Optional[float] = None
+    precipitation_sum_mm: Optional[float] = None
+    wind_speed_max_kmh: Optional[float] = None
+    country_code: Optional[str] = None
+    city: Optional[str] = None
+    region: Optional[str] = None
+    timezone: Optional[str] = None
+    data_source: Optional[str] = None
+    derived_tags: List[str] = field(default_factory=lambda: ["Bewölkt"])
 
-    derived_tags: List[str]
+    @property
+    def precipitation_probability_max(self) -> Optional[float]:
+        return self.precipitation_probability_pct
+
+    @property
+    def windspeed_max_kmh(self) -> Optional[float]:
+        return self.wind_speed_max_kmh
 
 
 def _duesseldorf_coords() -> tuple[float, float]:
@@ -104,20 +118,30 @@ def fetch_weather_for_day(
         derived = derive_weather_tags(tmax, pprob, psum, wind)
         return WeatherSummary(
             day=day,
+            condition="unknown",
+            summary_de_en="Bewölkt / Cloudy",
             temperature_max_c=tmax,
             temperature_min_c=tmin,
-            precipitation_probability_max=pprob,
+            precipitation_probability_pct=pprob,
             precipitation_sum_mm=psum,
-            windspeed_max_kmh=wind,
+            wind_speed_max_kmh=wind,
+            country_code="DE",
+            timezone=timezone,
+            data_source="open-meteo",
             derived_tags=derived,
         )
     except Exception:
         return WeatherSummary(
             day=day,
+            condition="unknown",
+            summary_de_en="Bewölkt / Cloudy",
             temperature_max_c=None,
             temperature_min_c=None,
-            precipitation_probability_max=None,
+            precipitation_probability_pct=None,
             precipitation_sum_mm=None,
-            windspeed_max_kmh=None,
+            wind_speed_max_kmh=None,
+            country_code="DE",
+            timezone=timezone,
+            data_source="open-meteo",
             derived_tags=["Bewölkt"],
         )
