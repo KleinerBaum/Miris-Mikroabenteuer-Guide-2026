@@ -59,7 +59,33 @@ def inject_custom_styles(background_path: Path) -> None:
                 background-attachment: fixed;
                 color: #1f2937;
             }}
-            h1, h2, h3, .stCaption, p, label, span {{ color: #1f2937 !important; }}
+            h1, h2, h3, .stCaption, p, label {{ color: #1f2937 !important; }}
+            .stDownloadButton button,
+            .stButton button {{
+                background-color: #1f2937 !important;
+                color: #f9fafb !important;
+                border: 1px solid #111827 !important;
+            }}
+            .stDownloadButton button:hover,
+            .stButton button:hover {{
+                background-color: #111827 !important;
+                color: #ffffff !important;
+            }}
+            .stDownloadButton button:disabled {{
+                background-color: #e5e7eb !important;
+                color: #374151 !important;
+                border-color: #d1d5db !important;
+            }}
+            .stExpander [data-testid="stExpanderToggleIcon"],
+            .stExpander summary p,
+            .stExpander summary span {{
+                color: #f3f4f6 !important;
+            }}
+            .stExpander div[data-testid="stExpanderDetails"] pre,
+            .stExpander div[data-testid="stExpanderDetails"] code,
+            .stExpander div[data-testid="stExpanderDetails"] span {{
+                color: #f9fafb !important;
+            }}
         </style>
         """,
         unsafe_allow_html=True,

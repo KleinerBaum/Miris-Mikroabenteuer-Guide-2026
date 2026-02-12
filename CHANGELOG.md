@@ -15,6 +15,8 @@
 - EN: All relevant UI and email texts were adjusted for the exclusive audience “Miri (mother) and Carla (daughter)”.
 - DE: Die Landingpage wurde visuell entschlackt und neu strukturiert: kompakter Hero, klarer 3-Schritte-Einstieg, Fokus auf Filter/Karten und reduzierter Abschlussbereich.
 - EN: The landing page was visually decluttered and restructured: compact hero, clear 3-step onboarding, focus on filters/cards, and a reduced closing section.
+- DE: Kontraste im Export-Bereich wurden erhöht; Download-Buttons und E-Mail-Vorschau sind nun auch ohne Hover eindeutig lesbar.
+- EN: Increased contrast in the export area; download buttons and email preview are now clearly readable without hover.
 - DE: Die Hero-CTA-Buttons wurden von Blau auf Dunkelgrau umgestellt; die Button-Schrift bleibt weiß für klare Lesbarkeit.
 - EN: Hero CTA buttons were changed from blue to dark gray; button text remains white for clear readability.
 - DE: Wetterabfrage ist jetzt standortkonfigurierbar über `WEATHER_LAT` und `WEATHER_LON`; Standard ist Volksgarten (Düsseldorf) statt festem Stadtzentrum.
@@ -59,6 +61,7 @@
 
 ### Release Notes
 - Landing-Page integriert jetzt die neue `src`-Architektur inklusive Exporte (JSON/Markdown/ICS) und optionaler Daily-Automation.
+- Export- und Vorschau-Elemente sind kontrastoptimiert und damit in hellen/dunklen Zuständen besser zugänglich.
 - App-Texte adressieren jetzt durchgehend Miri und Carla statt allgemein Familien.
 - Landingpage ist jetzt deutlich übersichtlicher und führt Nutzer:innen mit weniger Ablenkung schneller zur Abenteuerauswahl.
 - OAuth2-Setup für Kalender + Gmail ist nun vorbereitet (Consent-Screen-Konfiguration, Desktop-Client-Datei in `secrets/`, lokale Token-Erzeugung).
