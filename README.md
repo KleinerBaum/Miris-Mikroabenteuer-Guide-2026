@@ -210,3 +210,8 @@ mypy .
 - Optionaler Automation-Block erlaubt das manuelle Auslösen des Daily-Jobs (inkl. optionalem Gmail-/Calendar-Flow bei vorhandenen OAuth-Credentials).
 - Bei KI-Generierung werden verständliche Fehlhinweise und automatische Wiederholversuche mit exponentiellem Backoff verwendet.
 - Neue UI-Texte sind weiterhin DE/EN gehalten.
+
+
+## Änderungen (letzte Updates)
+- DE: Der Block "Mikroabenteuer des Tages 🌿" zeigt standardmäßig nur Titel, Abenteuername, Ort/Dauer/Distanz und Wetter; alle weiteren Inhalte sind initial eingeklappt über einen Details-Expander.
+- EN: The "Mikroabenteuer des Tages 🌿" block now shows only title, adventure name, location/duration/distance, and weather by default; all remaining content is initially collapsed behind a details expander.

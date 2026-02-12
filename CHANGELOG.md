@@ -1,5 +1,8 @@
 # Changelog
 
+- DE: Im Bereich "Mikroabenteuer des Tages 🌿" bleibt standardmäßig nur Kopfzeile, Titel, Ort/Dauer/Distanz und Wetter sichtbar; der übrige Inhalt ist per Details-Expander eingeklappt.
+- EN: In the "Mikroabenteuer des Tages 🌿" section, only headline, title, location/duration/distance, and weather remain visible by default; the remaining content is collapsed in a details expander.
+
 ## Unreleased
 
 ### Geändert / Changed
