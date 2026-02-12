@@ -1,6 +1,7 @@
 # mikroabenteuer/openai_activity_service.py
 from __future__ import annotations
 
+from dataclasses import asdict
 from typing import Literal
 
 from pydantic import ValidationError
@@ -9,14 +10,14 @@ from .models import (
     ActivitySearchCriteria,
     ActivitySuggestionResult,
     SearchStrategy,
-    WeatherSummary,
 )
+from .weather import WeatherSummary
 
-from mikroabenteuer.openai_settings import (
+from .openai_settings import (
     configure_openai_api_key,
     resolve_openai_api_key,
 )
-from mikroabenteuer.retry import retry_with_backoff
+from .retry import retry_with_backoff
 
 
 def _build_system_instructions() -> str:
@@ -35,10 +36,16 @@ def _build_user_prompt(
     strategy: SearchStrategy | None,
 ) -> str:
     params = criteria.to_llm_params()
+    if weather is None:
+        weather_payload = None
+    elif hasattr(weather, "model_dump"):
+        weather_payload = weather.model_dump()
+    else:
+        weather_payload = asdict(weather)
 
     weather_block = (
-        f"Wetterlage / Weather:\n{weather.model_dump()}\n"
-        if weather is not None
+        f"Wetterlage / Weather:\n{weather_payload}\n"
+        if weather_payload is not None
         else "Wetterlage / Weather: unknown\n"
     )
 
