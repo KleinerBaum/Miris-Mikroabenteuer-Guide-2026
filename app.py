@@ -145,86 +145,156 @@ def _get_weather(day_iso: str, tz: str) -> WeatherSummary:
     return fetch_weather_for_day(date(y, m, d), timezone=tz)
 
 
+def get_criteria_state(cfg: AppConfig) -> ActivitySearchCriteria:
+    if "criteria" not in st.session_state:
+        default_date = date.today()
+        default_start = time(hour=9, minute=0)
+        default_effort = (
+            cfg.default_effort
+            if cfg.default_effort in {"niedrig", "mittel", "hoch"}
+            else "mittel"
+        )
+        st.session_state["criteria"] = ActivitySearchCriteria(
+            plz=cfg.default_postal_code,
+            radius_km=cfg.default_radius_km,
+            date=default_date,
+            time_window=TimeWindow(
+                start=default_start,
+                end=(
+                    datetime.combine(default_date, default_start)
+                    + timedelta(minutes=int(cfg.default_available_minutes))
+                ).time(),
+            ),
+            effort=cast(Literal["niedrig", "mittel", "hoch"], default_effort),
+            budget_eur_max=cfg.default_budget_eur,
+            topics=[],
+        )
+    return cast(ActivitySearchCriteria, st.session_state["criteria"])
+
+
+def _sync_criteria_widget_state(
+    criteria: ActivitySearchCriteria, *, prefix: str
+) -> None:
+    st.session_state[f"{prefix}_plz"] = criteria.plz
+    st.session_state[f"{prefix}_radius_km"] = float(criteria.radius_km)
+    st.session_state[f"{prefix}_date"] = criteria.date
+    st.session_state[f"{prefix}_start_time"] = criteria.start_time
+    available_minutes = max(
+        15,
+        int(
+            (
+                datetime.combine(criteria.date, criteria.end_time)
+                - datetime.combine(criteria.date, criteria.start_time)
+            ).total_seconds()
+            // 60
+        ),
+    )
+    st.session_state[f"{prefix}_available_minutes"] = available_minutes
+    st.session_state[f"{prefix}_effort"] = criteria.effort
+    st.session_state[f"{prefix}_budget_eur_max"] = float(criteria.budget_eur_max)
+    st.session_state[f"{prefix}_topics"] = list(criteria.topics)
+
+
+def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
+    target_date = cast(date, st.session_state[f"{prefix}_date"])
+    start_time = cast(time, st.session_state[f"{prefix}_start_time"])
+    available_minutes = int(st.session_state[f"{prefix}_available_minutes"])
+    return ActivitySearchCriteria(
+        plz=str(st.session_state[f"{prefix}_plz"]),
+        radius_km=float(st.session_state[f"{prefix}_radius_km"]),
+        date=target_date,
+        time_window=TimeWindow(
+            start=start_time,
+            end=(
+                datetime.combine(target_date, start_time)
+                + timedelta(minutes=available_minutes)
+            ).time(),
+        ),
+        effort=cast(
+            Literal["niedrig", "mittel", "hoch"],
+            st.session_state[f"{prefix}_effort"],
+        ),
+        budget_eur_max=float(st.session_state[f"{prefix}_budget_eur_max"]),
+        topics=list(cast(list[str], st.session_state[f"{prefix}_topics"])),
+    )
+
+
 def _criteria_sidebar(
     cfg: AppConfig,
 ) -> tuple[Optional[ActivitySearchCriteria], Language]:
+    criteria = get_criteria_state(cfg)
+    _sync_criteria_widget_state(criteria, prefix="sidebar")
+
     st.sidebar.header("Suche / Search")
     lang: Language = st.sidebar.selectbox(
-        "Sprache / Language", options=["DE", "EN"], index=0
+        "Sprache / Language", options=["DE", "EN"], index=0, key="lang"
+    )
+    st.sidebar.caption(
+        _t(
+            lang,
+            "Filter gelten global für Abenteuer & Events.",
+            "Filters apply globally to adventures & events.",
+        )
     )
 
-    day_val = st.sidebar.date_input(
-        _t(lang, "Datum / Date", "Date / Datum"), value=date.today()
-    )
-
-    available_minutes = st.sidebar.number_input(
+    st.sidebar.date_input(_t(lang, "Datum / Date", "Date / Datum"), key="sidebar_date")
+    st.sidebar.time_input(_t(lang, "Startzeit", "Start time"), key="sidebar_start_time")
+    st.sidebar.number_input(
         _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
         min_value=15,
         max_value=360,
-        value=int(cfg.default_available_minutes),
         step=5,
+        key="sidebar_available_minutes",
+    )
+    st.sidebar.text_input(
+        _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
+        help=_t(
+            lang,
+            "5-stellige deutsche PLZ (z. B. 40215).",
+            "5-digit German postal code (e.g. 40215).",
+        ),
+        key="sidebar_plz",
+    )
+    st.sidebar.slider(
+        "Radius (km)",
+        min_value=0.5,
+        max_value=50.0,
+        step=0.5,
+        key="sidebar_radius_km",
+    )
+    st.sidebar.selectbox(
+        _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
+        options=["niedrig", "mittel", "hoch"],
+        format_func=lambda x: effort_label(x, lang),
+        key="sidebar_effort",
+    )
+    st.sidebar.number_input(
+        _t(lang, "Budget (max €)", "Budget (max €)"),
+        min_value=0.0,
+        max_value=250.0,
+        step=1.0,
+        key="sidebar_budget_eur_max",
+    )
+    st.sidebar.multiselect(
+        _t(lang, "Themen / Themes", "Themes / Themen"),
+        options=theme_options(lang),
+        format_func=lambda x: theme_label(x, lang),
+        key="sidebar_topics",
     )
 
-    raw: dict[str, Any] = {
-        "plz": st.sidebar.text_input(
-            _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
-            value=cfg.default_postal_code,
-            help=_t(
-                lang,
-                "5-stellige deutsche PLZ (z. B. 40215).",
-                "5-digit German postal code (e.g. 40215).",
-            ),
-        ),
-        "radius_km": st.sidebar.slider(
-            "Radius (km)",
-            min_value=0.5,
-            max_value=50.0,
-            step=0.5,
-            value=float(cfg.default_radius_km),
-        ),
-        "date": day_val,
-        "effort": st.sidebar.selectbox(
-            _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
-            options=["niedrig", "mittel", "hoch"],
-            index=["niedrig", "mittel", "hoch"].index(
-                cfg.default_effort
-                if cfg.default_effort in {"niedrig", "mittel", "hoch"}
-                else "mittel"
-            ),
-            format_func=lambda x: effort_label(x, lang),
-        ),
-        "budget_eur_max": st.sidebar.number_input(
-            _t(lang, "Budget (max €)", "Budget (max €)"),
-            min_value=0.0,
-            max_value=250.0,
-            value=float(cfg.default_budget_eur),
-            step=1.0,
-        ),
-        "topics": st.sidebar.multiselect(
-            _t(lang, "Themen / Themes", "Themes / Themen"),
-            options=theme_options(lang),
-            default=[],
-            format_func=lambda x: theme_label(x, lang),
-        ),
-        "time_window": {
-            "start": time(hour=9, minute=0),
-            "end": (
-                datetime.combine(date.today(), time(hour=9, minute=0))
-                + timedelta(minutes=int(available_minutes))
-            ).time(),
-        },
-    }
-
     st.session_state["use_weather"] = st.sidebar.toggle(
-        _t(lang, "Wetter berücksichtigen", "Use weather"), value=True
+        _t(lang, "Wetter berücksichtigen", "Use weather"),
+        value=st.session_state.get("use_weather", True),
     )
     st.session_state["use_ai"] = st.sidebar.toggle(
         _t(lang, "KI-Text (OpenAI) nutzen", "Use AI text (OpenAI)"),
-        value=cfg.enable_llm,
+        value=st.session_state.get("use_ai", cfg.enable_llm),
     )
 
     try:
-        return ActivitySearchCriteria(**raw), lang
+        criteria = _build_criteria_from_widget_state(prefix="sidebar")
+        st.session_state["criteria"] = criteria
+        return criteria, lang
     except ValidationError as exc:
         st.sidebar.error(_t(lang, "Ungültige Eingaben:", "Invalid inputs:"))
         for err in exc.errors():
@@ -502,6 +572,9 @@ def _get_activity_orchestrator(
 
 
 def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
+    criteria = get_criteria_state(cfg)
+    _sync_criteria_widget_state(criteria, prefix="form")
+
     st.subheader(_t(lang, "Wetter & Events", "Weather & Events"))
     st.caption(
         _t(
@@ -510,57 +583,56 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             "Local suggestions with weather check and live sources.",
         )
     )
+    st.caption(
+        _t(
+            lang,
+            "Diese Filter sind global und wirken auch auf die Abenteuer-Suche.",
+            "These filters are global and also affect adventure search.",
+        )
+    )
 
     with st.form("weather_events_form", clear_on_submit=False):
         top_left, top_right = st.columns(2)
         with top_left:
-            plz = st.text_input(
+            st.text_input(
                 _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
-                value=cfg.default_postal_code,
+                key="form_plz",
             )
-            target_date = st.date_input(
-                _t(lang, "Datum / Date", "Date / Datum"), value=date.today()
-            )
-            start_time = st.time_input(
-                _t(lang, "Startzeit", "Start time"), value=time(hour=9, minute=0)
-            )
-            available_minutes = st.number_input(
+            st.date_input(_t(lang, "Datum / Date", "Date / Datum"), key="form_date")
+            st.time_input(_t(lang, "Startzeit", "Start time"), key="form_start_time")
+            st.number_input(
                 _t(lang, "Zeitbudget (Minuten)", "Time budget (minutes)"),
                 min_value=15,
                 max_value=360,
-                value=int(cfg.default_available_minutes),
                 step=5,
+                key="form_available_minutes",
             )
         with top_right:
-            radius_km = st.slider(
+            st.slider(
                 _t(lang, "Radius (km)", "Radius (km)"),
                 min_value=0.5,
                 max_value=50.0,
                 step=0.5,
-                value=float(cfg.default_radius_km),
+                key="form_radius_km",
             )
-            effort = st.selectbox(
+            st.selectbox(
                 _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
                 options=["niedrig", "mittel", "hoch"],
-                index=["niedrig", "mittel", "hoch"].index(
-                    cfg.default_effort
-                    if cfg.default_effort in {"niedrig", "mittel", "hoch"}
-                    else "mittel"
-                ),
                 format_func=lambda x: effort_label(x, lang),
+                key="form_effort",
             )
-            budget = st.number_input(
+            st.number_input(
                 _t(lang, "Budget (max €)", "Budget (max €)"),
                 min_value=0.0,
                 max_value=250.0,
-                value=float(cfg.default_budget_eur),
                 step=1.0,
+                key="form_budget_eur_max",
             )
-            topics = st.multiselect(
+            st.multiselect(
                 _t(lang, "Themen / Themes", "Themes / Themen"),
                 options=theme_options(lang),
-                default=[],
                 format_func=lambda x: theme_label(x, lang),
+                key="form_topics",
             )
 
         mode = st.radio(
@@ -580,21 +652,10 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
         return
 
     try:
-        criteria = ActivitySearchCriteria(
-            plz=plz,
-            radius_km=radius_km,
-            date=target_date,
-            time_window=TimeWindow(
-                start=start_time,
-                end=(
-                    datetime.combine(target_date, start_time)
-                    + timedelta(minutes=int(available_minutes))
-                ).time(),
-            ),
-            effort=cast(Literal["niedrig", "mittel", "hoch"], effort),
-            budget_eur_max=float(budget),
-            topics=topics,
-        )
+        criteria = _build_criteria_from_widget_state(prefix="form")
+        st.session_state["criteria"] = criteria
+        _sync_criteria_widget_state(criteria, prefix="sidebar")
+        _sync_criteria_widget_state(criteria, prefix="form")
     except ValidationError as exc:
         st.error(
             _t(

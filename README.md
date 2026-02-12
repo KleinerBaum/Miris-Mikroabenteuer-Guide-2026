@@ -99,6 +99,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Detailansicht pro Abenteuer über `st.expander`
 - Neues naturverbundenes Farbkonzept in der UI (Primary Dark Green, Mint, Terracotta, Marigold, Sky Blue, Lavender, Cream, Charcoal) für klare visuelle Hierarchie und bessere Lesbarkeit.
 - Neue Sektion „Wetter & Events / Weather & Events“ mit validierten Suchkriterien, orchestrierter Event-Recherche und Darstellung von Wetter, Warnungen, Treffern und Quellen.
+- Sidebar-Filter und „Wetter & Events“-Formular teilen jetzt einen globalen Criteria-State (`st.session_state["criteria"]`), sodass Abenteuer- und Event-Suche konsistente Parameter verwenden.
 - Importvertrag für Wetter-&-Events-Module stabilisiert: `src/mikroabenteuer/openai_activity_service.py` und `src/mikroabenteuer/activity_orchestrator.py` verwenden jetzt paketlokale Relative-Imports auf `src/mikroabenteuer/models.py` statt kollidierender Root-Pfade.
 - Variante-A-Importlayout (`src` als kanonischer Runtime-Root) vervollständigt: fehlende `src`-Module `openai_settings.py` und `retry.py` wurden ergänzt, damit `src.mikroabenteuer.*` ohne Fallback auf das Root-Paket importierbar bleibt.
 - `ActivitySearchCriteria` wurde um `max_suggestions` + `to_llm_params()` erweitert; ergänzende Ergebnis-/Wettermodelle (`ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) sind nun kanonisch in `src/mikroabenteuer/models.py` definiert.
