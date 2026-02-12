@@ -111,7 +111,16 @@ def suggest_activities(
     model = _select_model(mode)
 
     # OpenAI SDK import is local to keep module import cheap in Streamlit
-    from openai import OpenAI  # type: ignore
+    try:
+        from openai import OpenAI  # type: ignore
+    except ImportError as exc:
+        raise RuntimeError(
+            "OpenAI Python-SDK fehlt / missing. "
+            "Bitte installiere die Abhängigkeiten mit `pip install -r requirements.txt` "
+            "im aktiven Python-Environment. "
+            "Please install dependencies with `pip install -r requirements.txt` "
+            "in the active Python environment."
+        ) from exc
 
     client = OpenAI(
         api_key=api_key,

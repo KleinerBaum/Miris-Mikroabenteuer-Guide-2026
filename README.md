@@ -40,7 +40,10 @@ source .venv/bin/activate  # macOS/Linux
 
 ```bash
 pip install -r requirements.txt
+python -c "import openai; print(openai.__version__)"
 ```
+
+`requirements.txt` enthält `openai>=1.0`, damit die Wetter-&-Events-Recherche zuverlässig das OpenAI-SDK laden kann.
 
 ### 3) App starten
 
