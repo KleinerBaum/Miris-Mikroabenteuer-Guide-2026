@@ -23,8 +23,8 @@ def _theme_match_tags(theme_key: str) -> List[str]:
     return []
 
 
-def matches_themes(adventure: MicroAdventure, themes: List[str]) -> bool:
-    if not themes:
+def matches_topics(adventure: MicroAdventure, topics: List[str]) -> bool:
+    if not topics:
         return True
     adv_signals = (
         set(adventure.tags)
@@ -32,8 +32,8 @@ def matches_themes(adventure: MicroAdventure, themes: List[str]) -> bool:
         | set(adventure.mood_tags)
         | set(adventure.season_tags)
     )
-    for theme_key in themes:
-        wanted = _theme_match_tags(theme_key)
+    for topic_key in topics:
+        wanted = _theme_match_tags(topic_key)
         if any(tag in adv_signals for tag in wanted):
             return True
     return False
@@ -59,8 +59,8 @@ def filter_adventures(
             if a.difficulty == "anspruchsvoll":
                 continue
 
-        # themes
-        if not matches_themes(a, criteria.themes):
+        # topics
+        if not matches_topics(a, criteria.topics):
             continue
 
         results.append(a)
@@ -79,15 +79,15 @@ def score_adventure(
         score += 1.5
 
     # Themes -> score boost per match
-    if criteria.themes:
+    if criteria.topics:
         adv_signals = (
             set(adventure.tags)
             | set(adventure.weather_tags)
             | set(adventure.mood_tags)
             | set(adventure.season_tags)
         )
-        for theme_key in criteria.themes:
-            wanted = _theme_match_tags(theme_key)
+        for topic_key in criteria.topics:
+            wanted = _theme_match_tags(topic_key)
             if any(tag in adv_signals for tag in wanted):
                 score += 1.0
 
@@ -141,8 +141,8 @@ def pick_daily_adventure(
 
     rng = random.Random(
         _seed_int(
-            criteria.day.isoformat(),
-            criteria.postal_code,
+            criteria.date.isoformat(),
+            criteria.plz,
             str(criteria.radius_km),
             criteria.effort,
         )

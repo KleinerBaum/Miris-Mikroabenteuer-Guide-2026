@@ -5,8 +5,8 @@ import base64
 import json
 import os
 import sys
-import time
-from datetime import date
+import time as time_module
+from datetime import date, datetime, time, timedelta
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Callable, Optional
@@ -150,8 +150,16 @@ def _criteria_sidebar(
         _t(lang, "Datum / Date", "Date / Datum"), value=date.today()
     )
 
+    available_minutes = st.sidebar.number_input(
+        _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
+        min_value=15,
+        max_value=360,
+        value=int(cfg.default_available_minutes),
+        step=5,
+    )
+
     raw: dict[str, Any] = {
-        "postal_code": st.sidebar.text_input(
+        "plz": st.sidebar.text_input(
             _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
             value=cfg.default_postal_code,
             help=_t(
@@ -167,14 +175,7 @@ def _criteria_sidebar(
             step=0.5,
             value=float(cfg.default_radius_km),
         ),
-        "day": day_val,
-        "available_minutes": st.sidebar.number_input(
-            _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
-            min_value=15,
-            max_value=360,
-            value=int(cfg.default_available_minutes),
-            step=5,
-        ),
+        "date": day_val,
         "effort": st.sidebar.selectbox(
             _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
             options=["niedrig", "mittel", "hoch"],
@@ -192,14 +193,19 @@ def _criteria_sidebar(
             value=float(cfg.default_budget_eur),
             step=1.0,
         ),
-        "themes": st.sidebar.multiselect(
+        "topics": st.sidebar.multiselect(
             _t(lang, "Themen / Themes", "Themes / Themen"),
             options=theme_options(lang),
             default=[],
             format_func=lambda x: theme_label(x, lang),
         ),
-        "start_time": None,
-        "end_time": None,
+        "time_window": {
+            "start": time(hour=9, minute=0),
+            "end": (
+                datetime.combine(date.today(), time(hour=9, minute=0))
+                + timedelta(minutes=int(available_minutes))
+            ).time(),
+        },
     }
 
     st.session_state["use_weather"] = st.sidebar.toggle(
@@ -241,7 +247,7 @@ def _generate_markdown_with_retry(
             return generate_daily_markdown(cfg_runtime, picked, criteria, weather)
         except Exception as exc:  # defensive wrapper for UI resilience
             last_err = exc
-            time.sleep(wait_s)
+            time_module.sleep(wait_s)
             wait_s *= 2
 
     st.warning(
@@ -289,18 +295,18 @@ def _render_export_block(
     st.download_button(
         label=_t(lang, "JSON herunterladen", "Download JSON"),
         data=json.dumps(json_payload, ensure_ascii=False, indent=2, default=str),
-        file_name=f"mikroabenteuer-{criteria.day.isoformat()}.json",
+        file_name=f"mikroabenteuer-{criteria.date.isoformat()}.json",
         mime="application/json",
     )
     st.download_button(
         label=_t(lang, "Markdown herunterladen", "Download Markdown"),
         data=markdown,
-        file_name=f"mikroabenteuer-{criteria.day.isoformat()}.md",
+        file_name=f"mikroabenteuer-{criteria.date.isoformat()}.md",
         mime="text/markdown",
     )
 
     ics_bytes = build_ics_event(
-        day=criteria.day,
+        day=criteria.date,
         summary=f"Mikroabenteuer: {picked.title}",
         description=markdown,
         location=picked.area,
@@ -316,7 +322,7 @@ def _render_export_block(
     )
 
     email_html = render_daily_email_html(
-        picked, criteria, criteria.day, markdown, weather
+        picked, criteria, criteria.date, markdown, weather
     )
     with st.expander(_t(lang, "E-Mail Vorschau", "Email preview"), expanded=False):
         st.code(
@@ -408,7 +414,7 @@ class ActivityOrchestrator:
             on_status("Wetter wird geladen … / Loading weather …")
         weather: Optional[WeatherSummary] = None
         if st.session_state.get("use_weather", True):
-            weather = _get_weather(criteria.day.isoformat(), self.cfg.timezone)
+            weather = _get_weather(criteria.date.isoformat(), self.cfg.timezone)
 
         if on_status:
             on_status("Events werden recherchiert … / Researching events …")
@@ -448,15 +454,15 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
     with st.form("weather_events_form", clear_on_submit=False):
         top_left, top_right = st.columns(2)
         with top_left:
-            postal_code = st.text_input(
+            plz = st.text_input(
                 _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
                 value=cfg.default_postal_code,
             )
-            target_day = st.date_input(
+            target_date = st.date_input(
                 _t(lang, "Datum / Date", "Date / Datum"), value=date.today()
             )
             start_time = st.time_input(
-                _t(lang, "Startzeit (optional)", "Start time (optional)"), value=None
+                _t(lang, "Startzeit", "Start time"), value=time(hour=9, minute=0)
             )
             available_minutes = st.number_input(
                 _t(lang, "Zeitbudget (Minuten)", "Time budget (minutes)"),
@@ -490,7 +496,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 value=float(cfg.default_budget_eur),
                 step=1.0,
             )
-            themes = st.multiselect(
+            topics = st.multiselect(
                 _t(lang, "Themen / Themes", "Themes / Themen"),
                 options=theme_options(lang),
                 default=[],
@@ -515,15 +521,19 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
     try:
         criteria = ActivitySearchCriteria(
-            postal_code=postal_code,
+            plz=plz,
             radius_km=radius_km,
-            day=target_day,
-            available_minutes=int(available_minutes),
+            date=target_date,
+            time_window={
+                "start": start_time,
+                "end": (
+                    datetime.combine(target_date, start_time)
+                    + timedelta(minutes=int(available_minutes))
+                ).time(),
+            },
             effort=effort,
             budget_eur_max=float(budget),
-            themes=themes,
-            start_time=start_time,
-            end_time=None,
+            topics=topics,
         )
     except ValidationError as exc:
         st.error(
@@ -567,7 +577,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             _t(
                 lang,
                 "Aktuell keine Event-Treffer. Bitte Radius/Themen anpassen.",
-                "No event matches right now. Please adjust radius/themes.",
+                "No event matches right now. Please adjust radius/topics.",
             )
         )
     for event in events:
@@ -600,7 +610,7 @@ def main() -> None:
 
     weather: Optional[WeatherSummary] = None
     if st.session_state.get("use_weather", True):
-        weather = _get_weather(criteria.day.isoformat(), cfg.timezone)
+        weather = _get_weather(criteria.date.isoformat(), cfg.timezone)
 
     picked, _candidates = pick_daily_adventure(adventures, criteria, weather)
 

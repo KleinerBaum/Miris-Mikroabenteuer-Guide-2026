@@ -33,17 +33,17 @@ def run_daily_job_once(
     If send_email/create_calendar_event is True, you must have Google OAuth configured.
     """
     adventures = seed_adventures()
-    weather = fetch_weather_for_day(criteria.day, timezone=cfg.timezone)
+    weather = fetch_weather_for_day(criteria.date, timezone=cfg.timezone)
     adventure, _candidates = pick_daily_adventure(adventures, criteria, weather)
 
     md = generate_daily_markdown(cfg, adventure, criteria, weather)
-    html = render_daily_email_html(adventure, criteria, criteria.day, md, weather)
+    html = render_daily_email_html(adventure, criteria, criteria.date, md, weather)
 
-    subject = f"Mikroabenteuer: {adventure.title} ({criteria.day.isoformat()})"
+    subject = f"Mikroabenteuer: {adventure.title} ({criteria.date.isoformat()})"
 
     # ICS: prefer a time slot if user provided start_time, else all-day
     ics = build_ics_event(
-        day=criteria.day,
+        day=criteria.date,
         summary=f"Mikroabenteuer: {adventure.title}",
         description=md,
         location=adventure.area,
@@ -84,7 +84,7 @@ def run_daily_job_once(
                 cfg.google_client_secrets_file, cfg.google_token_file, scopes
             )
 
-            start_dt = datetime.combine(criteria.day, criteria.start_time)
+            start_dt = datetime.combine(criteria.date, criteria.start_time)
             insert_calendar_event(
                 creds,
                 calendar_id=cfg.calendar_id,

@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, time
-from typing import List, Literal, Optional
+from datetime import date as dt_date, datetime, time
+from typing import List, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from .constants import (
     DIFFICULTY_LEVELS,
@@ -119,6 +119,21 @@ def ensure_unique_slugs(adventures: List[MicroAdventure]) -> None:
 # ---------------------------------------------------------------------
 Effort = Literal["niedrig", "mittel", "hoch"]
 
+TOPICS_MAX_ITEMS = 8
+
+
+class TimeWindow(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    start: time
+    end: time
+
+    @model_validator(mode="after")
+    def validate_time_order(self) -> "TimeWindow":
+        if self.end <= self.start:
+            raise ValueError("time_window.end must be after time_window.start")
+        return self
+
 
 class ActivitySearchCriteria(BaseModel):
     """
@@ -131,7 +146,9 @@ class ActivitySearchCriteria(BaseModel):
     - Themengebiete (Theme-Keys aus constants.THEMES)
     """
 
-    postal_code: str = Field(
+    model_config = ConfigDict(extra="forbid")
+
+    plz: str = Field(
         default="40215",
         description="German postal code (PLZ), 5 digits.",
         examples=["40215", "40210"],
@@ -144,15 +161,10 @@ class ActivitySearchCriteria(BaseModel):
         le=50.0,
         description="Search radius in kilometers.",
     )
-    day: date = Field(
-        default_factory=date.today, description="Date of the planned activity."
+    date: dt_date = Field(
+        default_factory=dt_date.today, description="Date of the planned activity."
     )
-    available_minutes: int = Field(
-        default=60,
-        ge=15,
-        le=360,
-        description="Available time in minutes.",
-    )
+    time_window: TimeWindow
     effort: Effort = Field(default="mittel", description="Effort level.")
     budget_eur_max: float = Field(
         default=15.0,
@@ -160,40 +172,31 @@ class ActivitySearchCriteria(BaseModel):
         le=250.0,
         description="Budget upper bound in EUR.",
     )
-    themes: List[str] = Field(default_factory=list, description="Theme keys.")
-    # Optional time window (kept optional but useful for scheduler/ICS)
-    start_time: Optional[time] = Field(
-        default=None, description="Optional preferred start time."
-    )
-    end_time: Optional[time] = Field(
-        default=None, description="Optional preferred end time."
-    )
+    topics: List[str] = Field(default_factory=list, description="Topic keys.")
 
-    @field_validator("postal_code")
+    @field_validator("plz")
     @classmethod
-    def validate_postal_code(cls, v: str) -> str:
+    def validate_plz(cls, v: str) -> str:
         v = (v or "").strip()
         if len(v) != 5 or not v.isdigit():
-            raise ValueError("postal_code must be 5 digits (e.g. 40215)")
+            raise ValueError("plz must contain exactly 5 digits")
         return v
 
-    @field_validator("themes")
+    @field_validator("topics")
     @classmethod
-    def validate_themes(cls, v: List[str]) -> List[str]:
-        # Keep stable ordering + unique keys
+    def normalize_topics(cls, v: List[str]) -> List[str]:
         cleaned: List[str] = []
         seen: set[str] = set()
         for item in v:
-            k = (item or "").strip()
+            k = (item or "").strip().lower()
             if not k:
                 continue
             if k in seen:
                 continue
             cleaned.append(k)
             seen.add(k)
-        # soft limit to keep prompts small/consistent
-        if len(cleaned) > 8:
-            raise ValueError("too many themes selected (max 8)")
+        if len(cleaned) > TOPICS_MAX_ITEMS:
+            raise ValueError(f"topics supports at most {TOPICS_MAX_ITEMS} entries")
         return cleaned
 
     @field_validator("effort")
@@ -203,10 +206,16 @@ class ActivitySearchCriteria(BaseModel):
             raise ValueError(f"effort must be one of: {EFFORT_LEVELS}")
         return v
 
-    @field_validator("end_time")
-    @classmethod
-    def validate_time_window(cls, end_time_val, info):
-        start_time_val = info.data.get("start_time")
-        if start_time_val and end_time_val and end_time_val <= start_time_val:
-            raise ValueError("end_time must be after start_time")
-        return end_time_val
+    @property
+    def start_time(self) -> time:
+        return self.time_window.start
+
+    @property
+    def end_time(self) -> time:
+        return self.time_window.end
+
+    @property
+    def available_minutes(self) -> int:
+        start_dt = datetime.combine(self.date, self.time_window.start)
+        end_dt = datetime.combine(self.date, self.time_window.end)
+        return int((end_dt - start_dt).total_seconds() // 60)
