@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: `src/mikroabenteuer/config.py` aktiviert OpenAI/LLM nun standardmäßig (`ENABLE_LLM` default `true`); Abschalten bleibt per `ENABLE_LLM=0` möglich.
+- EN: `src/mikroabenteuer/config.py` now enables OpenAI/LLM by default (`ENABLE_LLM` default `true`); disabling remains possible via `ENABLE_LLM=0`.
 - DE: `app.py` verwendet nun ein einheitliches Mapping zwischen `ActivitySearchCriteria` und UI-Feldern; Sidebar und Formular arbeiten als getrennte UI-Adapter auf einem einzigen fachlichen Zustand (`criteria`) ohne direkte Cross-Writes zwischen `sidebar_*` und `form_*`.
 - EN: `app.py` now uses a unified mapping between `ActivitySearchCriteria` and UI fields; sidebar and form operate as separate UI adapters over one business state (`criteria`) without direct cross-writes between `sidebar_*` and `form_*`.
 - DE: Globale Synchronisationspfade im Submit-Flow wurden entfernt/gekapselt; Rendering initialisiert Widget-Keys nur einmal, Updates laufen konsistent von UI nach `criteria`.

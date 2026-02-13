@@ -71,7 +71,7 @@ def load_config() -> AppConfig:
         default_budget_eur=float(os.getenv("DEFAULT_BUDGET_EUR", "15")),
         default_available_minutes=int(os.getenv("DEFAULT_AVAILABLE_MINUTES", "60")),
         default_effort=os.getenv("DEFAULT_EFFORT", "mittel"),
-        enable_llm=_to_bool(os.getenv("ENABLE_LLM"), default=False),
+        enable_llm=_to_bool(os.getenv("ENABLE_LLM"), default=True),
         enable_web_search=_to_bool(os.getenv("ENABLE_WEB_SEARCH"), default=False),
         openai_api_key=os.getenv("OPENAI_API_KEY") or None,
         openai_model=os.getenv("OPENAI_MODEL", "gpt-5-mini"),

@@ -54,6 +54,7 @@ streamlit run app.py
 ---
 
 ## Konfiguration
+- OpenAI/LLM ist standardmäßig aktiviert (`ENABLE_LLM` default: `true`). Bei Bedarf kann es mit `ENABLE_LLM=0` deaktiviert werden.
 - OpenAI API-Schlüssel wird bevorzugt aus `OPENAI_API_KEY` gelesen.
 - Fallback: Streamlit Secrets in `.streamlit/secrets.toml` im Format:
 
