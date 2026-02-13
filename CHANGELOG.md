@@ -6,6 +6,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: `app.py` verwendet nun ein einheitliches Mapping zwischen `ActivitySearchCriteria` und UI-Feldern; Sidebar und Formular arbeiten als getrennte UI-Adapter auf einem einzigen fachlichen Zustand (`criteria`) ohne direkte Cross-Writes zwischen `sidebar_*` und `form_*`.
+- EN: `app.py` now uses a unified mapping between `ActivitySearchCriteria` and UI fields; sidebar and form operate as separate UI adapters over one business state (`criteria`) without direct cross-writes between `sidebar_*` and `form_*`.
+- DE: Globale Synchronisationspfade im Submit-Flow wurden entfernt/gekapselt; Rendering initialisiert Widget-Keys nur einmal, Updates laufen konsistent von UI nach `criteria`.
+- EN: Global synchronization paths in the submit flow were removed/encapsulated; rendering initializes widget keys only once, and updates now flow consistently from UI to `criteria`.
 - DE: Widget-Synchronisierung für Sidebar und Formular abgesichert: bereits gebundene Widget-Keys werden nicht mehr blind überschrieben; Änderungen fließen über `on_change`-Callbacks in den zentralen `criteria`-State und werden nach Submit kontrolliert per Re-Run verteilt.
 - EN: Hardened widget synchronization for sidebar and form: already-bound widget keys are no longer overwritten blindly; changes flow back via `on_change` callbacks into central `criteria` state and are propagated after submit via a controlled rerun.
 - DE: Sidebar-Filter und Formular „Wetter & Events“ teilen jetzt einen gemeinsamen `ActivitySearchCriteria`-State in `st.session_state["criteria"]`; beide Ansichten sind synchronisiert und nutzen identische Suchparameter.
@@ -99,6 +103,7 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- Stabilere Criteria-State-Führung in der UI: Sidebar und Wetter-&-Events-Form nutzen jetzt ein gemeinsames, einheitlich gemapptes Zustandsmodell ohne spätes Überschreiben gebundener Widget-Keys.
 - Wetter-&-Events-Recherche ist wieder lauffähig, weil der Importvertrag jetzt eindeutig auf dem `src`-Paket basiert.
 - Activity-Suche verwendet einen konsistenten Modellvertrag inkl. `max_suggestions` und stabilen LLM-Prompt-Parametern.
 - Landing-Page integriert jetzt die neue `src`-Architektur inklusive Exporte (JSON/Markdown/ICS) und optionaler Daily-Automation.
