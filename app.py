@@ -173,12 +173,16 @@ def get_criteria_state(cfg: AppConfig) -> ActivitySearchCriteria:
 
 
 def _sync_criteria_widget_state(
-    criteria: ActivitySearchCriteria, *, prefix: str
+    criteria: ActivitySearchCriteria, *, prefix: str, force: bool = False
 ) -> None:
-    st.session_state[f"{prefix}_plz"] = criteria.plz
-    st.session_state[f"{prefix}_radius_km"] = float(criteria.radius_km)
-    st.session_state[f"{prefix}_date"] = criteria.date
-    st.session_state[f"{prefix}_start_time"] = criteria.start_time
+    def _assign_widget_value(key: str, value: Any) -> None:
+        if force or key not in st.session_state:
+            st.session_state[key] = value
+
+    _assign_widget_value(f"{prefix}_plz", criteria.plz)
+    _assign_widget_value(f"{prefix}_radius_km", float(criteria.radius_km))
+    _assign_widget_value(f"{prefix}_date", criteria.date)
+    _assign_widget_value(f"{prefix}_start_time", criteria.start_time)
     available_minutes = max(
         15,
         int(
@@ -189,10 +193,17 @@ def _sync_criteria_widget_state(
             // 60
         ),
     )
-    st.session_state[f"{prefix}_available_minutes"] = available_minutes
-    st.session_state[f"{prefix}_effort"] = criteria.effort
-    st.session_state[f"{prefix}_budget_eur_max"] = float(criteria.budget_eur_max)
-    st.session_state[f"{prefix}_topics"] = list(criteria.topics)
+    _assign_widget_value(f"{prefix}_available_minutes", available_minutes)
+    _assign_widget_value(f"{prefix}_effort", criteria.effort)
+    _assign_widget_value(f"{prefix}_budget_eur_max", float(criteria.budget_eur_max))
+    _assign_widget_value(f"{prefix}_topics", list(criteria.topics))
+
+
+def _sync_widget_change_to_criteria(prefix: str) -> None:
+    try:
+        st.session_state["criteria"] = _build_criteria_from_widget_state(prefix=prefix)
+    except ValidationError:
+        return
 
 
 def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
@@ -223,7 +234,11 @@ def _criteria_sidebar(
     cfg: AppConfig,
 ) -> tuple[Optional[ActivitySearchCriteria], Language]:
     criteria = get_criteria_state(cfg)
-    _sync_criteria_widget_state(criteria, prefix="sidebar")
+    _sync_criteria_widget_state(
+        criteria,
+        prefix="sidebar",
+        force=bool(st.session_state.get("criteria_updated", False)),
+    )
 
     st.sidebar.header("Suche / Search")
     lang: Language = st.sidebar.selectbox(
@@ -237,14 +252,26 @@ def _criteria_sidebar(
         )
     )
 
-    st.sidebar.date_input(_t(lang, "Datum / Date", "Date / Datum"), key="sidebar_date")
-    st.sidebar.time_input(_t(lang, "Startzeit", "Start time"), key="sidebar_start_time")
+    st.sidebar.date_input(
+        _t(lang, "Datum / Date", "Date / Datum"),
+        key="sidebar_date",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
+    )
+    st.sidebar.time_input(
+        _t(lang, "Startzeit", "Start time"),
+        key="sidebar_start_time",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
+    )
     st.sidebar.number_input(
         _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
         min_value=15,
         max_value=360,
         step=5,
         key="sidebar_available_minutes",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
     )
     st.sidebar.text_input(
         _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
@@ -254,6 +281,8 @@ def _criteria_sidebar(
             "5-digit German postal code (e.g. 40215).",
         ),
         key="sidebar_plz",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
     )
     st.sidebar.slider(
         "Radius (km)",
@@ -261,12 +290,16 @@ def _criteria_sidebar(
         max_value=50.0,
         step=0.5,
         key="sidebar_radius_km",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
     )
     st.sidebar.selectbox(
         _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
         options=["niedrig", "mittel", "hoch"],
         format_func=lambda x: effort_label(x, lang),
         key="sidebar_effort",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
     )
     st.sidebar.number_input(
         _t(lang, "Budget (max €)", "Budget (max €)"),
@@ -274,12 +307,16 @@ def _criteria_sidebar(
         max_value=250.0,
         step=1.0,
         key="sidebar_budget_eur_max",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
     )
     st.sidebar.multiselect(
         _t(lang, "Themen / Themes", "Themes / Themen"),
         options=theme_options(lang),
         format_func=lambda x: theme_label(x, lang),
         key="sidebar_topics",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
     )
 
     st.session_state["use_weather"] = st.sidebar.toggle(
@@ -573,7 +610,11 @@ def _get_activity_orchestrator(
 
 def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
     criteria = get_criteria_state(cfg)
-    _sync_criteria_widget_state(criteria, prefix="form")
+    _sync_criteria_widget_state(
+        criteria,
+        prefix="form",
+        force=bool(st.session_state.get("criteria_updated", False)),
+    )
 
     st.subheader(_t(lang, "Wetter & Events", "Weather & Events"))
     st.caption(
@@ -597,15 +638,29 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             st.text_input(
                 _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
                 key="form_plz",
+                on_change=_sync_widget_change_to_criteria,
+                kwargs={"prefix": "form"},
             )
-            st.date_input(_t(lang, "Datum / Date", "Date / Datum"), key="form_date")
-            st.time_input(_t(lang, "Startzeit", "Start time"), key="form_start_time")
+            st.date_input(
+                _t(lang, "Datum / Date", "Date / Datum"),
+                key="form_date",
+                on_change=_sync_widget_change_to_criteria,
+                kwargs={"prefix": "form"},
+            )
+            st.time_input(
+                _t(lang, "Startzeit", "Start time"),
+                key="form_start_time",
+                on_change=_sync_widget_change_to_criteria,
+                kwargs={"prefix": "form"},
+            )
             st.number_input(
                 _t(lang, "Zeitbudget (Minuten)", "Time budget (minutes)"),
                 min_value=15,
                 max_value=360,
                 step=5,
                 key="form_available_minutes",
+                on_change=_sync_widget_change_to_criteria,
+                kwargs={"prefix": "form"},
             )
         with top_right:
             st.slider(
@@ -614,12 +669,16 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 max_value=50.0,
                 step=0.5,
                 key="form_radius_km",
+                on_change=_sync_widget_change_to_criteria,
+                kwargs={"prefix": "form"},
             )
             st.selectbox(
                 _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
                 options=["niedrig", "mittel", "hoch"],
                 format_func=lambda x: effort_label(x, lang),
                 key="form_effort",
+                on_change=_sync_widget_change_to_criteria,
+                kwargs={"prefix": "form"},
             )
             st.number_input(
                 _t(lang, "Budget (max €)", "Budget (max €)"),
@@ -627,12 +686,16 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 max_value=250.0,
                 step=1.0,
                 key="form_budget_eur_max",
+                on_change=_sync_widget_change_to_criteria,
+                kwargs={"prefix": "form"},
             )
             st.multiselect(
                 _t(lang, "Themen / Themes", "Themes / Themen"),
                 options=theme_options(lang),
                 format_func=lambda x: theme_label(x, lang),
                 key="form_topics",
+                on_change=_sync_widget_change_to_criteria,
+                kwargs={"prefix": "form"},
             )
 
         mode = st.radio(
@@ -648,27 +711,30 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             _t(lang, "Wetter und Events laden", "Load weather and events")
         )
 
-    if not submitted:
-        return
-
-    try:
-        criteria = _build_criteria_from_widget_state(prefix="form")
-        st.session_state["criteria"] = criteria
-        _sync_criteria_widget_state(criteria, prefix="sidebar")
-        _sync_criteria_widget_state(criteria, prefix="form")
-    except ValidationError as exc:
-        st.error(
-            _t(
-                lang,
-                "Bitte prüfe die Eingaben. Details siehe unten.",
-                "Please check your inputs. See details below.",
+    if submitted:
+        try:
+            criteria = _build_criteria_from_widget_state(prefix="form")
+            st.session_state["criteria"] = criteria
+            st.session_state["criteria_updated"] = True
+            st.session_state["weather_events_submitted"] = True
+            st.rerun()
+        except ValidationError as exc:
+            st.error(
+                _t(
+                    lang,
+                    "Bitte prüfe die Eingaben. Details siehe unten.",
+                    "Please check your inputs. See details below.",
+                )
             )
-        )
-        for err in exc.errors():
-            loc = ".".join(str(p) for p in err.get("loc", []))
-            st.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+            for err in exc.errors():
+                loc = ".".join(str(p) for p in err.get("loc", []))
+                st.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+            return
+
+    if not st.session_state.pop("weather_events_submitted", False):
         return
 
+    criteria = get_criteria_state(cfg)
     _service, orchestrator = _get_activity_orchestrator(cfg)
     status_box = st.empty()
 
@@ -761,6 +827,9 @@ def main() -> None:
 
     st.divider()
     render_wetter_und_events_section(cfg, lang)
+
+    if st.session_state.get("criteria_updated", False):
+        st.session_state["criteria_updated"] = False
 
     _render_export_block(picked, criteria, weather, daily_md, lang)
     _render_automation_block(cfg, criteria, lang)

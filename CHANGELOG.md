@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Widget-Synchronisierung für Sidebar und Formular abgesichert: bereits gebundene Widget-Keys werden nicht mehr blind überschrieben; Änderungen fließen über `on_change`-Callbacks in den zentralen `criteria`-State und werden nach Submit kontrolliert per Re-Run verteilt.
+- EN: Hardened widget synchronization for sidebar and form: already-bound widget keys are no longer overwritten blindly; changes flow back via `on_change` callbacks into central `criteria` state and are propagated after submit via a controlled rerun.
 - DE: Sidebar-Filter und Formular „Wetter & Events“ teilen jetzt einen gemeinsamen `ActivitySearchCriteria`-State in `st.session_state["criteria"]`; beide Ansichten sind synchronisiert und nutzen identische Suchparameter.
 - EN: Sidebar filters and the “Weather & Events” form now share one `ActivitySearchCriteria` state in `st.session_state["criteria"]`; both views are synchronized and use identical search parameters.
 - DE: Die E-Mail-Vorschau im Export rendert jetzt die Mail direkt in der Oberfläche; der HTML-Quelltext ist weiterhin optional über "HTML-Code anzeigen" verfügbar.
