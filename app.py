@@ -146,6 +146,8 @@ def _get_weather(day_iso: str, tz: str) -> WeatherSummary:
 
 
 def get_criteria_state(cfg: AppConfig) -> ActivitySearchCriteria:
+    # Developer navigation: This is the single source of truth for business filters.
+    # Only this function initializes criteria defaults; UI adapters only read/write this object.
     if "criteria" not in st.session_state:
         default_date = date.today()
         default_start = time(hour=9, minute=0)
@@ -172,17 +174,19 @@ def get_criteria_state(cfg: AppConfig) -> ActivitySearchCriteria:
     return cast(ActivitySearchCriteria, st.session_state["criteria"])
 
 
-def _sync_criteria_widget_state(
-    criteria: ActivitySearchCriteria, *, prefix: str, force: bool = False
-) -> None:
-    def _assign_widget_value(key: str, value: Any) -> None:
-        if force or key not in st.session_state:
-            st.session_state[key] = value
+CRITERIA_WIDGET_FIELDS: tuple[str, ...] = (
+    "plz",
+    "radius_km",
+    "date",
+    "start_time",
+    "available_minutes",
+    "effort",
+    "budget_eur_max",
+    "topics",
+)
 
-    _assign_widget_value(f"{prefix}_plz", criteria.plz)
-    _assign_widget_value(f"{prefix}_radius_km", float(criteria.radius_km))
-    _assign_widget_value(f"{prefix}_date", criteria.date)
-    _assign_widget_value(f"{prefix}_start_time", criteria.start_time)
+
+def _criteria_to_widget_values(criteria: ActivitySearchCriteria) -> dict[str, Any]:
     available_minutes = max(
         15,
         int(
@@ -193,16 +197,34 @@ def _sync_criteria_widget_state(
             // 60
         ),
     )
-    _assign_widget_value(f"{prefix}_available_minutes", available_minutes)
-    _assign_widget_value(f"{prefix}_effort", criteria.effort)
-    _assign_widget_value(f"{prefix}_budget_eur_max", float(criteria.budget_eur_max))
-    _assign_widget_value(f"{prefix}_topics", list(criteria.topics))
+    return {
+        "plz": criteria.plz,
+        "radius_km": float(criteria.radius_km),
+        "date": criteria.date,
+        "start_time": criteria.start_time,
+        "available_minutes": available_minutes,
+        "effort": criteria.effort,
+        "budget_eur_max": float(criteria.budget_eur_max),
+        "topics": list(criteria.topics),
+    }
 
 
-def _sync_widget_change_to_criteria(prefix: str) -> None:
+def _ensure_ui_adapter_state(prefix: str, criteria: ActivitySearchCriteria) -> None:
+    widget_values = _criteria_to_widget_values(criteria)
+    for field in CRITERIA_WIDGET_FIELDS:
+        key = f"{prefix}_{field}"
+        if key not in st.session_state:
+            st.session_state[key] = widget_values[field]
+
+
+def _sync_widget_change_to_criteria(
+    prefix: str, *, raise_on_error: bool = False
+) -> None:
     try:
         st.session_state["criteria"] = _build_criteria_from_widget_state(prefix=prefix)
     except ValidationError:
+        if raise_on_error:
+            raise
         return
 
 
@@ -233,12 +255,10 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
 def _criteria_sidebar(
     cfg: AppConfig,
 ) -> tuple[Optional[ActivitySearchCriteria], Language]:
+    # Developer navigation: Sidebar is a UI adapter.
+    # It initializes adapter keys once from criteria and writes changes back to criteria.
     criteria = get_criteria_state(cfg)
-    _sync_criteria_widget_state(
-        criteria,
-        prefix="sidebar",
-        force=bool(st.session_state.get("criteria_updated", False)),
-    )
+    _ensure_ui_adapter_state(prefix="sidebar", criteria=criteria)
 
     st.sidebar.header("Suche / Search")
     lang: Language = st.sidebar.selectbox(
@@ -609,12 +629,10 @@ def _get_activity_orchestrator(
 
 
 def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
+    # Developer navigation: Form adapter follows a one-way update rule.
+    # UI interaction writes to criteria; rendering only reads criteria for first-time initialization.
     criteria = get_criteria_state(cfg)
-    _sync_criteria_widget_state(
-        criteria,
-        prefix="form",
-        force=bool(st.session_state.get("criteria_updated", False)),
-    )
+    _ensure_ui_adapter_state(prefix="form", criteria=criteria)
 
     st.subheader(_t(lang, "Wetter & Events", "Weather & Events"))
     st.caption(
@@ -713,9 +731,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
     if submitted:
         try:
-            criteria = _build_criteria_from_widget_state(prefix="form")
-            st.session_state["criteria"] = criteria
-            st.session_state["criteria_updated"] = True
+            _sync_widget_change_to_criteria(prefix="form", raise_on_error=True)
             st.session_state["weather_events_submitted"] = True
             st.rerun()
         except ValidationError as exc:
@@ -827,9 +843,6 @@ def main() -> None:
 
     st.divider()
     render_wetter_und_events_section(cfg, lang)
-
-    if st.session_state.get("criteria_updated", False):
-        st.session_state["criteria_updated"] = False
 
     _render_export_block(picked, criteria, weather, daily_md, lang)
     _render_automation_block(cfg, criteria, lang)
