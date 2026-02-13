@@ -656,20 +656,14 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             st.text_input(
                 _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
                 key="form_plz",
-                on_change=_sync_widget_change_to_criteria,
-                kwargs={"prefix": "form"},
             )
             st.date_input(
                 _t(lang, "Datum / Date", "Date / Datum"),
                 key="form_date",
-                on_change=_sync_widget_change_to_criteria,
-                kwargs={"prefix": "form"},
             )
             st.time_input(
                 _t(lang, "Startzeit", "Start time"),
                 key="form_start_time",
-                on_change=_sync_widget_change_to_criteria,
-                kwargs={"prefix": "form"},
             )
             st.number_input(
                 _t(lang, "Zeitbudget (Minuten)", "Time budget (minutes)"),
@@ -677,8 +671,6 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 max_value=360,
                 step=5,
                 key="form_available_minutes",
-                on_change=_sync_widget_change_to_criteria,
-                kwargs={"prefix": "form"},
             )
         with top_right:
             st.slider(
@@ -687,16 +679,12 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 max_value=50.0,
                 step=0.5,
                 key="form_radius_km",
-                on_change=_sync_widget_change_to_criteria,
-                kwargs={"prefix": "form"},
             )
             st.selectbox(
                 _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
                 options=["niedrig", "mittel", "hoch"],
                 format_func=lambda x: effort_label(x, lang),
                 key="form_effort",
-                on_change=_sync_widget_change_to_criteria,
-                kwargs={"prefix": "form"},
             )
             st.number_input(
                 _t(lang, "Budget (max €)", "Budget (max €)"),
@@ -704,16 +692,12 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 max_value=250.0,
                 step=1.0,
                 key="form_budget_eur_max",
-                on_change=_sync_widget_change_to_criteria,
-                kwargs={"prefix": "form"},
             )
             st.multiselect(
                 _t(lang, "Themen / Themes", "Themes / Themen"),
                 options=theme_options(lang),
                 format_func=lambda x: theme_label(x, lang),
                 key="form_topics",
-                on_change=_sync_widget_change_to_criteria,
-                kwargs={"prefix": "form"},
             )
 
         mode = st.radio(
