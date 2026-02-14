@@ -100,7 +100,7 @@ def test_render_activity_plan_markdown_contains_required_sections() -> None:
 
     markdown = render_activity_plan_markdown(plan)
 
-    assert "## Plan (kurz & klar)" in markdown
+    assert "## Plan" in markdown
     assert "## Sicherheit" in markdown
     assert "## Eltern-Kind-Impulse" in markdown
     assert "## Varianten" in markdown

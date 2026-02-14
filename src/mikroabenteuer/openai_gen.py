@@ -184,7 +184,7 @@ def render_activity_plan_markdown(plan: ActivityPlan) -> str:
 **{plan.title}**  
 {plan.summary}
 
-## Plan (kurz & klar)
+## Plan
 {chr(10).join([f"- {s}" for s in plan.steps])}
 
 ## Sicherheit
