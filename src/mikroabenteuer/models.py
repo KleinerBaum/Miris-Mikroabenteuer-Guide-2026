@@ -131,6 +131,7 @@ Effort = Literal["niedrig", "mittel", "hoch"]
 TOPICS_MAX_ITEMS = 8
 GOALS_MAX_ITEMS = 6
 CONSTRAINTS_MAX_ITEMS = 6
+MATERIALS_MAX_ITEMS = 7
 TEXT_ITEM_MAX_CHARS = 80
 
 
@@ -205,6 +206,10 @@ class ActivitySearchCriteria(BaseModel):
     constraints: List[str] = Field(
         default_factory=list,
         description="User constraints.",
+    )
+    available_materials: List[str] = Field(
+        default_factory=list,
+        description="Checked household materials available for this plan.",
     )
     max_suggestions: int = Field(
         default=5,
@@ -283,6 +288,15 @@ class ActivitySearchCriteria(BaseModel):
             field_name="constraints",
         )
 
+    @field_validator("available_materials")
+    @classmethod
+    def normalize_available_materials(cls, v: List[str]) -> List[str]:
+        return cls._normalize_text_list(
+            v,
+            max_items=MATERIALS_MAX_ITEMS,
+            field_name="available_materials",
+        )
+
     @field_validator("effort")
     @classmethod
     def validate_effort(cls, v: str) -> str:
@@ -318,6 +332,7 @@ class ActivitySearchCriteria(BaseModel):
             "location_preference": self.location_preference,
             "goals": [goal.value for goal in self.goals],
             "constraints": self.constraints,
+            "available_materials": self.available_materials,
             "max_suggestions": self.max_suggestions,
         }
 

@@ -32,6 +32,10 @@ from src.mikroabenteuer.data_seed import seed_adventures
 from src.mikroabenteuer.email_templates import render_daily_email_html
 from src.mikroabenteuer.activity_library import suggest_activities_offline
 from src.mikroabenteuer.ics import build_ics_event
+from src.mikroabenteuer.materials import (
+    COMMON_HOUSEHOLD_MATERIALS,
+    MATERIAL_LABELS,
+)
 from src.mikroabenteuer.models import (
     ActivitySearchCriteria,
     DevelopmentDomain,
@@ -100,6 +104,12 @@ CONSTRAINT_OPTIONS: tuple[str, ...] = (
     "Reizarm / Low sensory",
     "Barrierearm / Accessible",
 )
+
+MATERIAL_OPTIONS: tuple[str, ...] = COMMON_HOUSEHOLD_MATERIALS
+
+
+def _material_label(material_key: str) -> str:
+    return MATERIAL_LABELS.get(material_key, material_key)
 
 
 def _sanitize_optional_text(value: str, *, max_chars: int = 80) -> str:
@@ -343,6 +353,7 @@ CRITERIA_WIDGET_FIELDS: tuple[str, ...] = (
     "location_preference",
     "goals",
     "constraints",
+    "available_materials",
 )
 
 
@@ -369,6 +380,7 @@ def _criteria_to_widget_values(criteria: ActivitySearchCriteria) -> dict[str, An
         "location_preference": criteria.location_preference,
         "goals": list(criteria.goals),
         "constraints": list(criteria.constraints),
+        "available_materials": list(criteria.available_materials),
     }
 
 
@@ -398,6 +410,9 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
 
     goals = list(cast(list[DevelopmentDomain], st.session_state[f"{prefix}_goals"]))
     constraints = list(cast(list[str], st.session_state[f"{prefix}_constraints"]))
+    available_materials = list(
+        cast(list[str], st.session_state[f"{prefix}_available_materials"])
+    )
     if prefix == "form":
         constraints_optional = _optional_csv_items(
             str(st.session_state.get("form_constraints_optional", ""))
@@ -436,6 +451,7 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
         ),
         goals=goals if goals else [DevelopmentDomain.language],
         constraints=constraints,
+        available_materials=available_materials,
     )
 
 
@@ -544,6 +560,18 @@ def _criteria_sidebar(
         _t(lang, "Rahmenbedingungen / Constraints", "Rahmenbedingungen / Constraints"),
         options=list(CONSTRAINT_OPTIONS),
         key="sidebar_constraints",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
+    )
+    st.sidebar.multiselect(
+        _t(
+            lang,
+            "Haushaltsmaterialien (verfügbar) / Household materials (available)",
+            "Haushaltsmaterialien (verfügbar) / Household materials (available)",
+        ),
+        options=list(MATERIAL_OPTIONS),
+        format_func=_material_label,
+        key="sidebar_available_materials",
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar"},
     )
@@ -1058,6 +1086,16 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 ),
                 options=list(CONSTRAINT_OPTIONS),
                 key="form_constraints",
+            )
+            st.multiselect(
+                _t(
+                    lang,
+                    "Haushaltsmaterialien (verfügbar) / Household materials (available)",
+                    "Haushaltsmaterialien (verfügbar) / Household materials (available)",
+                ),
+                options=list(MATERIAL_OPTIONS),
+                format_func=_material_label,
+                key="form_available_materials",
             )
             st.text_input(
                 _t(

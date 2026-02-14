@@ -78,6 +78,9 @@ Regeln / Rules:
 - Zieltag: {params["date"]}, Zeitfenster: {params["time_start"]}–{params["time_end"]}.
 - Budget: <= {params["budget_eur_max"]} EUR (Obergrenze). Wenn Kosten unbekannt, schätze konservativ oder markiere als unknown.
 - Themen (codes): {params["topics"]}.
+- Verfügbare Haushaltsmaterialien / available household materials: {params["available_materials"]}.
+- Empfiehl keine nicht verfügbaren Materialien. Wenn nötig, nenne konkrete Ersatzoptionen mit vorhandenen Dingen.
+  / Do not recommend unavailable materials. If needed, provide substitutions using available items.
 - Gib maximal {params["max_suggestions"]} Vorschläge.
 
 Output-Anforderungen:
