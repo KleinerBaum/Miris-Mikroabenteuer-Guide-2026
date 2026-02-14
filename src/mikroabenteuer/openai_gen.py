@@ -72,6 +72,112 @@ def _fallback_activity_plan(
     )
 
 
+def _safe_fallback_plan(request: ActivityRequest) -> ActivityPlan:
+    return ActivityPlan(
+        title="Sicheres Alternativprogramm / Safe fallback plan",
+        summary=(
+            "Wir zeigen eine sichere, altersgerechte Aktivität ohne riskante Elemente. "
+            "/ Showing a safe age-appropriate activity without risky elements."
+        ),
+        steps=[
+            "Gemeinsam 5 ruhige Gegenstände in der Wohnung oder im Garten suchen.",
+            "Farben benennen und die Gegenstände in eine sichere Sortier-Reihe legen.",
+            "Kurze Bewegungsrunde: langsames Balancieren auf einer Linie am Boden.",
+            "Mit Wasser trinken und einer ruhigen Abschlussfrage beenden.",
+        ],
+        safety_notes=[
+            "Nur weiche, große Materialien ohne Kleinteile verwenden.",
+            "Keine Hitze, keine Flammen, keine scharfen Werkzeuge, keine Chemikalien.",
+            "Aktivität jederzeit abbrechen, wenn Überforderung sichtbar ist.",
+        ],
+        parent_child_prompts=[
+            "Welcher Gegenstand fühlt sich am weichsten an?",
+            "Möchtest du noch eine ruhige Runde machen oder jetzt Pause?",
+        ],
+        variants=[
+            f"Kurzversion: nur 2 Schritte in {max(10, request.duration_minutes // 2)} Minuten",
+            "Indoor-Variante: Gegenstände nur in einem Zimmer finden",
+        ],
+    )
+
+
+def _request_age_months(request: ActivityRequest) -> float:
+    if request.age_unit is AgeUnit.months:
+        return request.age_value
+    return request.age_value * 12.0
+
+
+def validate_activity_plan(plan: ActivityPlan, request: ActivityRequest) -> bool:
+    """Return False when the plan contains hard-blocked safety hazards."""
+    text_parts = [
+        plan.title,
+        plan.summary,
+        *plan.steps,
+        *plan.safety_notes,
+        *plan.parent_child_prompts,
+        *plan.variants,
+    ]
+    haystack = "\n".join(text_parts).casefold()
+
+    always_blocked_keywords = {
+        "knife",
+        "scissors",
+        "cutter",
+        "saw",
+        "drill",
+        "messer",
+        "schere",
+        "säge",
+        "bohrer",
+        "fire",
+        "campfire",
+        "stove",
+        "oven",
+        "boiling",
+        "flame",
+        "grill",
+        "candle",
+        "feuer",
+        "lagerfeuer",
+        "grillen",
+        "kerze",
+        "kochend",
+        "bleach",
+        "ammonia",
+        "solvent",
+        "pesticide",
+        "paint thinner",
+        "bleichmittel",
+        "ammoniak",
+        "lösungsmittel",
+        "chemikal",
+        "verdünner",
+    }
+    if any(keyword in haystack for keyword in always_blocked_keywords):
+        return False
+
+    if _request_age_months(request) < 36:
+        under_three_keywords = {
+            "small parts",
+            "small part",
+            "tiny bead",
+            "beads",
+            "marble",
+            "coin",
+            "button battery",
+            "kleinteile",
+            "kleinteil",
+            "perlen",
+            "murmel",
+            "münze",
+            "knopfzelle",
+        }
+        if any(keyword in haystack for keyword in under_three_keywords):
+            return False
+
+    return True
+
+
 def render_activity_plan_markdown(plan: ActivityPlan) -> str:
     return f"""# Mikroabenteuer des Tages 🌿
 
@@ -98,17 +204,24 @@ def generate_activity_plan(
     criteria: ActivitySearchCriteria,
     weather: Optional[WeatherSummary],
 ) -> ActivityPlan:
+    activity_request = _build_activity_request(adventure, criteria)
+
     if not cfg.enable_llm or not cfg.openai_api_key:
-        return _fallback_activity_plan(adventure, criteria, weather)
+        plan = _fallback_activity_plan(adventure, criteria, weather)
+        if not validate_activity_plan(plan, activity_request):
+            return _safe_fallback_plan(activity_request)
+        return plan
 
     try:
         from openai import OpenAI  # type: ignore
     except Exception:
-        return _fallback_activity_plan(adventure, criteria, weather)
+        plan = _fallback_activity_plan(adventure, criteria, weather)
+        if not validate_activity_plan(plan, activity_request):
+            return _safe_fallback_plan(activity_request)
+        return plan
 
     client = OpenAI(api_key=cfg.openai_api_key)
 
-    activity_request = _build_activity_request(adventure, criteria)
     payload = {
         "activity_request": activity_request.model_dump(mode="json"),
         "criteria": criteria.model_dump(mode="json"),
@@ -149,7 +262,10 @@ def generate_activity_plan(
         return parsed
 
     try:
-        return retry_with_backoff(max_attempts=3, base_delay=0.5)(_call_openai)()
+        plan = retry_with_backoff(max_attempts=3, base_delay=0.5)(_call_openai)()
+        if not validate_activity_plan(plan, activity_request):
+            return _safe_fallback_plan(activity_request)
+        return plan
     except (ValidationError, Exception) as exc:
         raise ActivityGenerationError(str(exc)) from exc
 
