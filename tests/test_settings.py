@@ -37,3 +37,29 @@ def test_runtime_settings_sanitizes_numeric_limits(monkeypatch) -> None:
     assert settings.max_output_tokens == 100
     assert settings.timeout_s == 5.0
     assert settings.max_requests_per_session == 1
+
+
+def test_runtime_settings_reads_openai_nested_secret(monkeypatch) -> None:
+    monkeypatch.setenv("ENABLE_LLM", "1")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setattr(
+        "src.mikroabenteuer.settings.st.secrets",
+        {"openai": {"api_key": "sk-test"}},
+    )
+
+    settings = RuntimeSettings()
+
+    assert settings.openai_api_key == "sk-test"
+
+
+def test_runtime_settings_reads_openai_top_level_secret(monkeypatch) -> None:
+    monkeypatch.setenv("ENABLE_LLM", "1")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setattr(
+        "src.mikroabenteuer.settings.st.secrets",
+        {"OPENAI_API_KEY": "sk-test-top-level"},
+    )
+
+    settings = RuntimeSettings()
+
+    assert settings.openai_api_key == "sk-test-top-level"
