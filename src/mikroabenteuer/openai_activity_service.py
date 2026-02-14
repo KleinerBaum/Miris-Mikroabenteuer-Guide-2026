@@ -6,6 +6,7 @@ from typing import Any, Literal, cast
 
 from pydantic import ValidationError
 
+from .moderation import SAFE_BLOCK_MESSAGE_DE_EN, moderate_text
 from .models import (
     ActivitySearchCriteria,
     ActivitySuggestionResult,
@@ -154,6 +155,15 @@ def suggest_activities(
     user_msg = _build_user_prompt(criteria, weather, strategy)
 
     def _call_openai() -> ActivitySuggestionResult:
+        if moderate_text(client, text=user_msg, stage="input"):
+            return ActivitySuggestionResult(
+                weather=weather,
+                suggestions=[],
+                sources=[],
+                warnings_de_en=[],
+                errors_de_en=[SAFE_BLOCK_MESSAGE_DE_EN],
+            )
+
         # responses.parse enforces schema via structured outputs :contentReference[oaicite:6]{index=6}
         resp = client.responses.parse(
             model=model,
@@ -175,6 +185,18 @@ def suggest_activities(
         if parsed is None:
             raise RuntimeError(
                 "No structured output parsed from response (output_parsed is None)."
+            )
+        if moderate_text(
+            client,
+            text=parsed.model_dump_json(indent=2),
+            stage="output",
+        ):
+            return ActivitySuggestionResult(
+                weather=weather,
+                suggestions=[],
+                sources=[],
+                warnings_de_en=[],
+                errors_de_en=[SAFE_BLOCK_MESSAGE_DE_EN],
             )
         return parsed
 
