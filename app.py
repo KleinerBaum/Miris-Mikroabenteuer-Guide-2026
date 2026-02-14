@@ -11,6 +11,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Any, Callable, Literal, Optional, cast
 
+import re
+
 import streamlit as st
 import streamlit.components.v1 as components
 from pydantic import ValidationError
@@ -55,6 +57,45 @@ class FamilyProfile:
     child_name: str
     parent_names: str
     child_age_years: float
+
+
+AGE_BAND_OPTIONS: tuple[tuple[str, float], ...] = (
+    ("2-3", 2.5),
+    ("4-5", 4.5),
+    ("6-8", 7.0),
+    ("9-12", 10.5),
+)
+
+DURATION_OPTIONS: tuple[int, ...] = (30, 45, 60, 90, 120, 180, 240, 300, 360)
+GOAL_OPTIONS: tuple[str, ...] = (
+    "Bewegung / Movement",
+    "Kreativität / Creativity",
+    "Natur erleben / Nature",
+    "Soziales Lernen / Social skills",
+    "Sprache / Language",
+    "Entspannung / Calm down",
+)
+CONSTRAINT_OPTIONS: tuple[str, ...] = (
+    "Kein Auto / No car",
+    "Kinderwagen / Stroller",
+    "Wetterfest / Weather-proof",
+    "Niedriges Budget / Low budget",
+    "Reizarm / Low sensory",
+    "Barrierearm / Accessible",
+)
+
+
+def _sanitize_optional_text(value: str, *, max_chars: int = 80) -> str:
+    cleaned = re.sub(r"[^\w\s,\-äöüÄÖÜß]", "", (value or "").strip())
+    cleaned = " ".join(cleaned.split())
+    return cleaned[:max_chars].rstrip()
+
+
+def _optional_csv_items(value: str, *, max_items: int = 2) -> list[str]:
+    normalized = _sanitize_optional_text(value)
+    if not normalized:
+        return []
+    return [part.strip() for part in normalized.split(",") if part.strip()][:max_items]
 
 
 def _replace_family_tokens(text: str, profile: FamilyProfile) -> str:
@@ -252,6 +293,9 @@ CRITERIA_WIDGET_FIELDS: tuple[str, ...] = (
     "effort",
     "budget_eur_max",
     "topics",
+    "location_preference",
+    "goals",
+    "constraints",
 )
 
 
@@ -275,6 +319,9 @@ def _criteria_to_widget_values(criteria: ActivitySearchCriteria) -> dict[str, An
         "effort": criteria.effort,
         "budget_eur_max": float(criteria.budget_eur_max),
         "topics": list(criteria.topics),
+        "location_preference": criteria.location_preference,
+        "goals": list(criteria.goals),
+        "constraints": list(criteria.constraints),
     }
 
 
@@ -318,6 +365,12 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
         ),
         budget_eur_max=float(st.session_state[f"{prefix}_budget_eur_max"]),
         topics=list(cast(list[str], st.session_state[f"{prefix}_topics"])),
+        location_preference=cast(
+            Literal["indoor", "outdoor", "mixed"],
+            st.session_state[f"{prefix}_location_preference"],
+        ),
+        goals=list(cast(list[str], st.session_state[f"{prefix}_goals"])),
+        constraints=list(cast(list[str], st.session_state[f"{prefix}_constraints"])),
     )
 
 
@@ -345,11 +398,13 @@ def _criteria_sidebar(
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar"},
     )
-    st.sidebar.number_input(
-        _t(lang, "Verfügbare Zeit (Minuten)", ""),
-        min_value=15,
-        max_value=360,
-        step=5,
+    st.sidebar.select_slider(
+        _t(
+            lang,
+            "Verfügbare Zeit (Minuten) / Available time (minutes)",
+            "Verfügbare Zeit (Minuten) / Available time (minutes)",
+        ),
+        options=list(DURATION_OPTIONS),
         key="sidebar_available_minutes",
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar"},
@@ -392,10 +447,36 @@ def _criteria_sidebar(
         kwargs={"prefix": "sidebar"},
     )
     st.sidebar.multiselect(
-        _t(lang, "Themen", ""),
+        _t(lang, "Themen / Topics", "Themen / Topics"),
         options=theme_options(lang),
         format_func=lambda x: theme_label(x, lang),
         key="sidebar_topics",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
+    )
+    st.sidebar.segmented_control(
+        _t(lang, "Ort / Location", "Ort / Location"),
+        options=["mixed", "outdoor", "indoor"],
+        format_func=lambda opt: {
+            "mixed": "Gemischt / Mixed",
+            "outdoor": "Draußen / Outdoor",
+            "indoor": "Drinnen / Indoor",
+        }[opt],
+        key="sidebar_location_preference",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
+    )
+    st.sidebar.multiselect(
+        _t(lang, "Ziele / Goals", "Ziele / Goals"),
+        options=list(GOAL_OPTIONS),
+        key="sidebar_goals",
+        on_change=_sync_widget_change_to_criteria,
+        kwargs={"prefix": "sidebar"},
+    )
+    st.sidebar.multiselect(
+        _t(lang, "Rahmenbedingungen / Constraints", "Rahmenbedingungen / Constraints"),
+        options=list(CONSTRAINT_OPTIONS),
+        key="sidebar_constraints",
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar"},
     )
@@ -431,18 +512,22 @@ def _criteria_sidebar(
         ).strip()
         or "Miri"
     )
-    child_age_years = st.sidebar.number_input(
+    age_band_labels = [label for label, _ in AGE_BAND_OPTIONS]
+    age_band_map = dict(AGE_BAND_OPTIONS)
+    current_age = float(st.session_state.get("profile_child_age_years", 2.5))
+    current_band = min(AGE_BAND_OPTIONS, key=lambda item: abs(item[1] - current_age))[0]
+    selected_age_band = st.sidebar.selectbox(
         _t(
             lang,
-            "Alter des Kindes (Jahre) / Child age (years)",
-            "Alter des Kindes (Jahre) / Child age (years)",
+            "Altersband / Age band",
+            "Altersband / Age band",
         ),
-        min_value=0.5,
-        max_value=12.0,
-        step=0.5,
-        value=float(st.session_state.get("profile_child_age_years", 2.5)),
-        key="profile_child_age_years",
+        options=age_band_labels,
+        index=age_band_labels.index(current_band),
+        key="profile_child_age_band",
     )
+    child_age_years = age_band_map[selected_age_band]
+    st.session_state["profile_child_age_years"] = float(child_age_years)
     family_profile = FamilyProfile(
         child_name=child_name,
         parent_names=parent_names,
@@ -744,6 +829,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             st.text_input(
                 _t(lang, "PLZ", ""),
                 key="form_plz",
+                max_chars=5,
             )
             st.date_input(
                 _t(lang, "Datum", ""),
@@ -753,11 +839,13 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 _t(lang, "Startzeit", ""),
                 key="form_start_time",
             )
-            st.number_input(
-                _t(lang, "Zeitbudget (Minuten)", ""),
-                min_value=15,
-                max_value=360,
-                step=5,
+            st.select_slider(
+                _t(
+                    lang,
+                    "Zeitbudget (Minuten) / Duration",
+                    "Zeitbudget (Minuten) / Duration",
+                ),
+                options=list(DURATION_OPTIONS),
                 key="form_available_minutes",
             )
         with top_right:
@@ -782,10 +870,62 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 key="form_budget_eur_max",
             )
             st.multiselect(
-                _t(lang, "Themen", ""),
+                _t(lang, "Themen / Topics", "Themen / Topics"),
                 options=theme_options(lang),
                 format_func=lambda x: theme_label(x, lang),
                 key="form_topics",
+            )
+            st.toggle(
+                _t(
+                    lang,
+                    "Ort: draußen bevorzugen / Prefer outdoor",
+                    "Ort: draußen bevorzugen / Prefer outdoor",
+                ),
+                key="form_pref_outdoor",
+                value=st.session_state.get("form_location_preference", "mixed")
+                == "outdoor",
+            )
+            st.toggle(
+                _t(
+                    lang,
+                    "Ort: drinnen bevorzugen / Prefer indoor",
+                    "Ort: drinnen bevorzugen / Prefer indoor",
+                ),
+                key="form_pref_indoor",
+                value=st.session_state.get("form_location_preference", "mixed")
+                == "indoor",
+            )
+            st.multiselect(
+                _t(lang, "Ziele / Goals", "Ziele / Goals"),
+                options=list(GOAL_OPTIONS),
+                key="form_goals",
+            )
+            st.multiselect(
+                _t(
+                    lang,
+                    "Rahmenbedingungen / Constraints",
+                    "Rahmenbedingungen / Constraints",
+                ),
+                options=list(CONSTRAINT_OPTIONS),
+                key="form_constraints",
+            )
+            st.text_input(
+                _t(
+                    lang,
+                    "Weitere Ziele (optional, max 80) / Other goals (optional, max 80)",
+                    "Weitere Ziele (optional, max 80) / Other goals (optional, max 80)",
+                ),
+                key="form_goals_optional",
+                max_chars=80,
+            )
+            st.text_input(
+                _t(
+                    lang,
+                    "Weitere Rahmenbedingungen (optional, max 80) / Other constraints (optional, max 80)",
+                    "Weitere Rahmenbedingungen (optional, max 80) / Other constraints (optional, max 80)",
+                ),
+                key="form_constraints_optional",
+                max_chars=80,
             )
 
         mode = st.radio(
@@ -795,6 +935,36 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             if m == "schnell"
             else _t(lang, "Genau", ""),
             horizontal=True,
+        )
+
+        pref_outdoor = bool(st.session_state.get("form_pref_outdoor", False))
+        pref_indoor = bool(st.session_state.get("form_pref_indoor", False))
+        if pref_outdoor and pref_indoor:
+            st.session_state["form_location_preference"] = "mixed"
+        elif pref_outdoor:
+            st.session_state["form_location_preference"] = "outdoor"
+        elif pref_indoor:
+            st.session_state["form_location_preference"] = "indoor"
+        else:
+            st.session_state["form_location_preference"] = "mixed"
+
+        goals_optional = _optional_csv_items(
+            str(st.session_state.get("form_goals_optional", ""))
+        )
+        constraints_optional = _optional_csv_items(
+            str(st.session_state.get("form_constraints_optional", ""))
+        )
+        st.session_state["form_goals"] = list(
+            dict.fromkeys(
+                list(cast(list[str], st.session_state.get("form_goals", [])))
+                + goals_optional
+            )
+        )
+        st.session_state["form_constraints"] = list(
+            dict.fromkeys(
+                list(cast(list[str], st.session_state.get("form_constraints", [])))
+                + constraints_optional
+            )
         )
 
         submitted = st.form_submit_button(

@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Eingaben in Sidebar und Wetter-&-Events-Form wurden auf validierte Auswahlfelder umgestellt (Altersband, Dauer, Ortspräferenz, Ziele, Rahmenbedingungen). Optionaler Freitext ist jetzt auf 80 Zeichen begrenzt und wird sanitisiert.
+- EN: Inputs in the sidebar and weather/events form now use validated selection controls (age band, duration, location preference, goals, constraints). Optional free text is now capped at 80 characters and sanitized.
 - DE: Entfernte UI-Texte: Die Überschrift "Plan (kurz & klar)" heißt jetzt "Plan"; die Hinweise "Lokale Vorschläge mit Wetter-Check und Live-Quellen.", "Diese Filter sind global und wirken auch auf die Abenteuer-Suche." sowie "Filter gelten global für Abenteuer und Veranstaltungen." wurden entfernt.
 - EN: Removed UI text: the heading "Plan (kurz & klar)" is now "Plan"; the hints "Lokale Vorschläge mit Wetter-Check und Live-Quellen.", "Diese Filter sind global und wirken auch auf die Abenteuer-Suche.", and "Filter gelten global für Abenteuer und Veranstaltungen." were removed.
 - DE: Neue regelbasierte Sicherheitsvalidierung für `ActivityPlan`: Unsichere Inhalte (u. a. Kleinteile bei <3 Jahren, scharfe Werkzeuge, Feuer/Hitze, giftige Chemikalien) werden hart geblockt; stattdessen wird automatisch ein sicheres Alternativprogramm gerendert.

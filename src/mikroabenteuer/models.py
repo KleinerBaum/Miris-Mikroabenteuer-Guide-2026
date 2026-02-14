@@ -1,6 +1,7 @@
 # src/mikroabenteuer/models.py
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import date as dt_date, datetime, time
 from enum import Enum
@@ -128,6 +129,9 @@ def ensure_unique_slugs(adventures: List[MicroAdventure]) -> None:
 Effort = Literal["niedrig", "mittel", "hoch"]
 
 TOPICS_MAX_ITEMS = 8
+GOALS_MAX_ITEMS = 6
+CONSTRAINTS_MAX_ITEMS = 6
+TEXT_ITEM_MAX_CHARS = 80
 
 
 def validate_http_url(value: str) -> str:
@@ -190,6 +194,15 @@ class ActivitySearchCriteria(BaseModel):
         description="Budget upper bound in EUR.",
     )
     topics: List[str] = Field(default_factory=list, description="Topic keys.")
+    location_preference: Literal["indoor", "outdoor", "mixed"] = Field(
+        default="mixed",
+        description="Preferred setting for the activity.",
+    )
+    goals: List[str] = Field(default_factory=list, description="User goals.")
+    constraints: List[str] = Field(
+        default_factory=list,
+        description="User constraints.",
+    )
     max_suggestions: int = Field(
         default=5,
         ge=1,
@@ -221,6 +234,44 @@ class ActivitySearchCriteria(BaseModel):
         if len(cleaned) > TOPICS_MAX_ITEMS:
             raise ValueError(f"topics supports at most {TOPICS_MAX_ITEMS} entries")
         return cleaned
+
+    @staticmethod
+    def _normalize_text_list(
+        values: List[str], *, max_items: int, field_name: str
+    ) -> List[str]:
+        cleaned: List[str] = []
+        seen: set[str] = set()
+        for raw_item in values:
+            item = re.sub(r"[^\w\s\-äöüÄÖÜß]", "", (raw_item or "").strip())
+            item = " ".join(item.split())
+            if not item:
+                continue
+            if len(item) > TEXT_ITEM_MAX_CHARS:
+                item = item[:TEXT_ITEM_MAX_CHARS].rstrip()
+            lowered = item.lower()
+            if lowered in seen:
+                continue
+            cleaned.append(item)
+            seen.add(lowered)
+        if len(cleaned) > max_items:
+            raise ValueError(f"{field_name} supports at most {max_items} entries")
+        return cleaned
+
+    @field_validator("goals")
+    @classmethod
+    def normalize_goals(cls, v: List[str]) -> List[str]:
+        return cls._normalize_text_list(
+            v, max_items=GOALS_MAX_ITEMS, field_name="goals"
+        )
+
+    @field_validator("constraints")
+    @classmethod
+    def normalize_constraints(cls, v: List[str]) -> List[str]:
+        return cls._normalize_text_list(
+            v,
+            max_items=CONSTRAINTS_MAX_ITEMS,
+            field_name="constraints",
+        )
 
     @field_validator("effort")
     @classmethod
@@ -254,6 +305,9 @@ class ActivitySearchCriteria(BaseModel):
             "effort": self.effort,
             "budget_eur_max": self.budget_eur_max,
             "topics": self.topics,
+            "location_preference": self.location_preference,
+            "goals": self.goals,
+            "constraints": self.constraints,
             "max_suggestions": self.max_suggestions,
         }
 
