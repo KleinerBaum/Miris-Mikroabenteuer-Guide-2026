@@ -23,6 +23,7 @@ def test_activity_search_criteria_to_llm_params_contains_expected_fields() -> No
         effort="mittel",
         budget_eur_max=35.0,
         topics=["natur"],
+        available_materials=["pens", "tape"],
         max_suggestions=4,
     )
 
@@ -33,6 +34,7 @@ def test_activity_search_criteria_to_llm_params_contains_expected_fields() -> No
     assert params["time_end"] == "10:30:00"
     assert params["available_minutes"] == 90
     assert params["max_suggestions"] == 4
+    assert params["available_materials"] == ["pens", "tape"]
 
 
 def test_openai_activity_prompt_uses_extended_contract_types() -> None:

@@ -5,6 +5,8 @@
 
 ## Unreleased
 
+- DE: Neue Material-Checklist (Haushaltsmaterialien) in Sidebar/Formular; ungecheckte Materialien (z. B. Papier) werden in Offline-Treffern und Plänen vermieden, inklusive Ersatzvorschlägen.
+- EN: Added a household materials checklist in sidebar/form; unchecked materials (e.g. paper) are avoided in offline matches and plans, including substitution hints.
 ### Geändert / Changed
 - DE: Tagespläne ergänzen jetzt automatisch „Plan B“-Varianten je Aktivität (lower energy, higher energy, indoor swap, no materials), sodass pro Plan sofort alternative Durchführungswege verfügbar sind.
 - EN: Daily plans now automatically append “Plan B” variants per activity (lower energy, higher energy, indoor swap, no materials), so each plan immediately includes alternative execution paths.

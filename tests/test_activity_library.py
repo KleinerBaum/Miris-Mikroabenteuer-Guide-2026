@@ -74,3 +74,47 @@ def test_offline_selection_filters_out_age_and_duration_mismatches() -> None:
 
     assert not suggestions
     assert warnings
+
+
+def test_offline_selection_respects_unchecked_materials() -> None:
+    criteria = _criteria().model_copy(
+        update={
+            "time_window": TimeWindow(start=time(9, 0), end=time(11, 0)),
+            "available_materials": [
+                "pens",
+                "tape",
+                "scissors",
+                "bowls",
+                "rice",
+                "flashlight",
+            ],
+            "max_suggestions": 5,
+        }
+    )
+
+    suggestions, _warnings = suggest_activities_offline(criteria, child_age_years=7.0)
+
+    assert suggestions
+    assert all("Papier" not in suggestion.reason_de_en for suggestion in suggestions)
+
+
+def test_offline_selection_returns_substitutions_for_missing_items() -> None:
+    criteria = _criteria().model_copy(
+        update={
+            "available_materials": [
+                "pens",
+                "tape",
+                "scissors",
+                "bowls",
+                "rice",
+                "flashlight",
+            ],
+        }
+    )
+
+    _suggestions, warnings = suggest_activities_offline(criteria, child_age_years=7.0)
+
+    assert any(
+        "statt Papier" in warning or "instead of paper" in warning
+        for warning in warnings
+    )

@@ -7,6 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from .materials import blocked_materials, material_matches_blocklist, substitutions_for
 from .models import ActivitySearchCriteria, ActivitySuggestion, IndoorOutdoor
 
 
@@ -118,6 +119,11 @@ def _is_filtered_out(
         return True
     if item.duration_min > criteria.available_minutes:
         return True
+    blocked = blocked_materials(criteria.available_materials)
+    if blocked and any(
+        material_matches_blocklist(material, blocked) for material in item.materials
+    ):
+        return True
     return False
 
 
@@ -175,5 +181,9 @@ def suggest_activities_offline(
         warnings.append(
             "Keine Offline-Treffer gefunden. Bitte Budget/Zeit/Topics anpassen. / No offline matches found."
         )
+
+    blocked = blocked_materials(criteria.available_materials)
+    if blocked:
+        warnings.extend(substitutions_for(blocked))
 
     return suggestions, warnings

@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from .config import AppConfig
 from .moderation import SAFE_BLOCK_MESSAGE_DE_EN, moderate_text
+from .materials import blocked_materials, material_matches_blocklist, substitutions_for
 from .models import (
     ActivityPlan,
     ActivityRequest,
@@ -219,6 +220,40 @@ def _fallback_activity_plan(
         ),
         available_minutes=criteria.available_minutes,
         start_point=adventure.start_point,
+    )
+
+
+def _enforce_material_constraints(
+    plan: ActivityPlan,
+    criteria: ActivitySearchCriteria,
+) -> ActivityPlan:
+    blocked = blocked_materials(criteria.available_materials)
+    if not blocked:
+        return plan
+
+    def _clean(items: list[str]) -> list[str]:
+        return [item for item in items if not material_matches_blocklist(item, blocked)]
+
+    safety_notes = list(plan.safety_notes)
+    for substitution in substitutions_for(blocked):
+        if substitution not in safety_notes:
+            safety_notes.append(substitution)
+
+    summary = plan.summary
+    if material_matches_blocklist(summary, blocked):
+        summary = (
+            "Materialangepasste Version ohne nicht verfügbare Gegenstände. "
+            "/ Material-adjusted version without unavailable items."
+        )
+
+    return plan.model_copy(
+        update={
+            "summary": summary,
+            "steps": _clean(plan.steps),
+            "variants": _clean(plan.variants),
+            "parent_child_prompts": _clean(plan.parent_child_prompts),
+            "safety_notes": safety_notes,
+        }
     )
 
 
@@ -438,6 +473,7 @@ def generate_activity_plan(
             plan = _safe_fallback_plan(activity_request)
         if plan_mode == "parent_script":
             plan = _apply_parent_script_mode(plan, criteria)
+        plan = _enforce_material_constraints(plan, criteria)
         return plan
 
     try:
@@ -448,6 +484,7 @@ def generate_activity_plan(
             plan = _safe_fallback_plan(activity_request)
         if plan_mode == "parent_script":
             plan = _apply_parent_script_mode(plan, criteria)
+        plan = _enforce_material_constraints(plan, criteria)
         return plan
 
     client = OpenAI(api_key=cfg.openai_api_key, timeout=cfg.timeout_s)
@@ -543,17 +580,20 @@ def generate_activity_plan(
             plan = _safe_fallback_plan(activity_request)
         if plan_mode == "parent_script":
             plan = _apply_parent_script_mode(plan, criteria)
+        plan = _enforce_material_constraints(plan, criteria)
         return plan
     except ValidationError:
         plan = _safe_fallback_plan(activity_request)
         if plan_mode == "parent_script":
             plan = _apply_parent_script_mode(plan, criteria)
+        plan = _enforce_material_constraints(plan, criteria)
         return plan
     except Exception as exc:  # noqa: BLE001
         if _is_retryable_openai_error(exc):
             plan = _safe_fallback_plan(activity_request)
             if plan_mode == "parent_script":
                 plan = _apply_parent_script_mode(plan, criteria)
+            plan = _enforce_material_constraints(plan, criteria)
             return plan
         raise ActivityGenerationError(str(exc)) from exc
 
