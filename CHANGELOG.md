@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Docker-Compose mounted den lokalen `secrets/`-Ordner zusätzlich nach `/app/.streamlit`, damit `secrets/secrets.toml` als Streamlit-Secret-Quelle erkannt wird und der OpenAI-Key bei `ENABLE_LLM=true` wieder wie erwartet geladen wird (Konfig-Only Rollback, kein Git-Revert nötig).
+- EN: Docker Compose now mounts the local `secrets/` folder additionally to `/app/.streamlit`, so `secrets/secrets.toml` is recognized as a Streamlit secret source and the OpenAI key is loaded again as expected when `ENABLE_LLM=true` (config-only rollback, no git revert required).
 - DE: Neuer Plan-Modus „Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)“ in der Sidebar ergänzt. Tagespläne können jetzt als kindgeführtes, zeitlich begrenztes 4-Schritte-Skript (Describe, Imitate, Praise, Active listening) mit Minimal-Vorbereitung ausgegeben werden.
 - EN: Added a new sidebar plan mode “Parent script (short, repeatable)”. Daily plans can now be rendered as a child-led, timeboxed 4-step script (Describe, Imitate, Praise, Active listening) with minimal prep.
 - DE: Ziele wurden auf feste Entwicklungs-Domänen umgestellt (`gross_motor`, `fine_motor`, `language`, `social_emotional`, `sensory`, `cognitive`). Die UI erlaubt jetzt 1–2 Ziele und jeder Tagesplan zeigt verpflichtend „What this supports / Was das fördert“ passend zu den gewählten Zielen.
