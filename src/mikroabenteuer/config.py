@@ -48,6 +48,10 @@ class AppConfig:
     enable_web_search: bool
     openai_api_key: str | None
     openai_model: str
+    max_input_chars: int
+    max_output_tokens: int
+    timeout_s: float
+    max_requests_per_session: int
 
     # Optional: Google integration (only used if you wire it up)
     google_client_secrets_file: str
@@ -75,6 +79,12 @@ def load_config() -> AppConfig:
         enable_web_search=_to_bool(os.getenv("ENABLE_WEB_SEARCH"), default=False),
         openai_api_key=os.getenv("OPENAI_API_KEY") or None,
         openai_model=os.getenv("OPENAI_MODEL", "gpt-5-mini"),
+        max_input_chars=max(200, int(os.getenv("MAX_INPUT_CHARS", "4000"))),
+        max_output_tokens=max(100, int(os.getenv("MAX_OUTPUT_TOKENS", "800"))),
+        timeout_s=max(5.0, float(os.getenv("TIMEOUT_S", "45"))),
+        max_requests_per_session=max(
+            1, int(os.getenv("MAX_REQUESTS_PER_SESSION", "10"))
+        ),
         google_client_secrets_file=os.getenv(
             "GOOGLE_OAUTH_CLIENT_SECRETS_FILE", "client_secret.json"
         ),

@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Neue Konfigurationskonstanten `MAX_INPUT_CHARS`, `MAX_OUTPUT_TOKENS`, `TIMEOUT_S` und `MAX_REQUESTS_PER_SESSION` ergänzt und in UI + OpenAI-Backend erzwungen (Eingabekürzung, Token-Limit, Timeout-Weitergabe, Session-Anfragebudget).
+- EN: Added new configuration constants `MAX_INPUT_CHARS`, `MAX_OUTPUT_TOKENS`, `TIMEOUT_S`, and `MAX_REQUESTS_PER_SESSION` and enforced them in both UI and OpenAI backend (input truncation, token cap, timeout propagation, session request budget).
 - DE: Neue Utility `redact_pii(text)` ergänzt und auf alle ausgehenden OpenAI-Texte angewendet (Moderation + Responses in Plan- und Event-Generierung); E-Mail, Telefon, adressähnliche Daten und Namensmuster werden vor dem Senden maskiert, Logs bleiben PII-frei.
 - EN: Added a new `redact_pii(text)` utility and applied it to all outbound OpenAI text (moderation + responses in plan and event generation); email, phone, address-like data, and name patterns are masked before sending, and logs stay PII-free.
 - DE: Eingaben in Sidebar und Wetter-&-Events-Form wurden auf validierte Auswahlfelder umgestellt (Altersband, Dauer, Ortspräferenz, Ziele, Rahmenbedingungen). Optionaler Freitext ist jetzt auf 80 Zeichen begrenzt und wird sanitisiert.
