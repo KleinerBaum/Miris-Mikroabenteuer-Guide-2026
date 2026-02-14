@@ -897,7 +897,7 @@ def main() -> None:
     st.title(_replace_family_tokens("Mikroabenteuer mit Carla", default_profile))
     top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
     with top_col_center:
-        st.image(image="20251219_155329.jpg", width=240)
+        st.image(image="ChatGPT Image 14. Feb. 2026, 20_05_20.png", width=240)
 
     criteria, lang, family_profile = _criteria_sidebar(cfg)
     adventures = _load_adventures()

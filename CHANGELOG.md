@@ -84,8 +84,8 @@
 - EN: Renamed the “All Micro-Adventures” section to “Alternative Micro-Adventures” and removed the extra overview table; adventures remain accessible via drop-down expanders (`st.expander`).
 - DE: Den gesamten im Header sichtbaren Begrüßungstext entfernt (Bild-Caption, Hero-Titel und Hero-Untertitel), sodass im oberen Seitenbereich nur noch das Bild angezeigt wird.
 - EN: Removed all visible welcome text in the header (image caption, hero title, and hero subtitle), so only the image remains in the top section.
-- DE: Das Begrüßungsbild im Hero-Bereich wird jetzt aus dem lokalen Asset `20251219_155329.jpg` via `st.image` geladen, um Streamlit-`MediaFileHandler`-Fehler durch abgelaufene Media-IDs zu vermeiden.
-- EN: The hero welcome image is now loaded from the local asset `20251219_155329.jpg` via `st.image` to avoid Streamlit `MediaFileHandler` errors caused by expired media IDs.
+- DE: Das Begrüßungsbild im Hero-Bereich wird jetzt aus dem lokalen Asset `ChatGPT Image 14. Feb. 2026, 20_05_20.png` via `st.image` geladen, um Streamlit-`MediaFileHandler`-Fehler durch abgelaufene Media-IDs zu vermeiden.
+- EN: The hero welcome image is now loaded from the local asset `ChatGPT Image 14. Feb. 2026, 20_05_20.png` via `st.image` to avoid Streamlit `MediaFileHandler` errors caused by expired media IDs.
 - DE: Headline „🌿 Mikroabenteuer mit Carla / Kleine Abenteuer. Große Erinnerungen.“ im Hero-Bereich zentriert und das Begrüßungsbild auf eine um 70% reduzierte Darstellung (30% Breite) umgestellt.
 - EN: Centered the hero headline “🌿 Mikroabenteuer mit Carla / Kleine Abenteuer. Große Erinnerungen.” and reduced the welcome image display by 70% (30% width).
 - DE: `mikroabenteuer/ui/__init__.py` ergänzt und Package-Imports auf relative Importe umgestellt, um sporadische `KeyError`-Importprobleme in Streamlit-Reloadern zu vermeiden.
