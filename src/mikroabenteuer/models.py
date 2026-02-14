@@ -198,7 +198,10 @@ class ActivitySearchCriteria(BaseModel):
         default="mixed",
         description="Preferred setting for the activity.",
     )
-    goals: List[str] = Field(default_factory=list, description="User goals.")
+    goals: List["DevelopmentDomain"] = Field(
+        default_factory=lambda: [DevelopmentDomain.language],
+        description="User goals as development domains (1-2).",
+    )
     constraints: List[str] = Field(
         default_factory=list,
         description="User constraints.",
@@ -259,10 +262,17 @@ class ActivitySearchCriteria(BaseModel):
 
     @field_validator("goals")
     @classmethod
-    def normalize_goals(cls, v: List[str]) -> List[str]:
-        return cls._normalize_text_list(
-            v, max_items=GOALS_MAX_ITEMS, field_name="goals"
-        )
+    def normalize_goals(cls, v: List["DevelopmentDomain"]) -> List["DevelopmentDomain"]:
+        cleaned: List[DevelopmentDomain] = []
+        seen: set[DevelopmentDomain] = set()
+        for domain in v:
+            if domain in seen:
+                continue
+            cleaned.append(domain)
+            seen.add(domain)
+        if len(cleaned) < 1 or len(cleaned) > 2:
+            raise ValueError("goals requires 1-2 domains")
+        return cleaned
 
     @field_validator("constraints")
     @classmethod
@@ -306,10 +316,19 @@ class ActivitySearchCriteria(BaseModel):
             "budget_eur_max": self.budget_eur_max,
             "topics": self.topics,
             "location_preference": self.location_preference,
-            "goals": self.goals,
+            "goals": [goal.value for goal in self.goals],
             "constraints": self.constraints,
             "max_suggestions": self.max_suggestions,
         }
+
+
+class DevelopmentDomain(str, Enum):
+    gross_motor = "gross_motor"
+    fine_motor = "fine_motor"
+    language = "language"
+    social_emotional = "social_emotional"
+    sensory = "sensory"
+    cognitive = "cognitive"
 
 
 class WeatherCondition(str, Enum):
@@ -354,6 +373,7 @@ class ActivityPlan(BaseModel):
     safety_notes: List[str] = Field(default_factory=list)
     parent_child_prompts: List[str] = Field(default_factory=list)
     variants: List[str] = Field(default_factory=list)
+    supports: List[str] = Field(default_factory=list)
 
 
 class WeatherSummary(BaseModel):

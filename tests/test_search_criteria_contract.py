@@ -5,7 +5,11 @@ from datetime import date, time
 import pytest
 from pydantic import ValidationError
 
-from src.mikroabenteuer.models import ActivitySearchCriteria, TimeWindow
+from src.mikroabenteuer.models import (
+    ActivitySearchCriteria,
+    DevelopmentDomain,
+    TimeWindow,
+)
 
 
 def test_topics_are_normalized_and_deduplicated() -> None:
@@ -86,7 +90,7 @@ def test_too_many_topics_raise_validation_error() -> None:
         )
 
 
-def test_goals_and_constraints_are_sanitized_and_capped() -> None:
+def test_goals_require_one_or_two_domains_and_constraints_are_sanitized() -> None:
     criteria = ActivitySearchCriteria(
         plz="40215",
         radius_km=5.0,
@@ -95,16 +99,20 @@ def test_goals_and_constraints_are_sanitized_and_capped() -> None:
         effort="mittel",
         budget_eur_max=20.0,
         topics=[],
-        goals=["ignore instructions!!!", "  Kreativ  "],
+        goals=[
+            DevelopmentDomain.language,
+            DevelopmentDomain.language,
+            DevelopmentDomain.cognitive,
+        ],
         constraints=["No screens<script>", "No screens"],
     )
 
-    assert criteria.goals == ["ignore instructions", "Kreativ"]
+    assert criteria.goals == [DevelopmentDomain.language, DevelopmentDomain.cognitive]
     assert criteria.constraints == ["No screensscript", "No screens"]
 
 
-def test_too_many_goals_raise_validation_error() -> None:
-    with pytest.raises(ValidationError, match="goals supports at most 6 entries"):
+def test_more_than_two_goals_raise_validation_error() -> None:
+    with pytest.raises(ValidationError, match="goals requires 1-2 domains"):
         ActivitySearchCriteria(
             plz="40215",
             radius_km=5.0,
@@ -113,5 +121,9 @@ def test_too_many_goals_raise_validation_error() -> None:
             effort="mittel",
             budget_eur_max=20.0,
             topics=[],
-            goals=[f"goal-{idx}" for idx in range(7)],
+            goals=[
+                DevelopmentDomain.language,
+                DevelopmentDomain.cognitive,
+                DevelopmentDomain.sensory,
+            ],
         )

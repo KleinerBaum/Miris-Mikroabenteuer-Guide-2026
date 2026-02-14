@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Ziele wurden auf feste Entwicklungs-Domänen umgestellt (`gross_motor`, `fine_motor`, `language`, `social_emotional`, `sensory`, `cognitive`). Die UI erlaubt jetzt 1–2 Ziele und jeder Tagesplan zeigt verpflichtend „What this supports / Was das fördert“ passend zu den gewählten Zielen.
+- EN: Goals were migrated to fixed development domains (`gross_motor`, `fine_motor`, `language`, `social_emotional`, `sensory`, `cognitive`). The UI now allows selecting 1–2 goals, and every daily plan now includes a required “What this supports / Was das fördert” section aligned to the selected goals.
 - DE: Offline-Bibliotheksauswahl priorisiert jetzt deterministisch die 3 besten Aktivitäten mit Filter + Scoring (Age-Fit, Dauer-Fit, Material-Präferenz aus `constraints` via `material:<name>`); jeder Vorschlag enthält `library_id` im Grund-Payload für nachvollziehbare Grounding-Herkunft.
 - EN: Offline library selection now deterministically prioritizes the top 3 activities using filters + scoring (age fit, duration fit, material preference from `constraints` via `material:<name>`); each suggestion includes `library_id` in the reason payload for grounded provenance.
 - DE: Neue kuratierte Offline-Aktivitätsbibliothek `data/activity_library.json` ergänzt (Tags für Altersbereich, Domain, Materialien, Safety-Hinweise) und in die Event-Suche integriert.

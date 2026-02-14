@@ -10,6 +10,7 @@ from src.mikroabenteuer.models import (
     ActivityRequest,
     ActivitySearchCriteria,
     AgeUnit,
+    DevelopmentDomain,
     IndoorOutdoor,
     MicroAdventure,
     TimeWindow,
@@ -88,6 +89,20 @@ def test_generate_activity_plan_returns_structured_fallback_when_llm_disabled() 
     assert plan.parent_child_prompts
 
 
+def test_language_goal_adds_language_support_and_prompt() -> None:
+    cfg = replace(load_config(), enable_llm=False, openai_api_key=None)
+    criteria = _build_criteria().model_copy(
+        update={"goals": [DevelopmentDomain.language]}
+    )
+
+    plan = generate_activity_plan(cfg, _build_micro_adventure(), criteria, weather=None)
+
+    assert any("Sprache" in item or "Language" in item for item in plan.supports)
+    assert any(
+        "Worten" in prompt or "words" in prompt for prompt in plan.parent_child_prompts
+    )
+
+
 def test_render_activity_plan_markdown_contains_required_sections() -> None:
     plan = ActivityPlan(
         title="Plan-Titel",
@@ -101,6 +116,7 @@ def test_render_activity_plan_markdown_contains_required_sections() -> None:
     markdown = render_activity_plan_markdown(plan)
 
     assert "## Plan" in markdown
+    assert "## What this supports / Was das fördert" in markdown
     assert "## Sicherheit" in markdown
     assert "## Eltern-Kind-Impulse" in markdown
     assert "## Varianten" in markdown

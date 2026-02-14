@@ -6,7 +6,7 @@ import random
 from typing import List, Optional, Tuple
 
 from .constants import THEMES
-from .models import ActivitySearchCriteria, MicroAdventure
+from .models import ActivitySearchCriteria, DevelopmentDomain, MicroAdventure
 from .weather import WeatherSummary
 
 
@@ -67,6 +67,39 @@ def filter_adventures(
     return results
 
 
+def _goal_signals(goal: DevelopmentDomain) -> set[str]:
+    signals: dict[DevelopmentDomain, set[str]] = {
+        DevelopmentDomain.gross_motor: {
+            "Grobmotorik",
+            "Bewegung",
+            "Koordination",
+            "Körpergefühl",
+        },
+        DevelopmentDomain.fine_motor: {
+            "Feinmotorik",
+            "Hand-Auge",
+            "Greifen",
+            "Sortieren",
+        },
+        DevelopmentDomain.language: {"Sprache", "Wortschatz", "Erzählen", "Hypothesen"},
+        DevelopmentDomain.social_emotional: {
+            "Empathie",
+            "Teamwork",
+            "Sozial",
+            "Respekt",
+            "Bindung",
+        },
+        DevelopmentDomain.sensory: {"Sensorik", "Achtsamkeit", "Wahrnehmung"},
+        DevelopmentDomain.cognitive: {
+            "Kategorisieren",
+            "Gedächtnis",
+            "Vergleich",
+            "Ursache/Wirkung",
+        },
+    }
+    return signals[goal]
+
+
 def score_adventure(
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
@@ -111,6 +144,14 @@ def score_adventure(
             score += 0.5
         if adventure.difficulty in {"mittel", "anspruchsvoll"}:
             score += 0.25
+
+    # goal alignment
+    benefit_signals = (
+        set(adventure.toddler_benefits) | set(adventure.tags) | set(adventure.mood_tags)
+    )
+    for goal in criteria.goals:
+        if any(signal in benefit_signals for signal in _goal_signals(goal)):
+            score += 1.0
 
     # safety preference (implicit: lower safety_level is easier with toddlers)
     if adventure.safety_level == "niedrig":

@@ -12,6 +12,7 @@ from .models import (
     ActivityRequest,
     ActivitySearchCriteria,
     AgeUnit,
+    DevelopmentDomain,
     IndoorOutdoor,
     MicroAdventure,
 )
@@ -22,6 +23,30 @@ from .weather import WeatherSummary
 
 class ActivityGenerationError(RuntimeError):
     """Raised when structured activity generation fails."""
+
+
+def _domain_label(domain: DevelopmentDomain) -> str:
+    labels: dict[DevelopmentDomain, str] = {
+        DevelopmentDomain.gross_motor: "Grobmotorik / Gross motor",
+        DevelopmentDomain.fine_motor: "Feinmotorik / Fine motor",
+        DevelopmentDomain.language: "Sprache / Language",
+        DevelopmentDomain.social_emotional: "Sozial-emotional / Social-emotional",
+        DevelopmentDomain.sensory: "Sensorik / Sensory",
+        DevelopmentDomain.cognitive: "Kognition / Cognitive",
+    }
+    return labels[domain]
+
+
+def _domain_prompt(domain: DevelopmentDomain) -> str:
+    prompts: dict[DevelopmentDomain, str] = {
+        DevelopmentDomain.gross_motor: "Welche große Bewegung macht dir gerade am meisten Spaß?",
+        DevelopmentDomain.fine_motor: "Kannst du mit deinen Fingern ein kleines Detail zeigen?",
+        DevelopmentDomain.language: "Wie würdest du das in deinen eigenen Worten beschreiben?",
+        DevelopmentDomain.social_emotional: "Wie fühlt sich dein Körper gerade an und was hilft dir?",
+        DevelopmentDomain.sensory: "Welches Geräusch, Gefühl oder Geruch nimmst du gerade wahr?",
+        DevelopmentDomain.cognitive: "Was glaubst du passiert als Nächstes und warum?",
+    }
+    return prompts[domain]
 
 
 def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
@@ -64,7 +89,7 @@ def _build_activity_request(
         duration_minutes=int(adventure.duration_minutes),
         indoor_outdoor=indoor_outdoor,
         materials=list(adventure.packing_list),
-        goals=list(adventure.toddler_benefits),
+        goals=[_domain_label(goal) for goal in criteria.goals],
         constraints=[
             f"Budget <= {criteria.budget_eur_max:.2f} EUR",
             f"Time window: {criteria.start_time.isoformat()}–{criteria.end_time.isoformat()}",
@@ -78,6 +103,7 @@ def _fallback_activity_plan(
     criteria: ActivitySearchCriteria,
     weather: Optional[WeatherSummary],
 ) -> ActivityPlan:
+    supports = [_domain_label(goal) for goal in criteria.goals]
     weather_note = "Weather unavailable"
     if weather:
         weather_note = ", ".join(weather.derived_tags) or "Weather loaded"
@@ -91,11 +117,13 @@ def _fallback_activity_plan(
         parent_child_prompts=[
             "What do you want to explore first?",
             "Can you show me your favorite tiny discovery?",
+            *[_domain_prompt(goal) for goal in criteria.goals],
         ],
         variants=list(adventure.variations)
         + [
             f"Short version for {criteria.available_minutes} minutes",
         ],
+        supports=supports,
     )
 
 
@@ -125,6 +153,7 @@ def _safe_fallback_plan(request: ActivityRequest) -> ActivityPlan:
             f"Kurzversion: nur 2 Schritte in {max(10, request.duration_minutes // 2)} Minuten",
             "Indoor-Variante: Gegenstände nur in einem Zimmer finden",
         ],
+        supports=list(request.goals),
     )
 
 
@@ -138,6 +167,7 @@ def _blocked_activity_plan() -> ActivityPlan:
         ],
         parent_child_prompts=[],
         variants=[],
+        supports=["Sicherheit / Safety"],
     )
 
 
@@ -227,6 +257,9 @@ def render_activity_plan_markdown(plan: ActivityPlan) -> str:
 ## Plan
 {chr(10).join([f"- {s}" for s in plan.steps])}
 
+## What this supports / Was das fördert
+{chr(10).join([f"- {s}" for s in plan.supports])}
+
 ## Sicherheit
 {chr(10).join([f"- {s}" for s in plan.safety_notes])}
 
@@ -313,6 +346,12 @@ def generate_activity_plan(
             )
             if parsed is not None:
                 parsed.summary = f"{parsed_summary_prefix}{parsed.summary}"
+        if parsed is not None and not parsed.supports:
+            parsed.supports = [_domain_label(goal) for goal in criteria.goals]
+            parsed.parent_child_prompts = [
+                *parsed.parent_child_prompts,
+                *[_domain_prompt(goal) for goal in criteria.goals],
+            ]
         if parsed is None:
             raise ActivityGenerationError(
                 "No structured output parsed from response (output_parsed is None)."
