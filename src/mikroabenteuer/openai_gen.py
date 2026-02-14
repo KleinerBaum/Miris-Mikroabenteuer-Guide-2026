@@ -1,7 +1,7 @@
 # src/mikroabenteuer/openai_gen.py
 from __future__ import annotations
 
-from typing import Any, Optional, cast
+from typing import Any, Literal, Optional, cast
 
 from pydantic import ValidationError
 
@@ -27,6 +27,7 @@ class ActivityGenerationError(RuntimeError):
 
 MIN_RESPONSIVE_PROMPTS = 3
 MAX_RESPONSIVE_PROMPTS = 6
+PlanMode = Literal["standard", "parent_script"]
 
 
 def _domain_label(domain: DevelopmentDomain) -> str:
@@ -218,6 +219,46 @@ def _safe_fallback_plan(request: ActivityRequest) -> ActivityPlan:
     )
 
 
+def _apply_parent_script_mode(
+    plan: ActivityPlan,
+    criteria: ActivitySearchCriteria,
+) -> ActivityPlan:
+    total_minutes = max(6, min(20, criteria.available_minutes))
+    step_minutes = max(1, total_minutes // 5)
+    final_minutes = max(1, total_minutes - (step_minutes * 4))
+    return ActivityPlan(
+        title=f"{plan.title} · Elternskript / Parent script",
+        summary=(
+            "Kurzes, kindgeführtes 4-Schritte-Skript (Describe, Imitate, Praise, Active listening). "
+            "Kaum Vorbereitung, direkt wiederholbar. "
+            "/ Short child-led 4-step script (Describe, Imitate, Praise, Active listening). "
+            "Minimal prep and easy to repeat."
+        ),
+        steps=[
+            f"{step_minutes} min – Describe: Beschreibe neutral, was dein Kind tut. / Describe what your child is doing without correcting.",
+            f"{step_minutes} min – Imitate: Mache die Bewegung oder Idee deines Kindes nach. / Copy your child's action and pace.",
+            f"{step_minutes} min – Praise: Lobe konkret ('Du hast ... ausprobiert'). / Give specific praise for effort and choices.",
+            f"{step_minutes} min – Active listening: Wiederhole die Worte deines Kindes und warte 5 Sekunden. / Reflect your child's words and pause.",
+            f"{final_minutes} min – Child-led repeat: Kind entscheidet, was wiederholt wird oder wie beendet wird. / Child chooses repeat or finish.",
+        ],
+        safety_notes=list(plan.safety_notes)
+        or [
+            "Nur sichere, alltägliche Umgebung nutzen. / Use a safe everyday environment.",
+        ],
+        parent_child_prompts=[
+            "Say: Ich sehe, du stapelst die Steine. / I see you stacking the blocks.",
+            "Say: Ich mache es wie du. / I will do it your way.",
+            "Say: Stark, wie du drangeblieben bist. / Great effort, you kept trying.",
+            "Say: Du willst noch einmal? / You want one more round?",
+        ],
+        variants=[
+            "Null-Vorbereitung: Nutze das, was schon da ist (Kissen, Becher, Blätter). / Zero-prep: use what's already there.",
+            "Wiederholbar: Dasselbe Skript 1-2x täglich in 6-20 Minuten. / Repeatable: run the same script 1-2x daily in 6-20 minutes.",
+        ],
+        supports=list(plan.supports),
+    )
+
+
 def _blocked_activity_plan() -> ActivityPlan:
     return ActivityPlan(
         title="Inhalt blockiert / Content blocked",
@@ -337,13 +378,16 @@ def generate_activity_plan(
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
     weather: Optional[WeatherSummary],
+    plan_mode: PlanMode = "standard",
 ) -> ActivityPlan:
     activity_request = _build_activity_request(adventure, criteria)
 
     if not cfg.enable_llm or not cfg.openai_api_key:
         plan = _fallback_activity_plan(adventure, criteria, weather)
         if not validate_activity_plan(plan, activity_request):
-            return _safe_fallback_plan(activity_request)
+            plan = _safe_fallback_plan(activity_request)
+        if plan_mode == "parent_script":
+            plan = _apply_parent_script_mode(plan, criteria)
         return plan
 
     try:
@@ -351,7 +395,9 @@ def generate_activity_plan(
     except Exception:
         plan = _fallback_activity_plan(adventure, criteria, weather)
         if not validate_activity_plan(plan, activity_request):
-            return _safe_fallback_plan(activity_request)
+            plan = _safe_fallback_plan(activity_request)
+        if plan_mode == "parent_script":
+            plan = _apply_parent_script_mode(plan, criteria)
         return plan
 
     client = OpenAI(api_key=cfg.openai_api_key, timeout=cfg.timeout_s)
@@ -437,13 +483,21 @@ def generate_activity_plan(
             should_retry=_is_retryable_openai_error,
         )(_call_openai)()
         if not validate_activity_plan(plan, activity_request):
-            return _safe_fallback_plan(activity_request)
+            plan = _safe_fallback_plan(activity_request)
+        if plan_mode == "parent_script":
+            plan = _apply_parent_script_mode(plan, criteria)
         return plan
     except ValidationError:
-        return _safe_fallback_plan(activity_request)
+        plan = _safe_fallback_plan(activity_request)
+        if plan_mode == "parent_script":
+            plan = _apply_parent_script_mode(plan, criteria)
+        return plan
     except Exception as exc:  # noqa: BLE001
         if _is_retryable_openai_error(exc):
-            return _safe_fallback_plan(activity_request)
+            plan = _safe_fallback_plan(activity_request)
+            if plan_mode == "parent_script":
+                plan = _apply_parent_script_mode(plan, criteria)
+            return plan
         raise ActivityGenerationError(str(exc)) from exc
 
 
@@ -453,6 +507,13 @@ def generate_daily_markdown(
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
     weather: Optional[WeatherSummary],
+    plan_mode: PlanMode = "standard",
 ) -> str:
-    plan = generate_activity_plan(cfg, adventure, criteria, weather)
+    plan = generate_activity_plan(
+        cfg,
+        adventure,
+        criteria,
+        weather,
+        plan_mode=plan_mode,
+    )
     return render_activity_plan_markdown(plan)
