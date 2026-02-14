@@ -1027,9 +1027,9 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
         mode = st.radio(
             _t(lang, "Genauigkeit", ""),
             options=["schnell", "genau"],
-            format_func=lambda m: _t(lang, "Schnell", "")
-            if m == "schnell"
-            else _t(lang, "Genau", ""),
+            format_func=lambda m: (
+                _t(lang, "Schnell", "") if m == "schnell" else _t(lang, "Genau", "")
+            ),
             horizontal=True,
         )
 

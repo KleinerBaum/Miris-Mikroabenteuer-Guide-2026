@@ -8,6 +8,8 @@
 ### Geändert / Changed
 - DE: Neue GitHub-Actions-CI unter `.github/workflows/ci.yml` ergänzt. Bei jedem Pull Request laufen jetzt automatisch `ruff format --check`, `ruff check`, `pytest -m "not integration"` sowie ein minimaler Smoke-Test `python -c "import app"`.
 - EN: Added a new GitHub Actions CI workflow at `.github/workflows/ci.yml`. On every pull request it now runs `ruff format --check`, `ruff check`, `pytest -m "not integration"`, plus a minimal smoke test `python -c "import app"` automatically.
+- DE: Neue `.pre-commit-config.yaml` ergänzt mit `ruff-format`, `ruff`, `black` und `detect-secrets`; zusätzlich wird `.streamlit/secrets.toml` jetzt per `.gitignore` ausgeschlossen, damit Secrets nicht versehentlich committed werden.
+- EN: Added a new `.pre-commit-config.yaml` with `ruff-format`, `ruff`, `black`, and `detect-secrets`; also gitignored `.streamlit/secrets.toml` to prevent accidental secret commits.
 - DE: Neue UI-Aktion „Plan melden / Report plan“ ergänzt. Nutzer:innen können jeden generierten Tagesplan mit einem Grund melden; gespeichert werden ausschließlich minimale Metadaten (`timestamp_utc`, `plan_hash`, `reason`) ohne PII in einer lokalen JSONL-Datei.
 - EN: Added a new UI action “Plan melden / Report plan”. Users can report each generated daily plan with a reason; only minimal metadata (`timestamp_utc`, `plan_hash`, `reason`) is persisted without PII in a local JSONL file.
 - DE: OpenAI-Aufrufe für Plan- und Event-Generierung sind jetzt robust gekapselt: nur 429/5xx/temporäre Fehler werden mit exponentiellem Backoff erneut versucht; bei anhaltendem API-Fehler liefert die App kuratierte sichere Fallback-Ergebnisse statt abzustürzen.
