@@ -564,6 +564,16 @@ def _criteria_sidebar(
         ),
         value=st.session_state.get("offline_mode", False),
     )
+    st.session_state["plan_mode"] = st.sidebar.selectbox(
+        _t(lang, "Plan-Modus / Plan mode", "Plan mode"),
+        options=["standard", "parent_script"],
+        format_func=lambda value: (
+            "Standard"
+            if value == "standard"
+            else "Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)"
+        ),
+        index=0 if st.session_state.get("plan_mode", "standard") == "standard" else 1,
+    )
 
     st.sidebar.divider()
     st.sidebar.subheader(_t(lang, "Familie / Family", "Familie / Family"))
@@ -638,6 +648,7 @@ def _generate_activity_plan_with_retry(
     criteria: ActivitySearchCriteria,
     weather: Optional[WeatherSummary],
     lang: Language,
+    plan_mode: Literal["standard", "parent_script"],
 ) -> ActivityPlan:
     attempts = 3
     wait_s = 1.0
@@ -646,7 +657,11 @@ def _generate_activity_plan_with_retry(
     if not _consume_request_budget(cfg, lang=lang, scope="activity-plan"):
         cfg_payload = {**cfg.__dict__, "enable_llm": False}
         return generate_activity_plan(
-            cfg.__class__(**cfg_payload), picked, criteria, weather
+            cfg.__class__(**cfg_payload),
+            picked,
+            criteria,
+            weather,
+            plan_mode=plan_mode,
         )
 
     cfg_payload = {**cfg.__dict__}
@@ -656,7 +671,13 @@ def _generate_activity_plan_with_retry(
 
     for _ in range(attempts):
         try:
-            return generate_activity_plan(cfg_runtime, picked, criteria, weather)
+            return generate_activity_plan(
+                cfg_runtime,
+                picked,
+                criteria,
+                weather,
+                plan_mode=plan_mode,
+            )
         except ActivityGenerationError as exc:
             last_err = exc
             time_module.sleep(wait_s)
@@ -673,7 +694,11 @@ def _generate_activity_plan_with_retry(
         st.caption(str(last_err))
     cfg_payload["enable_llm"] = False
     return generate_activity_plan(
-        cfg.__class__(**cfg_payload), picked, criteria, weather
+        cfg.__class__(**cfg_payload),
+        picked,
+        criteria,
+        weather,
+        plan_mode=plan_mode,
     )
 
 
@@ -1205,7 +1230,15 @@ def main() -> None:
         )
 
     activity_plan = _generate_activity_plan_with_retry(
-        cfg, picked, criteria, weather, lang
+        cfg,
+        picked,
+        criteria,
+        weather,
+        lang,
+        plan_mode=cast(
+            Literal["standard", "parent_script"],
+            st.session_state.get("plan_mode", "standard"),
+        ),
     )
     activity_plan = activity_plan.model_copy(
         update={

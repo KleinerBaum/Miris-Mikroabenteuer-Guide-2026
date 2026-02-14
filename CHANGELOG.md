@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Neuer Plan-Modus „Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)“ in der Sidebar ergänzt. Tagespläne können jetzt als kindgeführtes, zeitlich begrenztes 4-Schritte-Skript (Describe, Imitate, Praise, Active listening) mit Minimal-Vorbereitung ausgegeben werden.
+- EN: Added a new sidebar plan mode “Parent script (short, repeatable)”. Daily plans can now be rendered as a child-led, timeboxed 4-step script (Describe, Imitate, Praise, Active listening) with minimal prep.
 - DE: Ziele wurden auf feste Entwicklungs-Domänen umgestellt (`gross_motor`, `fine_motor`, `language`, `social_emotional`, `sensory`, `cognitive`). Die UI erlaubt jetzt 1–2 Ziele und jeder Tagesplan zeigt verpflichtend „What this supports / Was das fördert“ passend zu den gewählten Zielen.
 - EN: Goals were migrated to fixed development domains (`gross_motor`, `fine_motor`, `language`, `social_emotional`, `sensory`, `cognitive`). The UI now allows selecting 1–2 goals, and every daily plan now includes a required “What this supports / Was das fördert” section aligned to the selected goals.
 - DE: Offline-Bibliotheksauswahl priorisiert jetzt deterministisch die 3 besten Aktivitäten mit Filter + Scoring (Age-Fit, Dauer-Fit, Material-Präferenz aus `constraints` via `material:<name>`); jeder Vorschlag enthält `library_id` im Grund-Payload für nachvollziehbare Grounding-Herkunft.
