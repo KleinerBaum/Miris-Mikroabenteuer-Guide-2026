@@ -3,6 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from .pii_redaction import redact_pii
+
 logger = logging.getLogger(__name__)
 
 SAFE_BLOCK_MESSAGE_DE_EN = (
@@ -19,7 +21,7 @@ def moderate_text(client: Any, *, text: str, stage: str) -> bool:
 
     response = client.moderations.create(
         model="omni-moderation-latest",
-        input=text,
+        input=redact_pii(text),
     )
     result = response.results[0]
     flagged = bool(getattr(result, "flagged", False))

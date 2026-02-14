@@ -492,6 +492,13 @@ def _criteria_sidebar(
 
     st.sidebar.divider()
     st.sidebar.subheader(_t(lang, "Familie / Family", "Familie / Family"))
+    st.sidebar.caption(
+        _t(
+            lang,
+            "Bitte gib nicht den vollständigen Namen deines Kindes oder identifizierende Informationen ein.",
+            "Don't enter your child's full name or identifying info.",
+        )
+    )
     child_name = (
         st.sidebar.text_input(
             _t(lang, "Name des Kindes / Child name", "Name des Kindes / Child name"),
