@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.mikroabenteuer.config import AppConfig, load_config
+from src.mikroabenteuer.config import AppConfig
 from src.mikroabenteuer.constants import (
     Language,
     effort_label,
@@ -51,6 +51,7 @@ from src.mikroabenteuer.plan_reports import (
 )
 from src.mikroabenteuer.recommender import filter_adventures, pick_daily_adventure
 from src.mikroabenteuer.scheduler import run_daily_job_once
+from src.mikroabenteuer.settings import load_runtime_config, render_missing_config_ui
 from src.mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
 
 
@@ -1129,7 +1130,11 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
 
 def main() -> None:
-    cfg = load_config()
+    try:
+        cfg = load_runtime_config()
+    except ValidationError as error:
+        render_missing_config_ui(error)
+        return
     st.session_state["cfg_max_input_chars"] = int(cfg.max_input_chars)
     inject_custom_styles(ROOT / "Hintergrund.png")
 

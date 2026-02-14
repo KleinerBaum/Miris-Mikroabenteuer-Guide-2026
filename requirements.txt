@@ -10,3 +10,4 @@ google-auth-httplib2>=0.2.0
 google-auth-oauthlib>=1.2.1
 google-auth>=2.27
 openai>=1.0
+pydantic-settings>=2.2,<3
