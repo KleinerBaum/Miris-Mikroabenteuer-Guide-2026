@@ -6,6 +6,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Neue kuratierte Offline-Aktivitätsbibliothek `data/activity_library.json` ergänzt (Tags für Altersbereich, Domain, Materialien, Safety-Hinweise) und in die Event-Suche integriert.
+- EN: Added a curated offline activity library `data/activity_library.json` (tags for age range, domain, materials, safety notes) and integrated it into event search.
+- DE: Neue Sidebar-Option „Offline-Modus (ohne LLM) / Offline mode (no LLM)“: Bei Aktivierung werden Vorschläge deterministisch aus der lokalen Bibliothek erzeugt, ohne OpenAI-Aufruf.
+- EN: Added a sidebar option “Offline mode (no LLM)”: when enabled, suggestions are generated deterministically from the local library without OpenAI calls.
 - DE: Neue `RuntimeSettings` (Pydantic Settings) laden Konfiguration aus Environment und Streamlit-Secrets; bei `ENABLE_LLM=true` wird `OPENAI_API_KEY` jetzt als Pflichtwert validiert.
 - EN: New `RuntimeSettings` (Pydantic Settings) load configuration from environment and Streamlit secrets; with `ENABLE_LLM=true`, `OPENAI_API_KEY` is now validated as required.
 - DE: Bei fehlender Pflichtkonfiguration zeigt die Streamlit-UI eine klare zweisprachige „Missing configuration“-Meldung und beendet den Start sicher (`st.stop()`).

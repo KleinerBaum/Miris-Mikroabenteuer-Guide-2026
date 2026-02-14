@@ -1,0 +1,88 @@
+{
+  "activities": [
+    {
+      "id": "indoor-shadow-theater",
+      "title": "Schatten-Theater im Wohnzimmer / Living Room Shadow Theater",
+      "description": "Mit Taschenlampe und Papierfiguren kurze Szenen spielen.",
+      "domain_tags": ["creative", "language", "social"],
+      "age_min_years": 4,
+      "age_max_years": 10,
+      "indoor_outdoor": "indoor",
+      "duration_min": 45,
+      "materials": ["Taschenlampe", "Papier", "Stifte", "Klebeband"],
+      "safety_notes": ["Lichtquelle nicht abdecken", "Kleine Teile von Kleinkindern fernhalten"],
+      "effort": "niedrig",
+      "estimated_cost_eur": 0
+    },
+    {
+      "id": "park-nature-bingo",
+      "title": "Natur-Bingo im Park / Nature Bingo in the Park",
+      "description": "Im Park Gegenstände auf einer Bingo-Karte sammeln und benennen.",
+      "domain_tags": ["nature", "movement", "learning"],
+      "age_min_years": 3,
+      "age_max_years": 9,
+      "indoor_outdoor": "outdoor",
+      "duration_min": 60,
+      "materials": ["Bingo-Vorlage", "Stift", "Klemmbrett"],
+      "safety_notes": ["Nur auf Wegen laufen", "Sonnenschutz mitnehmen"],
+      "effort": "mittel",
+      "estimated_cost_eur": 2
+    },
+    {
+      "id": "kitchen-senses-lab",
+      "title": "Sinne-Labor in der Küche / Kitchen Senses Lab",
+      "description": "Gerüche, Formen und Texturen mit sicheren Küchenzutaten erkunden.",
+      "domain_tags": ["learning", "mindfulness", "creative"],
+      "age_min_years": 2,
+      "age_max_years": 7,
+      "indoor_outdoor": "indoor",
+      "duration_min": 30,
+      "materials": ["Schüsseln", "Haferflocken", "Reis", "Zitrone"],
+      "safety_notes": ["Allergien vorab prüfen", "Kleinteile beaufsichtigen"],
+      "effort": "niedrig",
+      "estimated_cost_eur": 4
+    },
+    {
+      "id": "mini-bike-loop",
+      "title": "Mini-Radroute / Mini Bike Loop",
+      "description": "Kurze Runde auf verkehrsarmen Wegen mit Stopps für Beobachtungen.",
+      "domain_tags": ["movement", "nature", "social"],
+      "age_min_years": 6,
+      "age_max_years": 12,
+      "indoor_outdoor": "outdoor",
+      "duration_min": 90,
+      "materials": ["Fahrrad", "Helm", "Wasserflasche"],
+      "safety_notes": ["Helm verpflichtend", "Route mit wenig Verkehr wählen"],
+      "effort": "hoch",
+      "estimated_cost_eur": 0
+    },
+    {
+      "id": "rainy-window-art",
+      "title": "Regenfenster-Kunst / Rainy Window Art",
+      "description": "Mit abwaschbaren Stiften Regenmuster am Fenster nachzeichnen.",
+      "domain_tags": ["creative", "mindfulness"],
+      "age_min_years": 3,
+      "age_max_years": 8,
+      "indoor_outdoor": "indoor",
+      "duration_min": 35,
+      "materials": ["Abwaschbare Fensterstifte", "Tuch"],
+      "safety_notes": ["Nur ungiftige Stifte verwenden", "Fensterbretter trocken halten"],
+      "effort": "niedrig",
+      "estimated_cost_eur": 5
+    },
+    {
+      "id": "market-math-hunt",
+      "title": "Markt-Mathe-Rallye / Market Math Hunt",
+      "description": "Auf dem Wochenmarkt Mengen schätzen und Preise vergleichen.",
+      "domain_tags": ["learning", "social", "language"],
+      "age_min_years": 7,
+      "age_max_years": 12,
+      "indoor_outdoor": "mixed",
+      "duration_min": 75,
+      "materials": ["Einkaufszettel", "Stift", "Kleingeld"],
+      "safety_notes": ["Kinder in Sichtweite halten", "Straßenquerung gemeinsam"],
+      "effort": "mittel",
+      "estimated_cost_eur": 12
+    }
+  ]
+}

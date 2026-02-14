@@ -30,6 +30,7 @@ from src.mikroabenteuer.constants import (
 )
 from src.mikroabenteuer.data_seed import seed_adventures
 from src.mikroabenteuer.email_templates import render_daily_email_html
+from src.mikroabenteuer.activity_library import suggest_activities_offline
 from src.mikroabenteuer.ics import build_ics_event
 from src.mikroabenteuer.models import (
     ActivitySearchCriteria,
@@ -547,6 +548,14 @@ def _criteria_sidebar(
         _t(lang, "KI-Text (OpenAI) nutzen", ""),
         value=st.session_state.get("use_ai", cfg.enable_llm),
     )
+    st.session_state["offline_mode"] = st.sidebar.toggle(
+        _t(
+            lang,
+            "Offline-Modus (ohne LLM) / Offline mode (no LLM)",
+            "Offline-Modus (ohne LLM) / Offline mode (no LLM)",
+        ),
+        value=st.session_state.get("offline_mode", False),
+    )
 
     st.sidebar.divider()
     st.sidebar.subheader(_t(lang, "Familie / Family", "Familie / Family"))
@@ -864,19 +873,41 @@ class ActivityOrchestrator:
         if st.session_state.get("use_weather", True):
             weather = _get_weather(criteria.date.isoformat(), self.cfg.timezone)
 
-        if on_status:
-            on_status("Veranstaltungen werden recherchiert …")
-        if not _consume_request_budget(self.cfg, lang="DE", scope="events-search"):
+        if st.session_state.get("offline_mode", False):
+            if on_status:
+                on_status("Offline-Bibliothek wird durchsucht …")
+            child_age_years = float(
+                st.session_state.get("profile_child_age_years", 6.0)
+            )
+            suggestions, offline_warnings = suggest_activities_offline(
+                criteria,
+                child_age_years=child_age_years,
+            )
             event_result = {
-                "suggestions": [],
+                "suggestions": suggestions,
                 "sources": [],
-                "warnings": [
-                    "Session-Limit für API-Anfragen erreicht. / Session request limit reached."
+                "warnings": offline_warnings
+                + [
+                    "Offline-Modus aktiv: Ergebnisse stammen aus data/activity_library.json. / Offline mode active: results are from data/activity_library.json."
                 ],
                 "errors": [],
             }
         else:
-            event_result = self.openai_service.search_events(criteria, weather, mode)
+            if on_status:
+                on_status("Veranstaltungen werden recherchiert …")
+            if not _consume_request_budget(self.cfg, lang="DE", scope="events-search"):
+                event_result = {
+                    "suggestions": [],
+                    "sources": [],
+                    "warnings": [
+                        "Session-Limit für API-Anfragen erreicht. / Session request limit reached."
+                    ],
+                    "errors": [],
+                }
+            else:
+                event_result = self.openai_service.search_events(
+                    criteria, weather, mode
+                )
         warnings.extend(event_result.get("warnings", []))
         warnings.extend(event_result.get("errors", []))
 
