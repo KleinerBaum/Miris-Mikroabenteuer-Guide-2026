@@ -46,7 +46,8 @@ st.set_page_config(page_title="Mikroabenteuer mit Carla", page_icon="🌿", layo
 
 
 def _t(lang: Language, de: str, en: str) -> str:
-    return de if lang == "DE" else en
+    _ = (lang, en)
+    return de
 
 
 def inject_custom_styles(background_path: Path) -> None:
@@ -146,8 +147,8 @@ def _get_weather(day_iso: str, tz: str) -> WeatherSummary:
 
 
 def get_criteria_state(cfg: AppConfig) -> ActivitySearchCriteria:
-    # Developer navigation: This is the single source of truth for business filters.
-    # Only this function initializes criteria defaults; UI adapters only read/write this object.
+    # Zentrale Quelle für die Filterlogik.
+    # Nur diese Funktion setzt Initialwerte; UI-Adapter lesen/schreiben lediglich dieses Objekt.
     if "criteria" not in st.session_state:
         default_date = date.today()
         default_start = time(hour=9, minute=0)
@@ -260,32 +261,32 @@ def _criteria_sidebar(
     criteria = get_criteria_state(cfg)
     _ensure_ui_adapter_state(prefix="sidebar", criteria=criteria)
 
-    st.sidebar.header("Suche / Search")
+    st.sidebar.header("Suche")
     lang: Language = st.sidebar.selectbox(
-        "Sprache / Language", options=["DE", "EN"], index=0, key="lang"
+        "Sprache", options=["DE"], index=0, key="lang"
     )
     st.sidebar.caption(
         _t(
             lang,
-            "Filter gelten global für Abenteuer & Events.",
-            "Filters apply globally to adventures & events.",
+            "Filter gelten global für Abenteuer und Veranstaltungen.",
+            "",
         )
     )
 
     st.sidebar.date_input(
-        _t(lang, "Datum / Date", "Date / Datum"),
+        _t(lang, "Datum", ""),
         key="sidebar_date",
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar"},
     )
     st.sidebar.time_input(
-        _t(lang, "Startzeit", "Start time"),
+        _t(lang, "Startzeit", ""),
         key="sidebar_start_time",
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar"},
     )
     st.sidebar.number_input(
-        _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
+        _t(lang, "Verfügbare Zeit (Minuten)", ""),
         min_value=15,
         max_value=360,
         step=5,
@@ -294,11 +295,11 @@ def _criteria_sidebar(
         kwargs={"prefix": "sidebar"},
     )
     st.sidebar.text_input(
-        _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
+        _t(lang, "PLZ", ""),
         help=_t(
             lang,
             "5-stellige deutsche PLZ (z. B. 40215).",
-            "5-digit German postal code (e.g. 40215).",
+            "",
         ),
         key="sidebar_plz",
         on_change=_sync_widget_change_to_criteria,
@@ -314,7 +315,7 @@ def _criteria_sidebar(
         kwargs={"prefix": "sidebar"},
     )
     st.sidebar.selectbox(
-        _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
+        _t(lang, "Aufwand", ""),
         options=["niedrig", "mittel", "hoch"],
         format_func=lambda x: effort_label(x, lang),
         key="sidebar_effort",
@@ -331,7 +332,7 @@ def _criteria_sidebar(
         kwargs={"prefix": "sidebar"},
     )
     st.sidebar.multiselect(
-        _t(lang, "Themen / Themes", "Themes / Themen"),
+        _t(lang, "Themen", ""),
         options=theme_options(lang),
         format_func=lambda x: theme_label(x, lang),
         key="sidebar_topics",
@@ -340,11 +341,11 @@ def _criteria_sidebar(
     )
 
     st.session_state["use_weather"] = st.sidebar.toggle(
-        _t(lang, "Wetter berücksichtigen", "Use weather"),
+        _t(lang, "Wetter berücksichtigen", ""),
         value=st.session_state.get("use_weather", True),
     )
     st.session_state["use_ai"] = st.sidebar.toggle(
-        _t(lang, "KI-Text (OpenAI) nutzen", "Use AI text (OpenAI)"),
+        _t(lang, "KI-Text (OpenAI) nutzen", ""),
         value=st.session_state.get("use_ai", cfg.enable_llm),
     )
 
@@ -353,7 +354,7 @@ def _criteria_sidebar(
         st.session_state["criteria"] = criteria
         return criteria, lang
     except ValidationError as exc:
-        st.sidebar.error(_t(lang, "Ungültige Eingaben:", "Invalid inputs:"))
+        st.sidebar.error(_t(lang, "Ungültige Eingaben:", ""))
         for err in exc.errors():
             loc = ".".join(str(p) for p in err.get("loc", []))
             st.sidebar.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
@@ -388,7 +389,7 @@ def _generate_markdown_with_retry(
         _t(
             lang,
             "KI-Erstellung fehlgeschlagen. Es wird eine Fallback-Version angezeigt.",
-            "AI generation failed. A fallback version is shown.",
+            "",
         )
     )
     if last_err:
@@ -422,15 +423,15 @@ def _split_daily_markdown(markdown: str) -> tuple[str, str]:
 def _render_adventure_details(a: MicroAdventure, lang: Language) -> None:
     st.markdown(f"**{a.title}**  \n{a.short}")
     cols = st.columns(4)
-    cols[0].metric(_t(lang, "Dauer", "Duration"), f"{a.duration_minutes} min")
-    cols[1].metric(_t(lang, "Distanz", "Distance"), f"{a.distance_km:.1f} km")
-    cols[2].metric(_t(lang, "Kinderwagen", "Stroller"), "✅" if a.stroller_ok else "—")
-    cols[3].metric(_t(lang, "Sicherheit", "Safety"), a.safety_level)
+    cols[0].metric(_t(lang, "Dauer", ""), f"{a.duration_minutes} min")
+    cols[1].metric(_t(lang, "Distanz", ""), f"{a.distance_km:.1f} km")
+    cols[2].metric(_t(lang, "Kinderwagen", ""), "✅" if a.stroller_ok else "—")
+    cols[3].metric(_t(lang, "Sicherheit", ""), a.safety_level)
 
-    st.markdown("### " + _t(lang, "Startpunkt", "Start point"))
+    st.markdown("### " + _t(lang, "Startpunkt", ""))
     st.write(a.start_point)
 
-    st.markdown("### " + _t(lang, "Ablauf", "Steps"))
+    st.markdown("### " + _t(lang, "Ablauf", ""))
     for step in a.route_steps:
         st.write(f"- {step}")
 
@@ -442,7 +443,7 @@ def _render_export_block(
     markdown: str,
     lang: Language,
 ) -> None:
-    st.subheader(_t(lang, "Export", "Export"))
+    st.subheader(_t(lang, "Export", ""))
     json_payload = {
         "criteria": criteria.model_dump(mode="json"),
         "weather": weather.__dict__ if weather else None,
@@ -450,13 +451,13 @@ def _render_export_block(
         "markdown": markdown,
     }
     st.download_button(
-        label=_t(lang, "JSON herunterladen", "Download JSON"),
+        label=_t(lang, "JSON herunterladen", ""),
         data=json.dumps(json_payload, ensure_ascii=False, indent=2, default=str),
         file_name=f"mikroabenteuer-{criteria.date.isoformat()}.json",
         mime="application/json",
     )
     st.download_button(
-        label=_t(lang, "Markdown herunterladen", "Download Markdown"),
+        label=_t(lang, "Markdown herunterladen", ""),
         data=markdown,
         file_name=f"mikroabenteuer-{criteria.date.isoformat()}.md",
         mime="text/markdown",
@@ -472,7 +473,7 @@ def _render_export_block(
         duration_minutes=picked.duration_minutes,
     )
     st.download_button(
-        label="ICS herunterladen / Download ICS",
+        label="ICS herunterladen",
         data=ics_bytes,
         file_name="mikroabenteuer.ics",
         mime="text/calendar",
@@ -481,17 +482,17 @@ def _render_export_block(
     email_html = render_daily_email_html(
         picked, criteria, criteria.date, markdown, weather
     )
-    with st.expander(_t(lang, "E-Mail Vorschau", "Email preview"), expanded=False):
+    with st.expander(_t(lang, "E-Mail-Vorschau", ""), expanded=False):
         st.caption(
             _t(
                 lang,
                 "So sieht die E-Mail im Postfach aus. Den HTML-Code kannst du optional unten aufklappen.",
-                "This is how the email looks in the inbox. You can optionally expand the HTML source below.",
+                "",
             )
         )
         components.html(email_html, height=680, scrolling=True)
 
-        with st.expander(_t(lang, "HTML-Code anzeigen", "Show HTML source")):
+        with st.expander(_t(lang, "HTML-Code anzeigen", "")):
             st.code(
                 email_html[:3000] + ("..." if len(email_html) > 3000 else ""),
                 language="html",
@@ -501,14 +502,10 @@ def _render_export_block(
 def _render_automation_block(
     cfg: AppConfig, criteria: ActivitySearchCriteria, lang: Language
 ) -> None:
-    with st.expander(
-        _t(lang, "Automation (optional)", "Automation (optional)"), expanded=False
-    ):
-        send_email = st.checkbox("E-Mail senden / Send email", value=False)
-        create_calendar_event = st.checkbox(
-            "Kalendereintrag erstellen / Create calendar event", value=False
-        )
-        if st.button("Daily-Job jetzt ausführen / Run daily job now"):
+    with st.expander(_t(lang, "Automatisierung (optional)", ""), expanded=False):
+        send_email = st.checkbox("E-Mail senden", value=False)
+        create_calendar_event = st.checkbox("Kalendereintrag erstellen", value=False)
+        if st.button("Daily-Job jetzt ausführen"):
             try:
                 result = run_daily_job_once(
                     cfg,
@@ -521,8 +518,8 @@ def _render_automation_block(
                 st.error(
                     _t(
                         lang,
-                        f"Automation fehlgeschlagen: {exc}",
-                        f"Automation failed: {exc}",
+                        f"Automatisierung fehlgeschlagen: {exc}",
+                        "",
                     )
                 )
 
@@ -544,7 +541,7 @@ class OpenAIActivityService:
             if weather is not None:
                 event_weather = EventWeatherSummary(
                     condition=EventWeatherCondition.unknown,
-                    summary_de_en="Wetter lokal geladen / Weather loaded locally",
+                    summary_de_en="Wetter lokal geladen",
                     temperature_min_c=weather.temperature_min_c,
                     temperature_max_c=weather.temperature_max_c,
                     precipitation_probability_pct=(
@@ -576,9 +573,7 @@ class OpenAIActivityService:
             return {
                 "suggestions": [],
                 "sources": [],
-                "warnings": [
-                    f"OpenAI-Suche aktuell nicht verfügbar / OpenAI search currently unavailable: {exc}"
-                ],
+                "warnings": [f"OpenAI-Suche aktuell nicht verfügbar: {exc}"],
                 "errors": [],
             }
 
@@ -598,19 +593,19 @@ class ActivityOrchestrator:
         warnings: list[str] = []
 
         if on_status:
-            on_status("Wetter wird geladen … / Loading weather …")
+            on_status("Wetter wird geladen …")
         weather: Optional[WeatherSummary] = None
         if st.session_state.get("use_weather", True):
             weather = _get_weather(criteria.date.isoformat(), self.cfg.timezone)
 
         if on_status:
-            on_status("Events werden recherchiert … / Researching events …")
+            on_status("Veranstaltungen werden recherchiert …")
         event_result = self.openai_service.search_events(criteria, weather, mode)
         warnings.extend(event_result.get("warnings", []))
         warnings.extend(event_result.get("errors", []))
 
         if on_status:
-            on_status("Suche abgeschlossen / Search finished")
+            on_status("Suche abgeschlossen")
 
         return {
             "weather": weather,
@@ -629,24 +624,24 @@ def _get_activity_orchestrator(
 
 
 def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
-    # Developer navigation: Form adapter follows a one-way update rule.
-    # UI interaction writes to criteria; rendering only reads criteria for first-time initialization.
+    # Formular-Adapter folgt einer Einweg-Regel.
+    # Interaktion schreibt nach criteria; Rendering liest nur für die Erstinitialisierung.
     criteria = get_criteria_state(cfg)
     _ensure_ui_adapter_state(prefix="form", criteria=criteria)
 
-    st.subheader(_t(lang, "Wetter & Events", "Weather & Events"))
+    st.subheader(_t(lang, "Wetter & Veranstaltungen", ""))
     st.caption(
         _t(
             lang,
             "Lokale Vorschläge mit Wetter-Check und Live-Quellen.",
-            "Local suggestions with weather check and live sources.",
+            "",
         )
     )
     st.caption(
         _t(
             lang,
             "Diese Filter sind global und wirken auch auf die Abenteuer-Suche.",
-            "These filters are global and also affect adventure search.",
+            "",
         )
     )
 
@@ -654,19 +649,19 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
         top_left, top_right = st.columns(2)
         with top_left:
             st.text_input(
-                _t(lang, "PLZ / Postal code", "Postal code / PLZ"),
+                _t(lang, "PLZ", ""),
                 key="form_plz",
             )
             st.date_input(
-                _t(lang, "Datum / Date", "Date / Datum"),
+                _t(lang, "Datum", ""),
                 key="form_date",
             )
             st.time_input(
-                _t(lang, "Startzeit", "Start time"),
+                _t(lang, "Startzeit", ""),
                 key="form_start_time",
             )
             st.number_input(
-                _t(lang, "Zeitbudget (Minuten)", "Time budget (minutes)"),
+                _t(lang, "Zeitbudget (Minuten)", ""),
                 min_value=15,
                 max_value=360,
                 step=5,
@@ -681,7 +676,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 key="form_radius_km",
             )
             st.selectbox(
-                _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
+                _t(lang, "Aufwand", ""),
                 options=["niedrig", "mittel", "hoch"],
                 format_func=lambda x: effort_label(x, lang),
                 key="form_effort",
@@ -694,23 +689,23 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 key="form_budget_eur_max",
             )
             st.multiselect(
-                _t(lang, "Themen / Themes", "Themes / Themen"),
+                _t(lang, "Themen", ""),
                 options=theme_options(lang),
                 format_func=lambda x: theme_label(x, lang),
                 key="form_topics",
             )
 
         mode = st.radio(
-            _t(lang, "Genauigkeit", "Accuracy"),
+            _t(lang, "Genauigkeit", ""),
             options=["schnell", "genau"],
-            format_func=lambda m: _t(lang, "Schnell", "Fast")
+            format_func=lambda m: _t(lang, "Schnell", "")
             if m == "schnell"
-            else _t(lang, "Genau", "Precise"),
+            else _t(lang, "Genau", ""),
             horizontal=True,
         )
 
         submitted = st.form_submit_button(
-            _t(lang, "Wetter und Events laden", "Load weather and events")
+            _t(lang, "Wetter und Veranstaltungen laden", "")
         )
 
     if submitted:
@@ -723,7 +718,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 _t(
                     lang,
                     "Bitte prüfe die Eingaben. Details siehe unten.",
-                    "Please check your inputs. See details below.",
+                    "",
                 )
             )
             for err in exc.errors():
@@ -742,11 +737,11 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
         status_box.info(message)
 
     payload = orchestrator.run(criteria, mode=mode, on_status=_status_update)
-    status_box.success(_t(lang, "Fertig.", "Done."))
+    status_box.success(_t(lang, "Fertig.", ""))
 
     weather = payload.get("weather")
     if weather:
-        st.markdown("#### " + _t(lang, "Wetter", "Weather"))
+        st.markdown("#### " + _t(lang, "Wetter", ""))
         st.write(
             _t(
                 lang,
@@ -757,28 +752,28 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
     warnings = payload.get("warnings", [])
     if warnings:
-        st.markdown("#### " + _t(lang, "Hinweise", "Warnings"))
+        st.markdown("#### " + _t(lang, "Hinweise", ""))
         for warning in warnings:
             st.warning(str(warning))
 
     events = payload.get("events", [])
-    st.markdown("#### " + _t(lang, "Events", "Events"))
+    st.markdown("#### " + _t(lang, "Veranstaltungen", ""))
     if not events:
         st.info(
             _t(
                 lang,
-                "Aktuell keine Event-Treffer. Bitte Radius/Themen anpassen.",
-                "No event matches right now. Please adjust radius/topics.",
+                "Aktuell keine Treffer bei Veranstaltungen. Bitte Radius/Themen anpassen.",
+                "",
             )
         )
     for event in events:
-        title = str(getattr(event, "title", _t(lang, "Vorschlag", "Suggestion")))
+        title = str(getattr(event, "title", _t(lang, "Vorschlag", "")))
         reason = str(getattr(event, "reason_de_en", ""))
         st.markdown(f"- **{title}** — {reason}")
 
     sources = payload.get("sources", [])
     if sources:
-        st.markdown("#### " + _t(lang, "Quellen", "Sources"))
+        st.markdown("#### " + _t(lang, "Quellen", ""))
         for source in sources:
             st.markdown(f"- {source}")
 
@@ -787,7 +782,7 @@ def main() -> None:
     cfg = load_config()
     inject_custom_styles(ROOT / "Hintergrund.png")
 
-    st.title("Mikroabenteuer mit Carla / Micro-adventures with Carla")
+    st.title("Mikroabenteuer mit Carla")
     top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
     with top_col_center:
         st.image(image="20251219_155329.jpg", width=240)
@@ -796,7 +791,7 @@ def main() -> None:
     adventures = _load_adventures()
 
     if criteria is None:
-        st.warning(_t(lang, "Bitte Eingaben korrigieren.", "Please fix the inputs."))
+        st.warning(_t(lang, "Bitte Eingaben korrigieren.", ""))
         st.stop()
 
     weather: Optional[WeatherSummary] = None
@@ -805,13 +800,13 @@ def main() -> None:
 
     picked, _candidates = pick_daily_adventure(adventures, criteria, weather)
 
-    st.subheader(_t(lang, "Abenteuer des Tages", "Daily adventure"))
+    st.subheader(_t(lang, "Abenteuer des Tages", ""))
     if weather:
         st.caption(
             _t(
                 lang,
                 f"Wetter-Tags: {', '.join(weather.derived_tags)}",
-                f"Weather tags: {', '.join(weather.derived_tags)}",
+                "",
             )
         )
 
@@ -820,7 +815,7 @@ def main() -> None:
     st.markdown(daily_preview_md)
     if daily_details_md:
         with st.expander(
-            _t(lang, "Details anzeigen / ausblenden", "Show / hide details"),
+            _t(lang, "Details anzeigen / ausblenden", ""),
             expanded=False,
         ):
             st.markdown(daily_details_md)
@@ -832,13 +827,13 @@ def main() -> None:
     _render_automation_block(cfg, criteria, lang)
 
     st.divider()
-    st.subheader(_t(lang, "Bibliothek", "Library"))
+    st.subheader(_t(lang, "Bibliothek", ""))
     filtered = filter_adventures(adventures, criteria)
     st.caption(
         _t(
             lang,
             f"{len(filtered)} passende Abenteuer (von {len(adventures)}).",
-            f"{len(filtered)} matching adventures (of {len(adventures)}).",
+            "",
         )
     )
     st.dataframe([a.summary_row() for a in filtered], width="stretch", hide_index=True)
@@ -854,7 +849,7 @@ def main() -> None:
             _t(
                 lang,
                 "Hinweis: Geplanter Scheduler bitte in separatem Prozess via start_scheduler_0820 nutzen.",
-                "Hint: Run scheduled jobs in a separate process via start_scheduler_0820.",
+                "",
             )
         )
 

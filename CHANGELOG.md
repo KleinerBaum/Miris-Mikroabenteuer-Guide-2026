@@ -105,6 +105,7 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- Alle sichtbaren UI-Texte in `app.py` wurden auf reine deutsche Formulierungen umgestellt; englische Doppelbeschriftungen wurden entfernt.
 - Stabilere Criteria-State-Führung in der UI: Sidebar und Wetter-&-Events-Form nutzen jetzt ein gemeinsames, einheitlich gemapptes Zustandsmodell ohne spätes Überschreiben gebundener Widget-Keys.
 - Wetter-&-Events-Recherche ist wieder lauffähig, weil der Importvertrag jetzt eindeutig auf dem `src`-Paket basiert.
 - Activity-Suche verwendet einen konsistenten Modellvertrag inkl. `max_suggestions` und stabilen LLM-Prompt-Parametern.
