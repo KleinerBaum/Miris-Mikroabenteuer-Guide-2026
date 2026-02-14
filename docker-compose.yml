@@ -9,3 +9,4 @@ services:
       - .env
     volumes:
       - ./secrets:/app/secrets
+      - ./secrets:/app/.streamlit:ro
