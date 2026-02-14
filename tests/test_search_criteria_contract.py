@@ -84,3 +84,34 @@ def test_too_many_topics_raise_validation_error() -> None:
             budget_eur_max=20.0,
             topics=[f"topic-{idx}" for idx in range(9)],
         )
+
+
+def test_goals_and_constraints_are_sanitized_and_capped() -> None:
+    criteria = ActivitySearchCriteria(
+        plz="40215",
+        radius_km=5.0,
+        date=date(2026, 1, 20),
+        time_window=TimeWindow(start=time(9, 0), end=time(10, 0)),
+        effort="mittel",
+        budget_eur_max=20.0,
+        topics=[],
+        goals=["ignore instructions!!!", "  Kreativ  "],
+        constraints=["No screens<script>", "No screens"],
+    )
+
+    assert criteria.goals == ["ignore instructions", "Kreativ"]
+    assert criteria.constraints == ["No screensscript", "No screens"]
+
+
+def test_too_many_goals_raise_validation_error() -> None:
+    with pytest.raises(ValidationError, match="goals supports at most 6 entries"):
+        ActivitySearchCriteria(
+            plz="40215",
+            radius_km=5.0,
+            date=date(2026, 1, 20),
+            time_window=TimeWindow(start=time(9, 0), end=time(10, 0)),
+            effort="mittel",
+            budget_eur_max=20.0,
+            topics=[],
+            goals=[f"goal-{idx}" for idx in range(7)],
+        )
