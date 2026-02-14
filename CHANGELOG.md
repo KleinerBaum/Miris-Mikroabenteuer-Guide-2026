@@ -6,6 +6,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Neue `RuntimeSettings` (Pydantic Settings) laden Konfiguration aus Environment und Streamlit-Secrets; bei `ENABLE_LLM=true` wird `OPENAI_API_KEY` jetzt als Pflichtwert validiert.
+- EN: New `RuntimeSettings` (Pydantic Settings) load configuration from environment and Streamlit secrets; with `ENABLE_LLM=true`, `OPENAI_API_KEY` is now validated as required.
+- DE: Bei fehlender Pflichtkonfiguration zeigt die Streamlit-UI eine klare zweisprachige „Missing configuration“-Meldung und beendet den Start sicher (`st.stop()`).
+- EN: When required configuration is missing, the Streamlit UI now shows a clear bilingual “Missing configuration” message and safely stops startup (`st.stop()`).
 - DE: Neue GitHub-Actions-CI unter `.github/workflows/ci.yml` ergänzt. Bei jedem Pull Request laufen jetzt automatisch `ruff format --check`, `ruff check`, `pytest -m "not integration"` sowie ein minimaler Smoke-Test `python -c "import app"`.
 - EN: Added a new GitHub Actions CI workflow at `.github/workflows/ci.yml`. On every pull request it now runs `ruff format --check`, `ruff check`, `pytest -m "not integration"`, plus a minimal smoke test `python -c "import app"` automatically.
 - DE: Neue `.pre-commit-config.yaml` ergänzt mit `ruff-format`, `ruff`, `black` und `detect-secrets`; zusätzlich wird `.streamlit/secrets.toml` jetzt per `.gitignore` ausgeschlossen, damit Secrets nicht versehentlich committed werden.

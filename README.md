@@ -77,6 +77,8 @@ api_key = "<dein-key>"
 
 Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` gesetzt, falls die Umgebungsvariable fehlt.
 
+Beim Start werden die Runtime-Settings jetzt über Pydantic Settings geladen und validiert. Wenn `ENABLE_LLM=true` gesetzt ist und kein API-Key vorhanden ist, zeigt die App eine klare zweisprachige Fehlermeldung (DE/EN) und stoppt sicher, statt mit einem Laufzeitfehler weiterzumachen.
+
 - Standort für Wetterabfrage per Umgebungsvariablen konfigurierbar:
 
 ```bash
