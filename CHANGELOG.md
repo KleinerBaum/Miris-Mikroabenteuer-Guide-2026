@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Neue UI-Aktion „Plan melden / Report plan“ ergänzt. Nutzer:innen können jeden generierten Tagesplan mit einem Grund melden; gespeichert werden ausschließlich minimale Metadaten (`timestamp_utc`, `plan_hash`, `reason`) ohne PII in einer lokalen JSONL-Datei.
+- EN: Added a new UI action “Plan melden / Report plan”. Users can report each generated daily plan with a reason; only minimal metadata (`timestamp_utc`, `plan_hash`, `reason`) is persisted without PII in a local JSONL file.
 - DE: OpenAI-Aufrufe für Plan- und Event-Generierung sind jetzt robust gekapselt: nur 429/5xx/temporäre Fehler werden mit exponentiellem Backoff erneut versucht; bei anhaltendem API-Fehler liefert die App kuratierte sichere Fallback-Ergebnisse statt abzustürzen.
 - EN: OpenAI calls for plan and event generation are now wrapped robustly: only 429/5xx/transient failures are retried with exponential backoff; on persistent API failure the app returns curated safe fallback results instead of crashing.
 - DE: Neue Konfigurationskonstanten `MAX_INPUT_CHARS`, `MAX_OUTPUT_TOKENS`, `TIMEOUT_S` und `MAX_REQUESTS_PER_SESSION` ergänzt und in UI + OpenAI-Backend erzwungen (Eingabekürzung, Token-Limit, Timeout-Weitergabe, Session-Anfragebudget).

@@ -119,6 +119,8 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - OpenAI-Aufrufe sind jetzt gegen temporäre API-Fehler abgesichert: exponentielles Backoff-Retry greift nur bei 429/5xx/Timeout-Indikatoren; bei endgültigem Fehlschlag werden sichere kuratierte Fallback-Antworten geliefert (kein App-Crash).
 - Im Familienprofil zeigt die Sidebar jetzt den Hinweis: „Bitte gib nicht den vollständigen Namen deines Kindes oder identifizierende Informationen ein. / Don’t enter your child's full name or identifying info.“
 - Neue strukturierte Planungsmodelle: `ActivityRequest` (Alter in Monaten/Jahren, Dauer, Indoor/Outdoor, Materialien, Ziele, Constraints) und `ActivityPlan` (Schritte, Sicherheitsnotizen, Eltern-Kind-Impulse, Varianten); die Tagesansicht rendert aus `ActivityPlan` und zeigt bei LLM-Fehlern eine freundliche Fallback-Meldung mit sicherem Plan.
+- Neue Aktion „Plan melden / Report plan“ in der Tagesansicht: Für jeden generierten Plan kann jetzt ein Report mit minimalen Metadaten gespeichert werden (UTC-Zeitstempel, Plan-Hash, Grund) – ohne Nutzer-PII.
+- Neuer Review-Expander „Gemeldete Pläne ansehen / Review reported plans“ zeigt lokal gespeicherte Meldungen aus `data/plan_reports.jsonl` (oder `PLAN_REPORTS_PATH`).
 
 ## Daily Scheduler aktivieren
 Der Scheduler wird nur gestartet, wenn die Umgebungsvariable gesetzt ist:
@@ -237,3 +239,5 @@ mypy .
 - EN: UI cleanup: The heading "Plan (kurz & klar)" was simplified to "Plan"; extra filter hints in the sidebar and the “Weather & Events” section were removed.
 - DE: Der Block "Mikroabenteuer des Tages 🌿" zeigt standardmäßig nur Titel, Abenteuername, Ort/Dauer/Distanz und Wetter; alle weiteren Inhalte sind initial eingeklappt über einen Details-Expander.
 - EN: The "Mikroabenteuer des Tages 🌿" block now shows only title, adventure name, location/duration/distance, and weather by default; all remaining content is initially collapsed behind a details expander.
+- DE: In der Tagesansicht gibt es jetzt die Aktion „Plan melden / Report plan" mit Gründen-Auswahl; gespeichert werden nur UTC-Zeitstempel, Plan-Hash und Grund in einer lokalen Report-Datei (keine Nutzer-PII).
+- EN: The daily view now includes a "Plan melden / Report plan" action with reason selection; only UTC timestamp, plan hash, and reason are stored in a local report file (no user PII).

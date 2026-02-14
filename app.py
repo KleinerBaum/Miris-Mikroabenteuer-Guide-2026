@@ -44,6 +44,11 @@ from src.mikroabenteuer.openai_gen import (
     generate_activity_plan,
     render_activity_plan_markdown,
 )
+from src.mikroabenteuer.plan_reports import (
+    REPORT_REASONS,
+    load_plan_reports,
+    save_plan_report,
+)
 from src.mikroabenteuer.recommender import filter_adventures, pick_daily_adventure
 from src.mikroabenteuer.scheduler import run_daily_job_once
 from src.mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
@@ -1195,6 +1200,34 @@ def main() -> None:
             expanded=False,
         ):
             st.markdown(daily_details_md)
+
+    st.markdown("#### " + _t(lang, "Plan melden / Report plan", ""))
+    report_reason = st.selectbox(
+        _t(lang, "Grund / Reason", ""),
+        options=REPORT_REASONS,
+        key="plan_report_reason",
+    )
+    if st.button(_t(lang, "Diesen Plan melden / Report this plan", "")):
+        report = save_plan_report(activity_plan, report_reason)
+        st.success(
+            _t(
+                lang,
+                f"Meldung gespeichert ({report.timestamp_utc}). Keine Personenangaben wurden gespeichert. / Report saved ({report.timestamp_utc}). No personal data was stored.",
+                "",
+            )
+        )
+
+    with st.expander(
+        _t(lang, "Gemeldete Pläne ansehen / Review reported plans", ""),
+        expanded=False,
+    ):
+        reports = load_plan_reports(limit=100)
+        if reports:
+            st.dataframe(reports, width="stretch", hide_index=True)
+        else:
+            st.caption(
+                _t(lang, "Noch keine Meldungen vorhanden. / No reports yet.", "")
+            )
 
     st.divider()
     render_wetter_und_events_section(cfg, lang)
