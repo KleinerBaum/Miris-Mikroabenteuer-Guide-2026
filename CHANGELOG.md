@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: In der Tagesansicht wurde die Zwischenüberschrift "Motivations‑One‑Liner" entfernt; der Motivationssatz bleibt direkt unter den Basisinfos sichtbar.
+- EN: In the daily view, the "Motivations‑One‑Liner" subheading was removed; the motivation sentence now appears directly below the basic info.
 - DE: In der Sidebar gibt es jetzt ein personalisierbares Familienprofil (Kindname, Elternname(n), Kindesalter). Die Angaben ersetzen Platzhalter wie „Carla“, „Miri/Miriam“ und „2,5“ in Abenteuertexten, Titeln und Exporten zur Laufzeit.
 - EN: The sidebar now includes a customizable family profile (child name, parent name(s), child age). These values replace placeholders like “Carla”, “Miri/Miriam”, and “2.5” in adventure texts, titles, and exports at runtime.
 - DE: `src/mikroabenteuer/config.py` aktiviert OpenAI/LLM nun standardmäßig (`ENABLE_LLM` default `true`); Abschalten bleibt per `ENABLE_LLM=0` möglich.
