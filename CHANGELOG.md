@@ -117,6 +117,8 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- DE: Eingaben und Modell-Ausgaben werden jetzt vor/nach OpenAI-Aufrufen mit `omni-moderation-latest` moderiert. Bei Flag wird der Flow deterministisch blockiert, mit sicherer DE/EN-Meldung im UI und Logging ohne PII.
+- EN: Input and model output are now moderated before/after OpenAI calls using `omni-moderation-latest`. If flagged, the flow is deterministically blocked with a safe DE/EN UI message and PII-free logging.
 - Personalisierung: Kindname, Elternname(n) und Kindesalter sind jetzt in der Sidebar einstellbar und werden konsistent in generierten Inhalten/Exporten verwendet.
 - Alle sichtbaren UI-Texte in `app.py` wurden auf reine deutsche Formulierungen umgestellt; englische Doppelbeschriftungen wurden entfernt.
 - Stabilere Criteria-State-Führung in der UI: Sidebar und Wetter-&-Events-Form nutzen jetzt ein gemeinsames, einheitlich gemapptes Zustandsmodell ohne spätes Überschreiben gebundener Widget-Keys.

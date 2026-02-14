@@ -77,6 +77,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 
 ## Features
 - UI-Texte sind jetzt vollständig auf Deutsch gehalten (keine englischen Textpassagen mehr in der Oberfläche).
+- Vor jedem LLM-Aufruf und vor der Ausgabe wird jetzt die OpenAI-Moderation (`omni-moderation-latest`) ausgeführt; bei `flagged=true` blockt die App deterministisch mit einer sicheren DE/EN-Meldung und protokolliert nur metadatenbasierte Events ohne PII.
 - OpenAI-Structured-Output-Schema ist jetzt Strict-Mode-kompatibel: URL-Felder in den Activity-Ergebnissen werden als validierte Strings modelliert (ohne `format: "uri"`), um API-Schemafehler zu vermeiden.
 - Activity-Search-Datenvertrag erweitert: `ActivitySearchCriteria` verwendet jetzt stabile Contract-Felder `plz`, `radius_km`, `date`, `time_window`, `effort`, `budget_eur_max`, `topics` sowie strikt validierte Vorschlags- und Planmodelle.
 - Konsolidierter Such-Contract mit einer Quelle der Wahrheit in `src/mikroabenteuer/models.py`; App, Recommender, Export und Scheduler verwenden konsistente Feldnamen inkl. `topics`-Normalisierung und `time_window`-Ableitung.

@@ -6,6 +6,7 @@ from typing import Any, Optional, cast
 from pydantic import ValidationError
 
 from .config import AppConfig
+from .moderation import SAFE_BLOCK_MESSAGE_DE_EN, moderate_text
 from .models import (
     ActivityPlan,
     ActivityRequest,
@@ -98,6 +99,19 @@ def _safe_fallback_plan(request: ActivityRequest) -> ActivityPlan:
             f"Kurzversion: nur 2 Schritte in {max(10, request.duration_minutes // 2)} Minuten",
             "Indoor-Variante: Gegenstände nur in einem Zimmer finden",
         ],
+    )
+
+
+def _blocked_activity_plan() -> ActivityPlan:
+    return ActivityPlan(
+        title="Inhalt blockiert / Content blocked",
+        summary=SAFE_BLOCK_MESSAGE_DE_EN,
+        steps=[],
+        safety_notes=[
+            "Bitte Anfrage anpassen und erneut versuchen. / Please revise the prompt and retry."
+        ],
+        parent_child_prompts=[],
+        variants=[],
     )
 
 
@@ -232,6 +246,14 @@ def generate_activity_plan(
     tools = [{"type": "web_search"}] if cfg.enable_web_search else []
 
     def _call_openai() -> ActivityPlan:
+        user_content = (
+            "Build an ActivityPlan from this ActivityRequest and context. "
+            "Steps must be concrete and safe."
+            f"\n\nContext:\n{payload}"
+        )
+        if moderate_text(client, text=user_content, stage="input"):
+            return _blocked_activity_plan()
+
         resp = client.responses.parse(
             model=cfg.openai_model,
             input=[
@@ -244,11 +266,7 @@ def generate_activity_plan(
                 },
                 {
                     "role": "user",
-                    "content": (
-                        "Build an ActivityPlan from this ActivityRequest and context. "
-                        "Steps must be concrete and safe."
-                        f"\n\nContext:\n{payload}"
-                    ),
+                    "content": user_content,
                 },
             ],
             tools=cast(Any, tools),
@@ -259,6 +277,12 @@ def generate_activity_plan(
             raise ActivityGenerationError(
                 "No structured output parsed from response (output_parsed is None)."
             )
+        if moderate_text(
+            client,
+            text=parsed.model_dump_json(indent=2),
+            stage="output",
+        ):
+            return _blocked_activity_plan()
         return parsed
 
     try:
