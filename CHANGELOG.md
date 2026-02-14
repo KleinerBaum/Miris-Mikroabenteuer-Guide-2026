@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: In der Sidebar gibt es jetzt ein personalisierbares Familienprofil (Kindname, Elternname(n), Kindesalter). Die Angaben ersetzen Platzhalter wie „Carla“, „Miri/Miriam“ und „2,5“ in Abenteuertexten, Titeln und Exporten zur Laufzeit.
+- EN: The sidebar now includes a customizable family profile (child name, parent name(s), child age). These values replace placeholders like “Carla”, “Miri/Miriam”, and “2.5” in adventure texts, titles, and exports at runtime.
 - DE: `src/mikroabenteuer/config.py` aktiviert OpenAI/LLM nun standardmäßig (`ENABLE_LLM` default `true`); Abschalten bleibt per `ENABLE_LLM=0` möglich.
 - EN: `src/mikroabenteuer/config.py` now enables OpenAI/LLM by default (`ENABLE_LLM` default `true`); disabling remains possible via `ENABLE_LLM=0`.
 - DE: `app.py` verwendet nun ein einheitliches Mapping zwischen `ActivitySearchCriteria` und UI-Feldern; Sidebar und Formular arbeiten als getrennte UI-Adapter auf einem einzigen fachlichen Zustand (`criteria`) ohne direkte Cross-Writes zwischen `sidebar_*` und `form_*`.
@@ -105,6 +107,7 @@
 - README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
 
 ### Release Notes
+- Personalisierung: Kindname, Elternname(n) und Kindesalter sind jetzt in der Sidebar einstellbar und werden konsistent in generierten Inhalten/Exporten verwendet.
 - Alle sichtbaren UI-Texte in `app.py` wurden auf reine deutsche Formulierungen umgestellt; englische Doppelbeschriftungen wurden entfernt.
 - Stabilere Criteria-State-Führung in der UI: Sidebar und Wetter-&-Events-Form nutzen jetzt ein gemeinsames, einheitlich gemapptes Zustandsmodell ohne spätes Überschreiben gebundener Widget-Keys.
 - Wetter-&-Events-Recherche ist wieder lauffähig, weil der Importvertrag jetzt eindeutig auf dem `src`-Paket basiert.

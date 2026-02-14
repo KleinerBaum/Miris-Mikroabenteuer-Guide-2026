@@ -42,7 +42,70 @@ from src.mikroabenteuer.scheduler import run_daily_job_once
 from src.mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
 
 
-st.set_page_config(page_title="Mikroabenteuer mit Carla", page_icon="🌿", layout="wide")
+st.set_page_config(page_title="Mikroabenteuer", page_icon="🌿", layout="wide")
+
+
+@dataclass(frozen=True)
+class FamilyProfile:
+    child_name: str
+    parent_names: str
+    child_age_years: float
+
+
+def _replace_family_tokens(text: str, profile: FamilyProfile) -> str:
+    sanitized = text.replace("Carla", profile.child_name)
+    sanitized = sanitized.replace("Miriam", profile.parent_names)
+    sanitized = sanitized.replace("Miri", profile.parent_names)
+    return sanitized.replace("2,5", f"{profile.child_age_years:.1f}".replace(".", ","))
+
+
+def _profiled_adventure(
+    adventure: MicroAdventure, profile: FamilyProfile
+) -> MicroAdventure:
+    return MicroAdventure(
+        slug=adventure.slug,
+        title=_replace_family_tokens(adventure.title, profile),
+        area=adventure.area,
+        short=_replace_family_tokens(adventure.short, profile),
+        duration_minutes=adventure.duration_minutes,
+        distance_km=adventure.distance_km,
+        best_time=adventure.best_time,
+        stroller_ok=adventure.stroller_ok,
+        start_point=_replace_family_tokens(adventure.start_point, profile),
+        route_steps=[
+            _replace_family_tokens(step, profile) for step in adventure.route_steps
+        ],
+        preparation=[
+            _replace_family_tokens(item, profile) for item in adventure.preparation
+        ],
+        packing_list=[
+            _replace_family_tokens(item, profile) for item in adventure.packing_list
+        ],
+        execution_tips=[
+            _replace_family_tokens(item, profile) for item in adventure.execution_tips
+        ],
+        variations=[
+            _replace_family_tokens(item, profile) for item in adventure.variations
+        ],
+        toddler_benefits=[
+            _replace_family_tokens(item, profile) for item in adventure.toddler_benefits
+        ],
+        carla_tip=_replace_family_tokens(adventure.carla_tip, profile),
+        risks=[_replace_family_tokens(item, profile) for item in adventure.risks],
+        mitigations=[
+            _replace_family_tokens(item, profile) for item in adventure.mitigations
+        ],
+        tags=list(adventure.tags),
+        accessibility=list(adventure.accessibility),
+        season_tags=list(adventure.season_tags),
+        weather_tags=list(adventure.weather_tags),
+        energy_level=adventure.energy_level,
+        difficulty=adventure.difficulty,
+        age_min=adventure.age_min,
+        age_max=adventure.age_max,
+        mood_tags=list(adventure.mood_tags),
+        safety_level=adventure.safety_level,
+    )
 
 
 def _t(lang: Language, de: str, en: str) -> str:
@@ -255,7 +318,7 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
 
 def _criteria_sidebar(
     cfg: AppConfig,
-) -> tuple[Optional[ActivitySearchCriteria], Language]:
+) -> tuple[Optional[ActivitySearchCriteria], Language, FamilyProfile]:
     # Developer navigation: Sidebar is a UI adapter.
     # It initializes adapter keys once from criteria and writes changes back to criteria.
     criteria = get_criteria_state(cfg)
@@ -349,16 +412,60 @@ def _criteria_sidebar(
         value=st.session_state.get("use_ai", cfg.enable_llm),
     )
 
+    st.sidebar.divider()
+    st.sidebar.subheader(_t(lang, "Familie / Family", "Familie / Family"))
+    child_name = (
+        st.sidebar.text_input(
+            _t(lang, "Name des Kindes / Child name", "Name des Kindes / Child name"),
+            value=st.session_state.get("profile_child_name", "Carla"),
+            key="profile_child_name",
+        ).strip()
+        or "Carla"
+    )
+    parent_names = (
+        st.sidebar.text_input(
+            _t(
+                lang,
+                "Name der Eltern / Parent name(s)",
+                "Name der Eltern / Parent name(s)",
+            ),
+            value=st.session_state.get("profile_parent_names", "Miri"),
+            key="profile_parent_names",
+        ).strip()
+        or "Miri"
+    )
+    child_age_years = st.sidebar.number_input(
+        _t(
+            lang,
+            "Alter des Kindes (Jahre) / Child age (years)",
+            "Alter des Kindes (Jahre) / Child age (years)",
+        ),
+        min_value=0.5,
+        max_value=12.0,
+        step=0.5,
+        value=float(st.session_state.get("profile_child_age_years", 2.5)),
+        key="profile_child_age_years",
+    )
+    family_profile = FamilyProfile(
+        child_name=child_name,
+        parent_names=parent_names,
+        child_age_years=float(child_age_years),
+    )
+
     try:
         criteria = _build_criteria_from_widget_state(prefix="sidebar")
         st.session_state["criteria"] = criteria
-        return criteria, lang
+        return criteria, lang, family_profile
     except ValidationError as exc:
         st.sidebar.error(_t(lang, "Ungültige Eingaben:", ""))
         for err in exc.errors():
             loc = ".".join(str(p) for p in err.get("loc", []))
             st.sidebar.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
-        return None, lang
+        return (
+            None,
+            lang,
+            FamilyProfile(child_name="Carla", parent_names="Miri", child_age_years=2.5),
+        )
 
 
 def _generate_markdown_with_retry(
@@ -782,12 +889,17 @@ def main() -> None:
     cfg = load_config()
     inject_custom_styles(ROOT / "Hintergrund.png")
 
-    st.title("Mikroabenteuer mit Carla")
+    default_profile = FamilyProfile(
+        child_name=str(st.session_state.get("profile_child_name", "Carla")),
+        parent_names=str(st.session_state.get("profile_parent_names", "Miri")),
+        child_age_years=float(st.session_state.get("profile_child_age_years", 2.5)),
+    )
+    st.title(_replace_family_tokens("Mikroabenteuer mit Carla", default_profile))
     top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
     with top_col_center:
         st.image(image="20251219_155329.jpg", width=240)
 
-    criteria, lang = _criteria_sidebar(cfg)
+    criteria, lang, family_profile = _criteria_sidebar(cfg)
     adventures = _load_adventures()
 
     if criteria is None:
@@ -799,6 +911,7 @@ def main() -> None:
         weather = _get_weather(criteria.date.isoformat(), cfg.timezone)
 
     picked, _candidates = pick_daily_adventure(adventures, criteria, weather)
+    picked = _profiled_adventure(picked, family_profile)
 
     st.subheader(_t(lang, "Abenteuer des Tages", ""))
     if weather:
@@ -811,6 +924,7 @@ def main() -> None:
         )
 
     daily_md = _generate_markdown_with_retry(cfg, picked, criteria, weather, lang)
+    daily_md = _replace_family_tokens(daily_md, family_profile)
     daily_preview_md, daily_details_md = _split_daily_markdown(daily_md)
     st.markdown(daily_preview_md)
     if daily_details_md:
@@ -836,13 +950,19 @@ def main() -> None:
             "",
         )
     )
-    st.dataframe([a.summary_row() for a in filtered], width="stretch", hide_index=True)
+    st.dataframe(
+        [_profiled_adventure(a, family_profile).summary_row() for a in filtered],
+        width="stretch",
+        hide_index=True,
+    )
 
     for a in filtered:
+        profiled_adventure = _profiled_adventure(a, family_profile)
         with st.expander(
-            f"{a.title} · {a.area} · {a.duration_minutes} min", expanded=False
+            f"{profiled_adventure.title} · {profiled_adventure.area} · {profiled_adventure.duration_minutes} min",
+            expanded=False,
         ):
-            _render_adventure_details(a, lang)
+            _render_adventure_details(profiled_adventure, lang)
 
     if os.getenv("ENABLE_DAILY_SCHEDULER", "0") == "1":
         st.info(
