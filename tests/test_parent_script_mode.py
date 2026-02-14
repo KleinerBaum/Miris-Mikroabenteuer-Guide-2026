@@ -62,3 +62,20 @@ def test_parent_script_mode_is_timeboxed_and_child_led() -> None:
     assert "Active listening" in joined
     assert any("Child-led" in step for step in plan.steps)
     assert any("min" in step for step in plan.steps)
+
+
+def test_parent_script_mode_keeps_plan_b_variants() -> None:
+    cfg = replace(load_config(), enable_llm=False, openai_api_key=None)
+
+    plan = generate_activity_plan(
+        cfg,
+        _adventure(),
+        _criteria(),
+        weather=None,
+        plan_mode="parent_script",
+    )
+
+    variants_text = "\n".join(plan.variants).casefold()
+    assert len(plan.variants) >= 2
+    assert "lower energy" in variants_text
+    assert "higher energy" in variants_text

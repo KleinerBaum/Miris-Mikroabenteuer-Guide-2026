@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Tagespläne ergänzen jetzt automatisch „Plan B“-Varianten je Aktivität (lower energy, higher energy, indoor swap, no materials), sodass pro Plan sofort alternative Durchführungswege verfügbar sind.
+- EN: Daily plans now automatically append “Plan B” variants per activity (lower energy, higher energy, indoor swap, no materials), so each plan immediately includes alternative execution paths.
 - DE: Docker-Compose mounted den lokalen `secrets/`-Ordner zusätzlich nach `/app/.streamlit`, damit `secrets/secrets.toml` als Streamlit-Secret-Quelle erkannt wird und der OpenAI-Key bei `ENABLE_LLM=true` wieder wie erwartet geladen wird (Konfig-Only Rollback, kein Git-Revert nötig).
 - EN: Docker Compose now mounts the local `secrets/` folder additionally to `/app/.streamlit`, so `secrets/secrets.toml` is recognized as a Streamlit secret source and the OpenAI key is loaded again as expected when `ENABLE_LLM=true` (config-only rollback, no git revert required).
 - DE: Neuer Plan-Modus „Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)“ in der Sidebar ergänzt. Tagespläne können jetzt als kindgeführtes, zeitlich begrenztes 4-Schritte-Skript (Describe, Imitate, Praise, Active listening) mit Minimal-Vorbereitung ausgegeben werden.

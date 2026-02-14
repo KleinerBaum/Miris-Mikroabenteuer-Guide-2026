@@ -221,3 +221,21 @@ def test_generate_activity_plan_returns_safe_fallback_when_fallback_is_unsafe() 
 
     assert "Safe fallback plan" in plan.title
     assert all("Perlen" not in step for step in plan.steps)
+
+
+def test_generate_activity_plan_includes_plan_b_variants() -> None:
+    cfg = replace(load_config(), enable_llm=False, openai_api_key=None)
+
+    plan = generate_activity_plan(
+        cfg,
+        _build_micro_adventure(),
+        _build_criteria(),
+        weather=None,
+    )
+
+    variants_text = "\n".join(plan.variants).casefold()
+    assert len(plan.variants) >= 2
+    assert "lower energy" in variants_text
+    assert "higher energy" in variants_text
+    assert "indoor swap" in variants_text
+    assert "no materials" in variants_text
