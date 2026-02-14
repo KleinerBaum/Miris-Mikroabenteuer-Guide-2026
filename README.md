@@ -110,6 +110,8 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Paketstruktur final vereinheitlicht: `src` ist jetzt explizit als Top-Level-Paket markiert (`src/__init__.py`), damit `src.mikroabenteuer.*` der eindeutige, kanonische Importpfad bleibt.
 - Neuer Strukturtest stellt sicher, dass alle `from .xyz import ...`-Referenzen in `src/mikroabenteuer/` auf tatsächlich vorhandene Module zeigen und keine Legacy-Root-Imports (`mikroabenteuer.*`) mehr in diesem Paket verwendet werden.
 
+- Sidebar enthält jetzt ein Familienprofil mit Feldern für **Name des Kindes / Child name**, **Name der Eltern / Parent name(s)** und **Alter des Kindes (Jahre) / Child age (years)**; diese Werte personalisieren Titel, Abenteuertexte und Exporte zur Laufzeit.
+
 ## Daily Scheduler aktivieren
 Der Scheduler wird nur gestartet, wenn die Umgebungsvariable gesetzt ist:
 
