@@ -92,6 +92,41 @@ def _select_model(mode: Literal["schnell", "genau"]) -> str:
     return "gpt-4o-mini" if mode == "schnell" else "o3-mini"
 
 
+def _is_retryable_openai_error(exc: Exception) -> bool:
+    status_code = getattr(exc, "status_code", None)
+    if status_code in {429, 500, 502, 503, 504}:
+        return True
+    if status_code is not None:
+        return False
+
+    lower_message = str(exc).lower()
+    transient_markers = (
+        "timeout",
+        "timed out",
+        "temporar",
+        "rate limit",
+        "too many requests",
+        "service unavailable",
+    )
+    return any(marker in lower_message for marker in transient_markers)
+
+
+def _template_fallback_result(
+    weather: WeatherSummary | None,
+) -> ActivitySuggestionResult:
+    return ActivitySuggestionResult(
+        weather=weather,
+        suggestions=[],
+        sources=[],
+        warnings_de_en=[
+            "Die Online-Suche war vorübergehend nicht verfügbar. / Online search was temporarily unavailable."
+        ],
+        errors_de_en=[
+            "Wir zeigen aktuell sichere Offline-Vorlagen statt Live-Ergebnissen. / Showing safe curated templates instead of live results."
+        ],
+    )
+
+
 def suggest_activities(
     criteria: ActivitySearchCriteria,
     mode: Literal["schnell", "genau"],
@@ -115,24 +150,15 @@ def suggest_activities(
     configure_openai_api_key()
     api_key = resolve_openai_api_key()
     if not api_key:
-        raise RuntimeError(
-            "OPENAI_API_KEY fehlt / missing. "
-            "Bitte über configure_openai_api_key/resolve_openai_api_key konfigurieren."
-        )
+        return _template_fallback_result(weather)
 
     model = _select_model(mode)
 
     # OpenAI SDK import is local to keep module import cheap in Streamlit
     try:
         from openai import OpenAI  # type: ignore
-    except ImportError as exc:
-        raise RuntimeError(
-            "OpenAI Python-SDK fehlt / missing. "
-            "Bitte installiere die Abhängigkeiten mit `pip install -r requirements.txt` "
-            "im aktiven Python-Environment. "
-            "Please install dependencies with `pip install -r requirements.txt` "
-            "in the active Python environment."
-        ) from exc
+    except ImportError:
+        return _template_fallback_result(weather)
 
     client = OpenAI(
         api_key=api_key,
@@ -143,7 +169,7 @@ def suggest_activities(
 
     tools: list[dict] = [{"type": "web_search"}]
 
-    # If we have geo context, pass it to web_search for better local results :contentReference[oaicite:5]{index=5}
+    # If we have geo context, pass it to web_search for better local results.
     if (
         weather
         and weather.country_code
@@ -179,7 +205,6 @@ def suggest_activities(
                 errors_de_en=[SAFE_BLOCK_MESSAGE_DE_EN],
             )
 
-        # responses.parse enforces schema via structured outputs :contentReference[oaicite:6]{index=6}
         resp = client.responses.parse(
             model=model,
             max_output_tokens=max_output_tokens,
@@ -187,13 +212,9 @@ def suggest_activities(
                 {"role": "system", "content": sys_msg},
                 {"role": "user", "content": user_msg},
             ],
-            tools=cast(
-                Any, tools
-            ),  # enables web search :contentReference[oaicite:7]{index=7}
+            tools=cast(Any, tools),
             tool_choice="auto",
-            include=[
-                "web_search_call.action.sources"
-            ],  # include sources metadata :contentReference[oaicite:8]{index=8}
+            include=["web_search_call.action.sources"],
             text_format=ActivitySuggestionResult,
         )
 
@@ -221,9 +242,22 @@ def suggest_activities(
         return parsed
 
     try:
-        result = retry_with_backoff(max_attempts=3, base_delay=0.5)(_call_openai)()
-    except ValidationError as ve:
-        # In case your retry_with_backoff does not retry validation errors, surface clearly.
-        raise RuntimeError(f"Structured output validation failed: {ve}") from ve
-
-    return result
+        return retry_with_backoff(
+            max_attempts=3,
+            base_delay=0.5,
+            should_retry=_is_retryable_openai_error,
+        )(_call_openai)()
+    except ValidationError:
+        return _template_fallback_result(weather)
+    except Exception as exc:  # noqa: BLE001
+        if _is_retryable_openai_error(exc):
+            return _template_fallback_result(weather)
+        return ActivitySuggestionResult(
+            weather=weather,
+            suggestions=[],
+            sources=[],
+            warnings_de_en=[],
+            errors_de_en=[
+                "Die Eventsuche ist aktuell nicht verfügbar. / Event search is currently unavailable."
+            ],
+        )

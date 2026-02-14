@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: OpenAI-Aufrufe für Plan- und Event-Generierung sind jetzt robust gekapselt: nur 429/5xx/temporäre Fehler werden mit exponentiellem Backoff erneut versucht; bei anhaltendem API-Fehler liefert die App kuratierte sichere Fallback-Ergebnisse statt abzustürzen.
+- EN: OpenAI calls for plan and event generation are now wrapped robustly: only 429/5xx/transient failures are retried with exponential backoff; on persistent API failure the app returns curated safe fallback results instead of crashing.
 - DE: Neue Konfigurationskonstanten `MAX_INPUT_CHARS`, `MAX_OUTPUT_TOKENS`, `TIMEOUT_S` und `MAX_REQUESTS_PER_SESSION` ergänzt und in UI + OpenAI-Backend erzwungen (Eingabekürzung, Token-Limit, Timeout-Weitergabe, Session-Anfragebudget).
 - EN: Added new configuration constants `MAX_INPUT_CHARS`, `MAX_OUTPUT_TOKENS`, `TIMEOUT_S`, and `MAX_REQUESTS_PER_SESSION` and enforced them in both UI and OpenAI backend (input truncation, token cap, timeout propagation, session request budget).
 - DE: Neue Utility `redact_pii(text)` ergänzt und auf alle ausgehenden OpenAI-Texte angewendet (Moderation + Responses in Plan- und Event-Generierung); E-Mail, Telefon, adressähnliche Daten und Namensmuster werden vor dem Senden maskiert, Logs bleiben PII-frei.

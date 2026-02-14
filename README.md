@@ -116,6 +116,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 
 - Sidebar enthält jetzt ein Familienprofil mit Feldern für **Name des Kindes / Child name**, **Name der Eltern / Parent name(s)** und **Alter des Kindes (Jahre) / Child age (years)**; diese Werte personalisieren Titel, Abenteuertexte und Exporte zur Laufzeit.
 - Neue PII-Redaction vor allen OpenAI-Requests: Namen, E-Mail-Adressen, Telefonnummern und adressähnliche Angaben werden vor Moderation/Responses-Aufrufen automatisch maskiert (`redact_pii`), damit keine Roh-PII an LLM-Endpunkte oder Logs gelangt.
+- OpenAI-Aufrufe sind jetzt gegen temporäre API-Fehler abgesichert: exponentielles Backoff-Retry greift nur bei 429/5xx/Timeout-Indikatoren; bei endgültigem Fehlschlag werden sichere kuratierte Fallback-Antworten geliefert (kein App-Crash).
 - Im Familienprofil zeigt die Sidebar jetzt den Hinweis: „Bitte gib nicht den vollständigen Namen deines Kindes oder identifizierende Informationen ein. / Don’t enter your child's full name or identifying info.“
 - Neue strukturierte Planungsmodelle: `ActivityRequest` (Alter in Monaten/Jahren, Dauer, Indoor/Outdoor, Materialien, Ziele, Constraints) und `ActivityPlan` (Schritte, Sicherheitsnotizen, Eltern-Kind-Impulse, Varianten); die Tagesansicht rendert aus `ActivityPlan` und zeigt bei LLM-Fehlern eine freundliche Fallback-Meldung mit sicherem Plan.
 
