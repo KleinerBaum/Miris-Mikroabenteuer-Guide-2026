@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Neue Utility `redact_pii(text)` ergänzt und auf alle ausgehenden OpenAI-Texte angewendet (Moderation + Responses in Plan- und Event-Generierung); E-Mail, Telefon, adressähnliche Daten und Namensmuster werden vor dem Senden maskiert, Logs bleiben PII-frei.
+- EN: Added a new `redact_pii(text)` utility and applied it to all outbound OpenAI text (moderation + responses in plan and event generation); email, phone, address-like data, and name patterns are masked before sending, and logs stay PII-free.
 - DE: Eingaben in Sidebar und Wetter-&-Events-Form wurden auf validierte Auswahlfelder umgestellt (Altersband, Dauer, Ortspräferenz, Ziele, Rahmenbedingungen). Optionaler Freitext ist jetzt auf 80 Zeichen begrenzt und wird sanitisiert.
 - EN: Inputs in the sidebar and weather/events form now use validated selection controls (age band, duration, location preference, goals, constraints). Optional free text is now capped at 80 characters and sanitized.
 - DE: Entfernte UI-Texte: Die Überschrift "Plan (kurz & klar)" heißt jetzt "Plan"; die Hinweise "Lokale Vorschläge mit Wetter-Check und Live-Quellen.", "Diese Filter sind global und wirken auch auf die Abenteuer-Suche." sowie "Filter gelten global für Abenteuer und Veranstaltungen." wurden entfernt.

@@ -15,6 +15,7 @@ from .models import (
     IndoorOutdoor,
     MicroAdventure,
 )
+from .pii_redaction import redact_pii
 from .retry import retry_with_backoff
 from .weather import WeatherSummary
 
@@ -246,10 +247,12 @@ def generate_activity_plan(
     tools = [{"type": "web_search"}] if cfg.enable_web_search else []
 
     def _call_openai() -> ActivityPlan:
-        user_content = (
-            "Build an ActivityPlan from this ActivityRequest and context. "
-            "Steps must be concrete and safe."
-            f"\n\nContext:\n{payload}"
+        user_content = redact_pii(
+            (
+                "Build an ActivityPlan from this ActivityRequest and context. "
+                "Steps must be concrete and safe."
+                f"\n\nContext:\n{payload}"
+            )
         )
         if moderate_text(client, text=user_content, stage="input"):
             return _blocked_activity_plan()
@@ -259,7 +262,7 @@ def generate_activity_plan(
             input=[
                 {
                     "role": "developer",
-                    "content": (
+                    "content": redact_pii(
                         "Create a practical bilingual-ready toddler activity plan. "
                         "Always return valid structured output."
                     ),

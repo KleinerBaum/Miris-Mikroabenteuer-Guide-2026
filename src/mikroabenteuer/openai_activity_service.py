@@ -18,6 +18,7 @@ from .openai_settings import (
     configure_openai_api_key,
     resolve_openai_api_key,
 )
+from .pii_redaction import redact_pii
 from .retry import retry_with_backoff
 
 
@@ -56,7 +57,8 @@ def _build_user_prompt(
         else "Suchstrategie / Search strategy: neutral\n"
     )
 
-    return f"""
+    return redact_pii(
+        f"""
 Finde passende Mikroabenteuer und Veranstaltungen.
 
 Kriterien / Criteria:
@@ -76,6 +78,7 @@ Output-Anforderungen:
 - Für jeden Vorschlag: kurzer Grund (DE/EN in einem String), mindestens 1 Quelle-URL (http/https).
 - Wenn du keine Events findest, gib zumindest activity_idea Vorschläge (ohne harte Zeiten) mit Quellen, die die Idee stützen.
 """.strip()
+    )
 
 
 def _select_model(mode: Literal["schnell", "genau"]) -> str:
@@ -151,7 +154,7 @@ def suggest_activities(
             }
         ]
 
-    sys_msg = _build_system_instructions()
+    sys_msg = redact_pii(_build_system_instructions())
     user_msg = _build_user_prompt(criteria, weather, strategy)
 
     def _call_openai() -> ActivitySuggestionResult:
