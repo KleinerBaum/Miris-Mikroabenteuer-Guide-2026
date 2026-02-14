@@ -90,6 +90,7 @@ Wenn `WEATHER_LAT`/`WEATHER_LON` nicht gesetzt sind, nutzt die App automatisch V
 Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`, `6.7735`) gesetzt werden.
 
 ## Features
+- Neuer Offline-Modus (Sidebar-Toggle) für „Wetter & Veranstaltungen“: Die Vorschlagsgenerierung kann vollständig ohne LLM aus einer kuratierten Aktivitätsbibliothek (`data/activity_library.json`) erfolgen; Einträge sind nach Altersbereich, Domain-Tags, Materialien und Safety-Hinweisen strukturiert.
 - UI-Texte sind jetzt vollständig auf Deutsch gehalten (keine englischen Textpassagen mehr in der Oberfläche).
 - Vor jedem LLM-Aufruf und vor der Ausgabe wird jetzt die OpenAI-Moderation (`omni-moderation-latest`) ausgeführt; bei `flagged=true` blockt die App deterministisch mit einer sicheren DE/EN-Meldung und protokolliert nur metadatenbasierte Events ohne PII.
 - OpenAI-Structured-Output-Schema ist jetzt Strict-Mode-kompatibel: URL-Felder in den Activity-Ergebnissen werden als validierte Strings modelliert (ohne `format: "uri"`), um API-Schemafehler zu vermeiden.
