@@ -34,7 +34,6 @@ def _fallback_daily_markdown(
 *Ort:* {adventure.area} · *Dauer:* {adventure.duration_minutes} min · *Distanz:* {adventure.distance_km} km  
 {weather_line}
 
-## Motivations‑One‑Liner
 „Heute machen wir was Kleines – aber mit großem Kinder‑Staunen.“
 
 ## Plan (kurz & klar)
