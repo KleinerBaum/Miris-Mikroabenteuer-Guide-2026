@@ -130,6 +130,40 @@ def _is_retryable_openai_error(exc: Exception) -> bool:
     return any(marker in lower_message for marker in transient_markers)
 
 
+def _ensure_plan_b_variants(
+    plan: ActivityPlan,
+    *,
+    available_minutes: int,
+    start_point: str,
+) -> ActivityPlan:
+    existing = [
+        variant.strip() for variant in plan.variants if variant and variant.strip()
+    ]
+    categories: dict[str, str] = {
+        "lower energy": (
+            "Lower energy / Weniger Energie: Halbtempo-Version mit ruhigeren Bewegungen"
+            f" und Pausen nach Bedarf ({max(10, available_minutes // 2)}-{available_minutes} min)."
+        ),
+        "higher energy": (
+            "Higher energy / Mehr Energie: Zwei zusätzliche Bewegungsrunden "
+            "oder Suchaufgaben mit klaren Stopp-Signalen."
+        ),
+        "indoor swap": (
+            "Indoor swap / Indoor-Tausch: Gleiches Ziel drinnen mit Kissen-Parcours, "
+            "Malerkrepp-Linien oder Fenstersuche umsetzen."
+        ),
+        "no materials": (
+            "No materials / Ohne Material: Nur Stimme, Hände und vorhandene Umgebung "
+            f"nutzen (z. B. {start_point or 'zu Hause / at home'})."
+        ),
+    }
+
+    normalized = "\n".join(existing).casefold()
+    missing = [text for label, text in categories.items() if label not in normalized]
+
+    return plan.model_copy(update={"variants": [*existing, *missing]})
+
+
 def _build_activity_request(
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
@@ -164,58 +198,64 @@ def _fallback_activity_plan(
     if weather:
         weather_note = ", ".join(weather.derived_tags) or "Weather loaded"
 
-    return ActivityPlan(
-        title=adventure.title,
-        summary=f"{adventure.short} ({weather_note})",
-        steps=list(adventure.route_steps),
-        safety_notes=list(adventure.mitigations)
-        or ["Keep activity short and flexible."],
-        parent_child_prompts=_ensure_responsive_prompts(
-            [
-                "Say: What do you want to explore first? / Do: Pause and follow your child's choice.",
-                "Say: Can you show me your favorite tiny discovery? / Do: Copy your child's gesture and name it together.",
-                *[_domain_prompt(goal) for goal in criteria.goals],
-            ],
-            supports,
+    return _ensure_plan_b_variants(
+        ActivityPlan(
+            title=adventure.title,
+            summary=f"{adventure.short} ({weather_note})",
+            steps=list(adventure.route_steps),
+            safety_notes=list(adventure.mitigations)
+            or ["Keep activity short and flexible."],
+            parent_child_prompts=_ensure_responsive_prompts(
+                [
+                    "Say: What do you want to explore first? / Do: Pause and follow your child's choice.",
+                    "Say: Can you show me your favorite tiny discovery? / Do: Copy your child's gesture and name it together.",
+                    *[_domain_prompt(goal) for goal in criteria.goals],
+                ],
+                supports,
+            ),
+            variants=list(adventure.variations)
+            + [f"Short version for {criteria.available_minutes} minutes"],
+            supports=supports,
         ),
-        variants=list(adventure.variations)
-        + [
-            f"Short version for {criteria.available_minutes} minutes",
-        ],
-        supports=supports,
+        available_minutes=criteria.available_minutes,
+        start_point=adventure.start_point,
     )
 
 
 def _safe_fallback_plan(request: ActivityRequest) -> ActivityPlan:
-    return ActivityPlan(
-        title="Sicheres Alternativprogramm / Safe fallback plan",
-        summary=(
-            "Wir zeigen eine sichere, altersgerechte Aktivität ohne riskante Elemente. "
-            "/ Showing a safe age-appropriate activity without risky elements."
-        ),
-        steps=[
-            "Gemeinsam 5 ruhige Gegenstände in der Wohnung oder im Garten suchen.",
-            "Farben benennen und die Gegenstände in eine sichere Sortier-Reihe legen.",
-            "Kurze Bewegungsrunde: langsames Balancieren auf einer Linie am Boden.",
-            "Mit Wasser trinken und einer ruhigen Abschlussfrage beenden.",
-        ],
-        safety_notes=[
-            "Nur weiche, große Materialien ohne Kleinteile verwenden.",
-            "Keine Hitze, keine Flammen, keine scharfen Werkzeuge, keine Chemikalien.",
-            "Aktivität jederzeit abbrechen, wenn Überforderung sichtbar ist.",
-        ],
-        parent_child_prompts=_ensure_responsive_prompts(
-            [
-                "Say: Welcher Gegenstand fühlt sich am weichsten an? / Do: Lass dein Kind zuerst zeigen und benennen.",
-                "Say: Möchtest du noch eine ruhige Runde machen oder jetzt Pause? / Do: Übernimm die gewählte Option sofort.",
+    return _ensure_plan_b_variants(
+        ActivityPlan(
+            title="Sicheres Alternativprogramm / Safe fallback plan",
+            summary=(
+                "Wir zeigen eine sichere, altersgerechte Aktivität ohne riskante Elemente. "
+                "/ Showing a safe age-appropriate activity without risky elements."
+            ),
+            steps=[
+                "Gemeinsam 5 ruhige Gegenstände in der Wohnung oder im Garten suchen.",
+                "Farben benennen und die Gegenstände in eine sichere Sortier-Reihe legen.",
+                "Kurze Bewegungsrunde: langsames Balancieren auf einer Linie am Boden.",
+                "Mit Wasser trinken und einer ruhigen Abschlussfrage beenden.",
             ],
-            list(request.goals),
+            safety_notes=[
+                "Nur weiche, große Materialien ohne Kleinteile verwenden.",
+                "Keine Hitze, keine Flammen, keine scharfen Werkzeuge, keine Chemikalien.",
+                "Aktivität jederzeit abbrechen, wenn Überforderung sichtbar ist.",
+            ],
+            parent_child_prompts=_ensure_responsive_prompts(
+                [
+                    "Say: Welcher Gegenstand fühlt sich am weichsten an? / Do: Lass dein Kind zuerst zeigen und benennen.",
+                    "Say: Möchtest du noch eine ruhige Runde machen oder jetzt Pause? / Do: Übernimm die gewählte Option sofort.",
+                ],
+                list(request.goals),
+            ),
+            variants=[
+                f"Kurzversion: nur 2 Schritte in {max(10, request.duration_minutes // 2)} Minuten",
+                "Indoor-Variante: Gegenstände nur in einem Zimmer finden",
+            ],
+            supports=list(request.goals),
         ),
-        variants=[
-            f"Kurzversion: nur 2 Schritte in {max(10, request.duration_minutes // 2)} Minuten",
-            "Indoor-Variante: Gegenstände nur in einem Zimmer finden",
-        ],
-        supports=list(request.goals),
+        available_minutes=request.duration_minutes,
+        start_point="zu Hause / at home",
     )
 
 
@@ -226,50 +266,60 @@ def _apply_parent_script_mode(
     total_minutes = max(6, min(20, criteria.available_minutes))
     step_minutes = max(1, total_minutes // 5)
     final_minutes = max(1, total_minutes - (step_minutes * 4))
-    return ActivityPlan(
-        title=f"{plan.title} · Elternskript / Parent script",
-        summary=(
-            "Kurzes, kindgeführtes 4-Schritte-Skript (Describe, Imitate, Praise, Active listening). "
-            "Kaum Vorbereitung, direkt wiederholbar. "
-            "/ Short child-led 4-step script (Describe, Imitate, Praise, Active listening). "
-            "Minimal prep and easy to repeat."
+    return _ensure_plan_b_variants(
+        ActivityPlan(
+            title=f"{plan.title} · Elternskript / Parent script",
+            summary=(
+                "Kurzes, kindgeführtes 4-Schritte-Skript (Describe, Imitate, Praise, Active listening). "
+                "Kaum Vorbereitung, direkt wiederholbar. "
+                "/ Short child-led 4-step script (Describe, Imitate, Praise, Active listening). "
+                "Minimal prep and easy to repeat."
+            ),
+            steps=[
+                f"{step_minutes} min – Describe: Beschreibe neutral, was dein Kind tut. / Describe what your child is doing without correcting.",
+                f"{step_minutes} min – Imitate: Mache die Bewegung oder Idee deines Kindes nach. / Copy your child's action and pace.",
+                f"{step_minutes} min – Praise: Lobe konkret ('Du hast ... ausprobiert'). / Give specific praise for effort and choices.",
+                f"{step_minutes} min – Active listening: Wiederhole die Worte deines Kindes und warte 5 Sekunden. / Reflect your child's words and pause.",
+                f"{final_minutes} min – Child-led repeat: Kind entscheidet, was wiederholt wird oder wie beendet wird. / Child chooses repeat or finish.",
+            ],
+            safety_notes=list(plan.safety_notes)
+            or [
+                "Nur sichere, alltägliche Umgebung nutzen. / Use a safe everyday environment.",
+            ],
+            parent_child_prompts=[
+                "Say: Ich sehe, du stapelst die Steine. / I see you stacking the blocks.",
+                "Say: Ich mache es wie du. / I will do it your way.",
+                "Say: Stark, wie du drangeblieben bist. / Great effort, you kept trying.",
+                "Say: Du willst noch einmal? / You want one more round?",
+            ],
+            variants=[
+                "Null-Vorbereitung: Nutze das, was schon da ist (Kissen, Becher, Blätter). / Zero-prep: use what's already there.",
+                "Wiederholbar: Dasselbe Skript 1-2x täglich in 6-20 Minuten. / Repeatable: run the same script 1-2x daily in 6-20 minutes.",
+            ],
+            supports=list(plan.supports),
         ),
-        steps=[
-            f"{step_minutes} min – Describe: Beschreibe neutral, was dein Kind tut. / Describe what your child is doing without correcting.",
-            f"{step_minutes} min – Imitate: Mache die Bewegung oder Idee deines Kindes nach. / Copy your child's action and pace.",
-            f"{step_minutes} min – Praise: Lobe konkret ('Du hast ... ausprobiert'). / Give specific praise for effort and choices.",
-            f"{step_minutes} min – Active listening: Wiederhole die Worte deines Kindes und warte 5 Sekunden. / Reflect your child's words and pause.",
-            f"{final_minutes} min – Child-led repeat: Kind entscheidet, was wiederholt wird oder wie beendet wird. / Child chooses repeat or finish.",
-        ],
-        safety_notes=list(plan.safety_notes)
-        or [
-            "Nur sichere, alltägliche Umgebung nutzen. / Use a safe everyday environment.",
-        ],
-        parent_child_prompts=[
-            "Say: Ich sehe, du stapelst die Steine. / I see you stacking the blocks.",
-            "Say: Ich mache es wie du. / I will do it your way.",
-            "Say: Stark, wie du drangeblieben bist. / Great effort, you kept trying.",
-            "Say: Du willst noch einmal? / You want one more round?",
-        ],
-        variants=[
-            "Null-Vorbereitung: Nutze das, was schon da ist (Kissen, Becher, Blätter). / Zero-prep: use what's already there.",
-            "Wiederholbar: Dasselbe Skript 1-2x täglich in 6-20 Minuten. / Repeatable: run the same script 1-2x daily in 6-20 minutes.",
-        ],
-        supports=list(plan.supports),
+        available_minutes=criteria.available_minutes,
+        start_point="zu Hause / at home",
     )
 
 
 def _blocked_activity_plan() -> ActivityPlan:
-    return ActivityPlan(
-        title="Inhalt blockiert / Content blocked",
-        summary=SAFE_BLOCK_MESSAGE_DE_EN,
-        steps=[],
-        safety_notes=[
-            "Bitte Anfrage anpassen und erneut versuchen. / Please revise the prompt and retry."
-        ],
-        parent_child_prompts=_ensure_responsive_prompts([], ["Sicherheit / Safety"]),
-        variants=[],
-        supports=["Sicherheit / Safety"],
+    return _ensure_plan_b_variants(
+        ActivityPlan(
+            title="Inhalt blockiert / Content blocked",
+            summary=SAFE_BLOCK_MESSAGE_DE_EN,
+            steps=[],
+            safety_notes=[
+                "Bitte Anfrage anpassen und erneut versuchen. / Please revise the prompt and retry."
+            ],
+            parent_child_prompts=_ensure_responsive_prompts(
+                [], ["Sicherheit / Safety"]
+            ),
+            variants=[],
+            supports=["Sicherheit / Safety"],
+        ),
+        available_minutes=10,
+        start_point="zu Hause / at home",
     )
 
 
@@ -434,7 +484,9 @@ def generate_activity_plan(
                     "role": "developer",
                     "content": redact_pii(
                         "Create a practical bilingual-ready toddler activity plan. "
-                        "Always return valid structured output."
+                        "Always return valid structured output. "
+                        "Include Plan B variants that cover lower energy, higher energy, "
+                        "indoor swap, and no materials swap."
                     ),
                 },
                 {
@@ -463,6 +515,11 @@ def generate_activity_plan(
             parsed.parent_child_prompts = _ensure_responsive_prompts(
                 parsed.parent_child_prompts,
                 parsed.supports or [_domain_label(goal) for goal in criteria.goals],
+            )
+            parsed = _ensure_plan_b_variants(
+                parsed,
+                available_minutes=criteria.available_minutes,
+                start_point=adventure.start_point,
             )
         if parsed is None:
             raise ActivityGenerationError(

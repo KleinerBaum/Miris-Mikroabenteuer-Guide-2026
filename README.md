@@ -141,6 +141,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Jede Aktivität enthält jetzt verbindlich 3–6 kurze **Say/Do**-Impulse für responsive Austauschmomente; auch Fallback- und Safe-Pläne erzwingen dieses Format statt reiner Anweisungen.
 - Neue Aktion „Plan melden / Report plan“ in der Tagesansicht: Für jeden generierten Plan kann jetzt ein Report mit minimalen Metadaten gespeichert werden (UTC-Zeitstempel, Plan-Hash, Grund) – ohne Nutzer-PII.
 - Neuer Plan-Modus „Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)“ in der Sidebar: erzeugt ein kindgeführtes, zeitlich begrenztes 4-Schritte-Skript (Describe, Imitate, Praise, Active listening) mit Minimal-Vorbereitung.
+- Tagespläne ergänzen jetzt automatisch „Plan B“-Varianten für **lower energy**, **higher energy**, **indoor swap** und **no materials** (zweisprachig DE/EN), damit pro Aktivität direkt Alternativen verfügbar sind.
 - Neuer Review-Expander „Gemeldete Pläne ansehen / Review reported plans“ zeigt lokal gespeicherte Meldungen aus `data/plan_reports.jsonl` (oder `PLAN_REPORTS_PATH`).
 
 ## Daily Scheduler aktivieren
