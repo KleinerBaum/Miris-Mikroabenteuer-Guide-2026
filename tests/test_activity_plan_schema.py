@@ -16,6 +16,7 @@ from src.mikroabenteuer.models import (
     TimeWindow,
 )
 from src.mikroabenteuer.openai_gen import (
+    _ensure_responsive_prompts,
     generate_activity_plan,
     render_activity_plan_markdown,
     validate_activity_plan,
@@ -87,6 +88,10 @@ def test_generate_activity_plan_returns_structured_fallback_when_llm_disabled() 
     assert plan.steps
     assert plan.safety_notes
     assert plan.parent_child_prompts
+    assert 3 <= len(plan.parent_child_prompts) <= 6
+    assert all(
+        "Say:" in prompt and "Do:" in prompt for prompt in plan.parent_child_prompts
+    )
 
 
 def test_language_goal_adds_language_support_and_prompt() -> None:
@@ -99,8 +104,42 @@ def test_language_goal_adds_language_support_and_prompt() -> None:
 
     assert any("Sprache" in item or "Language" in item for item in plan.supports)
     assert any(
-        "Worten" in prompt or "words" in prompt for prompt in plan.parent_child_prompts
+        marker in prompt.casefold()
+        for prompt in plan.parent_child_prompts
+        for marker in ("word", "wort", "sprache")
     )
+
+
+def test_ensure_responsive_prompts_guarantees_three_to_six_say_do_entries() -> None:
+    prompts = _ensure_responsive_prompts(
+        [
+            "Say: Start here? / Do: Wait for response.",
+            "Plain instruction without structure",
+            "Say: Continue? / Do: Follow your child.",
+        ],
+        goals=["Sprache / Language"],
+    )
+
+    assert 3 <= len(prompts) <= 6
+    assert all("Say:" in prompt and "Do:" in prompt for prompt in prompts)
+
+
+def test_multiple_plan_generations_keep_prompt_contract_consistent() -> None:
+    cfg = replace(load_config(), enable_llm=False, openai_api_key=None)
+    adventure = _build_micro_adventure()
+    criteria = _build_criteria()
+
+    plans = [
+        generate_activity_plan(cfg, adventure, criteria, weather=None),
+        generate_activity_plan(cfg, adventure, criteria, weather=None),
+        generate_activity_plan(cfg, adventure, criteria, weather=None),
+    ]
+
+    for plan in plans:
+        assert 3 <= len(plan.parent_child_prompts) <= 6
+        assert all(
+            "Say:" in prompt and "Do:" in prompt for prompt in plan.parent_child_prompts
+        )
 
 
 def test_render_activity_plan_markdown_contains_required_sections() -> None:

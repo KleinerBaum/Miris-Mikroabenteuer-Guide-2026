@@ -136,6 +136,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Im Familienprofil zeigt die Sidebar jetzt den Hinweis: „Bitte gib nicht den vollständigen Namen deines Kindes oder identifizierende Informationen ein. / Don’t enter your child's full name or identifying info.“
 - Neue strukturierte Planungsmodelle: `ActivityRequest` (Alter in Monaten/Jahren, Dauer, Indoor/Outdoor, Materialien, Ziele, Constraints) und `ActivityPlan` (Schritte, Sicherheitsnotizen, Eltern-Kind-Impulse, Varianten, **What this supports / Was das fördert**); die Tagesansicht rendert aus `ActivityPlan` und zeigt bei LLM-Fehlern eine freundliche Fallback-Meldung mit sicherem Plan.
 - Entwicklungsziele sind jetzt als feste Domains modelliert (`gross_motor`, `fine_motor`, `language`, `social_emotional`, `sensory`, `cognitive`); im UI werden 1–2 Ziele gewählt und in die Plan-Generierung inkl. Eltern-Kind-Impulse übernommen.
+- Jede Aktivität enthält jetzt verbindlich 3–6 kurze **Say/Do**-Impulse für responsive Austauschmomente; auch Fallback- und Safe-Pläne erzwingen dieses Format statt reiner Anweisungen.
 - Neue Aktion „Plan melden / Report plan“ in der Tagesansicht: Für jeden generierten Plan kann jetzt ein Report mit minimalen Metadaten gespeichert werden (UTC-Zeitstempel, Plan-Hash, Grund) – ohne Nutzer-PII.
 - Neuer Review-Expander „Gemeldete Pläne ansehen / Review reported plans“ zeigt lokal gespeicherte Meldungen aus `data/plan_reports.jsonl` (oder `PLAN_REPORTS_PATH`).
 

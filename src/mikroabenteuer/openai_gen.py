@@ -25,6 +25,10 @@ class ActivityGenerationError(RuntimeError):
     """Raised when structured activity generation fails."""
 
 
+MIN_RESPONSIVE_PROMPTS = 3
+MAX_RESPONSIVE_PROMPTS = 6
+
+
 def _domain_label(domain: DevelopmentDomain) -> str:
     labels: dict[DevelopmentDomain, str] = {
         DevelopmentDomain.gross_motor: "Grobmotorik / Gross motor",
@@ -47,6 +51,57 @@ def _domain_prompt(domain: DevelopmentDomain) -> str:
         DevelopmentDomain.cognitive: "Was glaubst du passiert als Nächstes und warum?",
     }
     return prompts[domain]
+
+
+def _responsive_exchange_prompts(goals: list[str]) -> list[str]:
+    language_prompt = "Say: Can you teach me one word for this? / Do: Repeat your child's word and add one new word together."
+    has_language_goal = any(
+        "language" in goal.casefold() or "sprache" in goal.casefold() for goal in goals
+    )
+    prompts = [
+        "Say: I see you looking closely. What did you notice? / Do: Point together and wait for your child's answer.",
+        "Say: Great idea, let's try your version next. / Do: Copy your child's action once before offering the next step.",
+        language_prompt
+        if has_language_goal
+        else "Say: Should we do one more round or take a break? / Do: Let your child choose and mirror their pace.",
+    ]
+    if has_language_goal:
+        prompts.append(
+            "Say: Should we do one more round or take a break? / Do: Let your child choose and mirror their pace."
+        )
+    return prompts
+
+
+def _ensure_responsive_prompts(prompts: list[str], goals: list[str]) -> list[str]:
+    """Guarantee 3-6 short say/do prompts that drive responsive exchanges."""
+    normalized = [prompt.strip() for prompt in prompts if prompt and prompt.strip()]
+    say_do_prompts = [
+        prompt
+        for prompt in normalized
+        if "say:" in prompt.casefold() and "do:" in prompt.casefold()
+    ]
+
+    for fallback_prompt in _responsive_exchange_prompts(goals):
+        if len(say_do_prompts) >= MIN_RESPONSIVE_PROMPTS:
+            break
+        if fallback_prompt not in say_do_prompts:
+            say_do_prompts.append(fallback_prompt)
+
+    has_language_goal = any(
+        "language" in goal.casefold() or "sprache" in goal.casefold() for goal in goals
+    )
+    language_marker = ("word", "wort", "sprache")
+    if has_language_goal and not any(
+        any(marker in prompt.casefold() for marker in language_marker)
+        for prompt in say_do_prompts
+    ):
+        language_prompt = _responsive_exchange_prompts(["Sprache / Language"])[2]
+        if len(say_do_prompts) >= MAX_RESPONSIVE_PROMPTS:
+            say_do_prompts[-1] = language_prompt
+        else:
+            say_do_prompts.append(language_prompt)
+
+    return say_do_prompts[:MAX_RESPONSIVE_PROMPTS]
 
 
 def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
@@ -114,11 +169,14 @@ def _fallback_activity_plan(
         steps=list(adventure.route_steps),
         safety_notes=list(adventure.mitigations)
         or ["Keep activity short and flexible."],
-        parent_child_prompts=[
-            "What do you want to explore first?",
-            "Can you show me your favorite tiny discovery?",
-            *[_domain_prompt(goal) for goal in criteria.goals],
-        ],
+        parent_child_prompts=_ensure_responsive_prompts(
+            [
+                "Say: What do you want to explore first? / Do: Pause and follow your child's choice.",
+                "Say: Can you show me your favorite tiny discovery? / Do: Copy your child's gesture and name it together.",
+                *[_domain_prompt(goal) for goal in criteria.goals],
+            ],
+            supports,
+        ),
         variants=list(adventure.variations)
         + [
             f"Short version for {criteria.available_minutes} minutes",
@@ -145,10 +203,13 @@ def _safe_fallback_plan(request: ActivityRequest) -> ActivityPlan:
             "Keine Hitze, keine Flammen, keine scharfen Werkzeuge, keine Chemikalien.",
             "Aktivität jederzeit abbrechen, wenn Überforderung sichtbar ist.",
         ],
-        parent_child_prompts=[
-            "Welcher Gegenstand fühlt sich am weichsten an?",
-            "Möchtest du noch eine ruhige Runde machen oder jetzt Pause?",
-        ],
+        parent_child_prompts=_ensure_responsive_prompts(
+            [
+                "Say: Welcher Gegenstand fühlt sich am weichsten an? / Do: Lass dein Kind zuerst zeigen und benennen.",
+                "Say: Möchtest du noch eine ruhige Runde machen oder jetzt Pause? / Do: Übernimm die gewählte Option sofort.",
+            ],
+            list(request.goals),
+        ),
         variants=[
             f"Kurzversion: nur 2 Schritte in {max(10, request.duration_minutes // 2)} Minuten",
             "Indoor-Variante: Gegenstände nur in einem Zimmer finden",
@@ -165,7 +226,7 @@ def _blocked_activity_plan() -> ActivityPlan:
         safety_notes=[
             "Bitte Anfrage anpassen und erneut versuchen. / Please revise the prompt and retry."
         ],
-        parent_child_prompts=[],
+        parent_child_prompts=_ensure_responsive_prompts([], ["Sicherheit / Safety"]),
         variants=[],
         supports=["Sicherheit / Safety"],
     )
@@ -352,6 +413,11 @@ def generate_activity_plan(
                 *parsed.parent_child_prompts,
                 *[_domain_prompt(goal) for goal in criteria.goals],
             ]
+        if parsed is not None:
+            parsed.parent_child_prompts = _ensure_responsive_prompts(
+                parsed.parent_child_prompts,
+                parsed.supports or [_domain_label(goal) for goal in criteria.goals],
+            )
         if parsed is None:
             raise ActivityGenerationError(
                 "No structured output parsed from response (output_parsed is None)."
