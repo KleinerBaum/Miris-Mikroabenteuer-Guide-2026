@@ -2,7 +2,11 @@ from __future__ import annotations
 
 from datetime import date, time
 
-from src.mikroabenteuer.models import ActivitySearchCriteria, TimeWindow
+from src.mikroabenteuer.models import (
+    ActivitySearchCriteria,
+    DevelopmentDomain,
+    TimeWindow,
+)
 from src.mikroabenteuer.openai_activity_service import _build_user_prompt
 from src.mikroabenteuer.pii_redaction import redact_pii
 
@@ -35,7 +39,7 @@ def test_build_user_prompt_redacts_pii_from_outbound_llm_text() -> None:
         budget_eur_max=20.0,
         topics=["Natur"],
         location_preference="mixed",
-        goals=["Language"],
+        goals=[DevelopmentDomain.language],
         constraints=["Call me at +49 170 1234567 and email me@example.org"],
         max_suggestions=3,
     )

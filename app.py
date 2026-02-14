@@ -34,6 +34,7 @@ from src.mikroabenteuer.activity_library import suggest_activities_offline
 from src.mikroabenteuer.ics import build_ics_event
 from src.mikroabenteuer.models import (
     ActivitySearchCriteria,
+    DevelopmentDomain,
     TimeWindow,
     WeatherCondition as EventWeatherCondition,
     WeatherSummary as EventWeatherSummary,
@@ -74,14 +75,23 @@ AGE_BAND_OPTIONS: tuple[tuple[str, float], ...] = (
 )
 
 DURATION_OPTIONS: tuple[int, ...] = (30, 45, 60, 90, 120, 180, 240, 300, 360)
-GOAL_OPTIONS: tuple[str, ...] = (
-    "Bewegung / Movement",
-    "Kreativität / Creativity",
-    "Natur erleben / Nature",
-    "Soziales Lernen / Social skills",
-    "Sprache / Language",
-    "Entspannung / Calm down",
+GOAL_OPTIONS: tuple[DevelopmentDomain, ...] = (
+    DevelopmentDomain.gross_motor,
+    DevelopmentDomain.fine_motor,
+    DevelopmentDomain.language,
+    DevelopmentDomain.social_emotional,
+    DevelopmentDomain.sensory,
+    DevelopmentDomain.cognitive,
 )
+
+DOMAIN_LABELS: dict[DevelopmentDomain, str] = {
+    DevelopmentDomain.gross_motor: "Grobmotorik / Gross motor",
+    DevelopmentDomain.fine_motor: "Feinmotorik / Fine motor",
+    DevelopmentDomain.language: "Sprache / Language",
+    DevelopmentDomain.social_emotional: "Sozial-emotional / Social-emotional",
+    DevelopmentDomain.sensory: "Sensorik / Sensory",
+    DevelopmentDomain.cognitive: "Kognitiv / Cognitive",
+}
 CONSTRAINT_OPTIONS: tuple[str, ...] = (
     "Kein Auto / No car",
     "Kinderwagen / Stroller",
@@ -386,12 +396,9 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
     start_time = cast(time, st.session_state[f"{prefix}_start_time"])
     available_minutes = int(st.session_state[f"{prefix}_available_minutes"])
 
-    goals = list(cast(list[str], st.session_state[f"{prefix}_goals"]))
+    goals = list(cast(list[DevelopmentDomain], st.session_state[f"{prefix}_goals"]))
     constraints = list(cast(list[str], st.session_state[f"{prefix}_constraints"]))
     if prefix == "form":
-        goals_optional = _optional_csv_items(
-            str(st.session_state.get("form_goals_optional", ""))
-        )
         constraints_optional = _optional_csv_items(
             str(st.session_state.get("form_constraints_optional", ""))
         )
@@ -400,7 +407,6 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
             extra_context_raw,
             max_chars=int(st.session_state.get("cfg_max_input_chars", 4000)),
         )
-        goals = list(dict.fromkeys(goals + goals_optional))
         constraints = list(dict.fromkeys(constraints + constraints_optional))
         if extra_context:
             constraints = list(
@@ -428,7 +434,7 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
             Literal["indoor", "outdoor", "mixed"],
             st.session_state[f"{prefix}_location_preference"],
         ),
-        goals=goals,
+        goals=goals if goals else [DevelopmentDomain.language],
         constraints=constraints,
     )
 
@@ -528,6 +534,8 @@ def _criteria_sidebar(
     st.sidebar.multiselect(
         _t(lang, "Ziele / Goals", "Ziele / Goals"),
         options=list(GOAL_OPTIONS),
+        format_func=lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
+        max_selections=2,
         key="sidebar_goals",
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar"},
@@ -908,8 +916,8 @@ class ActivityOrchestrator:
                 event_result = self.openai_service.search_events(
                     criteria, weather, mode
                 )
-        warnings.extend(event_result.get("warnings", []))
-        warnings.extend(event_result.get("errors", []))
+        warnings.extend(cast(list[str], event_result.get("warnings", [])))
+        warnings.extend(cast(list[str], event_result.get("errors", [])))
 
         if on_status:
             on_status("Suche abgeschlossen")
@@ -1013,6 +1021,8 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             st.multiselect(
                 _t(lang, "Ziele / Goals", "Ziele / Goals"),
                 options=list(GOAL_OPTIONS),
+                format_func=lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
+                max_selections=2,
                 key="form_goals",
             )
             st.multiselect(
@@ -1023,15 +1033,6 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 ),
                 options=list(CONSTRAINT_OPTIONS),
                 key="form_constraints",
-            )
-            st.text_input(
-                _t(
-                    lang,
-                    "Weitere Ziele (optional, max 80) / Other goals (optional, max 80)",
-                    "Weitere Ziele (optional, max 80) / Other goals (optional, max 80)",
-                ),
-                key="form_goals_optional",
-                max_chars=80,
             )
             st.text_input(
                 _t(
