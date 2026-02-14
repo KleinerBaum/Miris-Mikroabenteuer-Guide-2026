@@ -91,6 +91,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - HTML-Mail-Template mit Inline-CSS (DE/EN)
 - Gmail-Versand mit HTML + ICS Attachment
 - Wiederholversuche mit exponentiellem Backoff für externe Calls
+- Regelbasierter physischer Sicherheits-Validator blockiert unsichere Tagespläne (z. B. Kleinteile <3 Jahre, scharfe Werkzeuge, Feuer/Hitze, Chemikalien) und erzwingt bei Verstoß einen sicheren Fallback-Plan.
 - Kalenderähnlicher Bereich mit **Abenteuer des Tages**
 - In der Tagesansicht wurde die Überschrift "Motivations‑One‑Liner" entfernt; der Motivationssatz bleibt ohne zusätzliche Zwischenüberschrift sichtbar.
 - Aufklappbare Liste (Drop-down/Expander) aller Abenteuer ohne zusätzliche Tabelle

@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Neue regelbasierte Sicherheitsvalidierung für `ActivityPlan`: Unsichere Inhalte (u. a. Kleinteile bei <3 Jahren, scharfe Werkzeuge, Feuer/Hitze, giftige Chemikalien) werden hart geblockt; stattdessen wird automatisch ein sicheres Alternativprogramm gerendert.
+- EN: Added a new rule-based safety validator for `ActivityPlan`: unsafe content (including small parts for <3 years, sharp tools, fire/heat, and toxic chemicals) is hard-blocked and automatically replaced with a safe fallback plan.
 - DE: Strukturierte Pydantic-Modelle `ActivityRequest` und `ActivityPlan` ergänzt; die Generierung nutzt jetzt schema-validierte Structured Outputs und die UI rendert den Tagesplan ausschließlich aus `ActivityPlan`-Objekten.
 - EN: Added structured Pydantic models `ActivityRequest` and `ActivityPlan`; generation now uses schema-validated structured outputs and the UI renders the daily plan exclusively from `ActivityPlan` objects.
 - DE: Bei fehlgeschlagener KI-Planerstellung zeigt die UI eine freundliche zweisprachige Fehlermeldung und fällt auf einen sicheren strukturierten Fallback-Plan zurück.
