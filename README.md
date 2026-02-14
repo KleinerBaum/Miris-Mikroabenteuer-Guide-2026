@@ -32,6 +32,8 @@ Die App basiert auf einer Seed-Bibliothek von Aktivitäten mit Detailansichten u
 - Workflow: `.github/workflows/ci.yml`
 - Trigger: bei jedem Pull Request (`pull_request`)
 - Checks: `ruff format --check`, `ruff check`, `pytest -m "not integration"`, `python -c "import app"`
+- Optional local guardrails (pre-commit): `ruff-format`, `ruff`, `black`, and `detect-secrets` via `.pre-commit-config.yaml` to prevent accidental secret commits.
+- Optional lokale Guardrails (pre-commit): `ruff-format`, `ruff`, `black` und `detect-secrets` über `.pre-commit-config.yaml`, um versehentliche Secret-Commits zu verhindern.
 
 ## Quickstart (lokal)
 

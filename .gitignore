@@ -208,3 +208,6 @@ __marimo__/
 
 # Local OAuth secrets
 secrets/
+
+# Streamlit local secrets
+.streamlit/secrets.toml
