@@ -333,14 +333,6 @@ def _criteria_sidebar(
     lang: Language = st.sidebar.selectbox(
         "Sprache", options=["DE"], index=0, key="lang"
     )
-    st.sidebar.caption(
-        _t(
-            lang,
-            "Filter gelten global für Abenteuer und Veranstaltungen.",
-            "",
-        )
-    )
-
     st.sidebar.date_input(
         _t(lang, "Datum", ""),
         key="sidebar_date",
@@ -745,20 +737,6 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
     _ensure_ui_adapter_state(prefix="form", criteria=criteria)
 
     st.subheader(_t(lang, "Wetter & Veranstaltungen", ""))
-    st.caption(
-        _t(
-            lang,
-            "Lokale Vorschläge mit Wetter-Check und Live-Quellen.",
-            "",
-        )
-    )
-    st.caption(
-        _t(
-            lang,
-            "Diese Filter sind global und wirken auch auf die Abenteuer-Suche.",
-            "",
-        )
-    )
 
     with st.form("weather_events_form", clear_on_submit=False):
         top_left, top_right = st.columns(2)

@@ -223,5 +223,7 @@ mypy .
 
 
 ## Änderungen (letzte Updates)
+- DE: UI-Entrümpelung: Die Überschrift "Plan (kurz & klar)" wurde zu "Plan" vereinfacht; ergänzende Filter-Hinweise in Sidebar und „Wetter & Veranstaltungen“ wurden entfernt.
+- EN: UI cleanup: The heading "Plan (kurz & klar)" was simplified to "Plan"; extra filter hints in the sidebar and the “Weather & Events” section were removed.
 - DE: Der Block "Mikroabenteuer des Tages 🌿" zeigt standardmäßig nur Titel, Abenteuername, Ort/Dauer/Distanz und Wetter; alle weiteren Inhalte sind initial eingeklappt über einen Details-Expander.
 - EN: The "Mikroabenteuer des Tages 🌿" block now shows only title, adventure name, location/duration/distance, and weather by default; all remaining content is initially collapsed behind a details expander.
