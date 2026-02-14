@@ -10,7 +10,9 @@ T = TypeVar("T")
 
 
 def retry_with_backoff(
-    max_attempts: int, base_delay: float
+    max_attempts: int,
+    base_delay: float,
+    should_retry: Callable[[Exception], bool] | None = None,
 ) -> Callable[[Callable[P, T]], Callable[P, T]]:
     """Retry function with exponential backoff.
 
@@ -32,6 +34,9 @@ def retry_with_backoff(
                     return func(*args, **kwargs)
                 except Exception as exc:  # noqa: BLE001
                     last_error = exc
+                    retry_allowed = should_retry(exc) if should_retry else True
+                    if not retry_allowed:
+                        break
                     if attempt == max_attempts - 1:
                         break
                     sleep_for = base_delay * (2**attempt)

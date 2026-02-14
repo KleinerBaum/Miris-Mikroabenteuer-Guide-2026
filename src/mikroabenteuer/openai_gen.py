@@ -30,6 +30,25 @@ def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
     return text[:max_chars], True
 
 
+def _is_retryable_openai_error(exc: Exception) -> bool:
+    status_code = getattr(exc, "status_code", None)
+    if status_code in {429, 500, 502, 503, 504}:
+        return True
+    if status_code is not None:
+        return False
+
+    lower_message = str(exc).lower()
+    transient_markers = (
+        "timeout",
+        "timed out",
+        "temporar",
+        "rate limit",
+        "too many requests",
+        "service unavailable",
+    )
+    return any(marker in lower_message for marker in transient_markers)
+
+
 def _build_activity_request(
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
@@ -307,11 +326,19 @@ def generate_activity_plan(
         return parsed
 
     try:
-        plan = retry_with_backoff(max_attempts=3, base_delay=0.5)(_call_openai)()
+        plan = retry_with_backoff(
+            max_attempts=3,
+            base_delay=0.5,
+            should_retry=_is_retryable_openai_error,
+        )(_call_openai)()
         if not validate_activity_plan(plan, activity_request):
             return _safe_fallback_plan(activity_request)
         return plan
-    except (ValidationError, Exception) as exc:
+    except ValidationError:
+        return _safe_fallback_plan(activity_request)
+    except Exception as exc:  # noqa: BLE001
+        if _is_retryable_openai_error(exc):
+            return _safe_fallback_plan(activity_request)
         raise ActivityGenerationError(str(exc)) from exc
 
 
