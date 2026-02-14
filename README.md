@@ -1,5 +1,9 @@
 # 🌿 Mikroabenteuer mit Carla
 
+[![CI](https://github.com/<OWNER>/Miris-Mikroabenteuer-Guide-2026/actions/workflows/ci.yml/badge.svg)](https://github.com/<OWNER>/Miris-Mikroabenteuer-Guide-2026/actions/workflows/ci.yml)
+
+_Hinweis: `<OWNER>` im Badge-Link durch den GitHub-Owner des Repositories ersetzen._
+
 Eine Streamlit-Webapp für tägliche Mikroabenteuer rund um Düsseldorf (Fokus: Volksgarten / Südpark).
 Die App basiert auf einer Seed-Bibliothek von Aktivitäten mit Detailansichten und V2-Klassifikation
 (Saison/Wetter/Energie/Schwierigkeit/Safety/Mood/Alter), damit Filter und spätere LLM-Aufrufe konsistente Parameter haben.
@@ -22,6 +26,12 @@ Die App basiert auf einer Seed-Bibliothek von Aktivitäten mit Detailansichten u
 - Daily Email Versand + ICS (später)
 
 ---
+
+## CI (GitHub Actions)
+
+- Workflow: `.github/workflows/ci.yml`
+- Trigger: bei jedem Pull Request (`pull_request`)
+- Checks: `ruff format --check`, `ruff check`, `pytest -m "not integration"`, `python -c "import app"`
 
 ## Quickstart (lokal)
 
