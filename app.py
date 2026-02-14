@@ -34,9 +34,14 @@ from src.mikroabenteuer.models import (
     TimeWindow,
     WeatherCondition as EventWeatherCondition,
     WeatherSummary as EventWeatherSummary,
+    ActivityPlan,
     MicroAdventure,
 )
-from src.mikroabenteuer.openai_gen import generate_daily_markdown
+from src.mikroabenteuer.openai_gen import (
+    ActivityGenerationError,
+    generate_activity_plan,
+    render_activity_plan_markdown,
+)
 from src.mikroabenteuer.recommender import filter_adventures, pick_daily_adventure
 from src.mikroabenteuer.scheduler import run_daily_job_once
 from src.mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
@@ -468,13 +473,13 @@ def _criteria_sidebar(
         )
 
 
-def _generate_markdown_with_retry(
+def _generate_activity_plan_with_retry(
     cfg: AppConfig,
     picked: MicroAdventure,
     criteria: ActivitySearchCriteria,
     weather: Optional[WeatherSummary],
     lang: Language,
-) -> str:
+) -> ActivityPlan:
     attempts = 3
     wait_s = 1.0
     last_err: Optional[Exception] = None
@@ -486,22 +491,25 @@ def _generate_markdown_with_retry(
 
     for _ in range(attempts):
         try:
-            return generate_daily_markdown(cfg_runtime, picked, criteria, weather)
-        except Exception as exc:  # defensive wrapper for UI resilience
+            return generate_activity_plan(cfg_runtime, picked, criteria, weather)
+        except ActivityGenerationError as exc:
             last_err = exc
             time_module.sleep(wait_s)
             wait_s *= 2
 
-    st.warning(
+    st.error(
         _t(
             lang,
-            "KI-Erstellung fehlgeschlagen. Es wird eine Fallback-Version angezeigt.",
+            "Die Plan-Erstellung ist gerade fehlgeschlagen. Wir zeigen eine sichere Fallback-Version an. / Plan generation failed right now. Showing a safe fallback version.",
             "",
         )
     )
     if last_err:
         st.caption(str(last_err))
-    return generate_daily_markdown(cfg_runtime, picked, criteria, weather)
+    cfg_payload["enable_llm"] = False
+    return generate_activity_plan(
+        cfg.__class__(**cfg_payload), picked, criteria, weather
+    )
 
 
 def _split_daily_markdown(markdown: str) -> tuple[str, str]:
@@ -923,8 +931,31 @@ def main() -> None:
             )
         )
 
-    daily_md = _generate_markdown_with_retry(cfg, picked, criteria, weather, lang)
-    daily_md = _replace_family_tokens(daily_md, family_profile)
+    activity_plan = _generate_activity_plan_with_retry(
+        cfg, picked, criteria, weather, lang
+    )
+    activity_plan = activity_plan.model_copy(
+        update={
+            "title": _replace_family_tokens(activity_plan.title, family_profile),
+            "summary": _replace_family_tokens(activity_plan.summary, family_profile),
+            "steps": [
+                _replace_family_tokens(s, family_profile) for s in activity_plan.steps
+            ],
+            "safety_notes": [
+                _replace_family_tokens(s, family_profile)
+                for s in activity_plan.safety_notes
+            ],
+            "parent_child_prompts": [
+                _replace_family_tokens(s, family_profile)
+                for s in activity_plan.parent_child_prompts
+            ],
+            "variants": [
+                _replace_family_tokens(s, family_profile)
+                for s in activity_plan.variants
+            ],
+        }
+    )
+    daily_md = render_activity_plan_markdown(activity_plan)
     daily_preview_md, daily_details_md = _split_daily_markdown(daily_md)
     st.markdown(daily_preview_md)
     if daily_details_md:

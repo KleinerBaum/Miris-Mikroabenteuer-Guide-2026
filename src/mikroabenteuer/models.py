@@ -274,6 +274,34 @@ class IndoorOutdoor(str, Enum):
     mixed = "mixed"
 
 
+class AgeUnit(str, Enum):
+    months = "months"
+    years = "years"
+
+
+class ActivityRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    age_value: float = Field(ge=0.0, le=216.0)
+    age_unit: AgeUnit
+    duration_minutes: int = Field(ge=10, le=600)
+    indoor_outdoor: IndoorOutdoor
+    materials: List[str] = Field(default_factory=list)
+    goals: List[str] = Field(default_factory=list)
+    constraints: List[str] = Field(default_factory=list)
+
+
+class ActivityPlan(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    summary: str
+    steps: List[str] = Field(default_factory=list)
+    safety_notes: List[str] = Field(default_factory=list)
+    parent_child_prompts: List[str] = Field(default_factory=list)
+    variants: List[str] = Field(default_factory=list)
+
+
 class WeatherSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

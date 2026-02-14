@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Literal
+from typing import Any, Literal, cast
 
 from pydantic import ValidationError
 
@@ -161,7 +161,9 @@ def suggest_activities(
                 {"role": "system", "content": sys_msg},
                 {"role": "user", "content": user_msg},
             ],
-            tools=tools,  # enables web search :contentReference[oaicite:7]{index=7}
+            tools=cast(
+                Any, tools
+            ),  # enables web search :contentReference[oaicite:7]{index=7}
             tool_choice="auto",
             include=[
                 "web_search_call.action.sources"

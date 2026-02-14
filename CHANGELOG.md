@@ -6,6 +6,10 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Strukturierte Pydantic-Modelle `ActivityRequest` und `ActivityPlan` ergänzt; die Generierung nutzt jetzt schema-validierte Structured Outputs und die UI rendert den Tagesplan ausschließlich aus `ActivityPlan`-Objekten.
+- EN: Added structured Pydantic models `ActivityRequest` and `ActivityPlan`; generation now uses schema-validated structured outputs and the UI renders the daily plan exclusively from `ActivityPlan` objects.
+- DE: Bei fehlgeschlagener KI-Planerstellung zeigt die UI eine freundliche zweisprachige Fehlermeldung und fällt auf einen sicheren strukturierten Fallback-Plan zurück.
+- EN: If AI plan generation fails, the UI now shows a friendly bilingual error message and falls back to a safe structured fallback plan.
 - DE: In der Tagesansicht wurde die Zwischenüberschrift "Motivations‑One‑Liner" entfernt; der Motivationssatz bleibt direkt unter den Basisinfos sichtbar.
 - EN: In the daily view, the "Motivations‑One‑Liner" subheading was removed; the motivation sentence now appears directly below the basic info.
 - DE: In der Sidebar gibt es jetzt ein personalisierbares Familienprofil (Kindname, Elternname(n), Kindesalter). Die Angaben ersetzen Platzhalter wie „Carla“, „Miri/Miriam“ und „2,5“ in Abenteuertexten, Titeln und Exporten zur Laufzeit.
