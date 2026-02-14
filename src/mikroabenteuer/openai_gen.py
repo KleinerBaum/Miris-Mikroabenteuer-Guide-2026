@@ -1,142 +1,165 @@
 # src/mikroabenteuer/openai_gen.py
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional, cast
+
+from pydantic import ValidationError
 
 from .config import AppConfig
-from .models import ActivitySearchCriteria, MicroAdventure
+from .models import (
+    ActivityPlan,
+    ActivityRequest,
+    ActivitySearchCriteria,
+    AgeUnit,
+    IndoorOutdoor,
+    MicroAdventure,
+)
+from .retry import retry_with_backoff
 from .weather import WeatherSummary
 
 
-def _fallback_daily_markdown(
+class ActivityGenerationError(RuntimeError):
+    """Raised when structured activity generation fails."""
+
+
+def _build_activity_request(
+    adventure: MicroAdventure,
+    criteria: ActivitySearchCriteria,
+) -> ActivityRequest:
+    age_years = max(0.0, float((adventure.age_min + adventure.age_max) / 2.0))
+    indoor_outdoor = IndoorOutdoor.outdoor
+    if "indoor" in {t.lower() for t in adventure.tags}:
+        indoor_outdoor = IndoorOutdoor.indoor
+
+    return ActivityRequest(
+        age_value=age_years,
+        age_unit=AgeUnit.years,
+        duration_minutes=int(adventure.duration_minutes),
+        indoor_outdoor=indoor_outdoor,
+        materials=list(adventure.packing_list),
+        goals=list(adventure.toddler_benefits),
+        constraints=[
+            f"Budget <= {criteria.budget_eur_max:.2f} EUR",
+            f"Time window: {criteria.start_time.isoformat()}–{criteria.end_time.isoformat()}",
+            f"Effort: {criteria.effort}",
+        ],
+    )
+
+
+def _fallback_activity_plan(
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
     weather: Optional[WeatherSummary],
-) -> str:
-    weather_line = "Wetter: (nicht geladen)"
+) -> ActivityPlan:
+    weather_note = "Weather unavailable"
     if weather:
-        parts = []
-        if weather.temperature_max_c is not None:
-            parts.append(f"max {weather.temperature_max_c:.0f}°C")
-        if weather.precipitation_probability_max is not None:
-            parts.append(
-                f"Regenwahrscheinlichkeit {weather.precipitation_probability_max:.0f}%"
-            )
-        if weather.windspeed_max_kmh is not None:
-            parts.append(f"Wind {weather.windspeed_max_kmh:.0f} km/h")
-        weather_line = "Wetter: " + (
-            ", ".join(parts) if parts else ", ".join(weather.derived_tags)
-        )
+        weather_note = ", ".join(weather.derived_tags) or "Weather loaded"
 
+    return ActivityPlan(
+        title=adventure.title,
+        summary=f"{adventure.short} ({weather_note})",
+        steps=list(adventure.route_steps),
+        safety_notes=list(adventure.mitigations)
+        or ["Keep activity short and flexible."],
+        parent_child_prompts=[
+            "What do you want to explore first?",
+            "Can you show me your favorite tiny discovery?",
+        ],
+        variants=list(adventure.variations)
+        + [
+            f"Short version for {criteria.available_minutes} minutes",
+        ],
+    )
+
+
+def render_activity_plan_markdown(plan: ActivityPlan) -> str:
     return f"""# Mikroabenteuer des Tages 🌿
 
-**{adventure.title}**  
-*Ort:* {adventure.area} · *Dauer:* {adventure.duration_minutes} min · *Distanz:* {adventure.distance_km} km  
-{weather_line}
-
-„Heute machen wir was Kleines – aber mit großem Kinder‑Staunen.“
+**{plan.title}**  
+{plan.summary}
 
 ## Plan (kurz & klar)
-**Startpunkt:** {adventure.start_point}
-
-**Route / Ablauf:**
-{chr(10).join([f"- {s}" for s in adventure.route_steps])}
-
-## Vorbereitung
-{chr(10).join([f"- {s}" for s in adventure.preparation])}
-
-## Packliste
-{chr(10).join([f"- {s}" for s in adventure.packing_list])}
-
-## Durchführungstipps
-{chr(10).join([f"- {s}" for s in adventure.execution_tips])}
-
-## Vorteil für Carla (2,5)
-{chr(10).join([f"- {s}" for s in adventure.toddler_benefits])}
-
-**Carla‑Tipp:** {adventure.carla_tip}
+{chr(10).join([f"- {s}" for s in plan.steps])}
 
 ## Sicherheit
-**Risiken:** {", ".join(adventure.risks) if adventure.risks else "—"}  
-**Gegenmaßnahmen:** {", ".join(adventure.mitigations) if adventure.mitigations else "—"}
+{chr(10).join([f"- {s}" for s in plan.safety_notes])}
+
+## Eltern-Kind-Impulse
+{chr(10).join([f"- {s}" for s in plan.parent_child_prompts])}
+
+## Varianten
+{chr(10).join([f"- {s}" for s in plan.variants])}
 """
 
 
+def generate_activity_plan(
+    cfg: AppConfig,
+    adventure: MicroAdventure,
+    criteria: ActivitySearchCriteria,
+    weather: Optional[WeatherSummary],
+) -> ActivityPlan:
+    if not cfg.enable_llm or not cfg.openai_api_key:
+        return _fallback_activity_plan(adventure, criteria, weather)
+
+    try:
+        from openai import OpenAI  # type: ignore
+    except Exception:
+        return _fallback_activity_plan(adventure, criteria, weather)
+
+    client = OpenAI(api_key=cfg.openai_api_key)
+
+    activity_request = _build_activity_request(adventure, criteria)
+    payload = {
+        "activity_request": activity_request.model_dump(mode="json"),
+        "criteria": criteria.model_dump(mode="json"),
+        "weather": weather.__dict__ if weather else None,
+        "adventure_seed": adventure.__dict__,
+    }
+
+    tools = [{"type": "web_search"}] if cfg.enable_web_search else []
+
+    def _call_openai() -> ActivityPlan:
+        resp = client.responses.parse(
+            model=cfg.openai_model,
+            input=[
+                {
+                    "role": "developer",
+                    "content": (
+                        "Create a practical bilingual-ready toddler activity plan. "
+                        "Always return valid structured output."
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": (
+                        "Build an ActivityPlan from this ActivityRequest and context. "
+                        "Steps must be concrete and safe."
+                        f"\n\nContext:\n{payload}"
+                    ),
+                },
+            ],
+            tools=cast(Any, tools),
+            text_format=ActivityPlan,
+        )
+        parsed: ActivityPlan | None = getattr(resp, "output_parsed", None)
+        if parsed is None:
+            raise ActivityGenerationError(
+                "No structured output parsed from response (output_parsed is None)."
+            )
+        return parsed
+
+    try:
+        return retry_with_backoff(max_attempts=3, base_delay=0.5)(_call_openai)()
+    except (ValidationError, Exception) as exc:
+        raise ActivityGenerationError(str(exc)) from exc
+
+
+# Backward compatible wrapper for scheduler/export flows.
 def generate_daily_markdown(
     cfg: AppConfig,
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
     weather: Optional[WeatherSummary],
 ) -> str:
-    """
-    Uses OpenAI Responses API if enabled, else fallback template.
-
-    Web search is enabled via cfg.enable_web_search (tool: web_search).
-    """
-    if not cfg.enable_llm or not cfg.openai_api_key:
-        return _fallback_daily_markdown(adventure, criteria, weather)
-
-    # Import lazily so the app still runs without openai installed/available.
-    try:
-        from openai import OpenAI  # type: ignore
-    except Exception:
-        return _fallback_daily_markdown(adventure, criteria, weather)
-
-    client = OpenAI(api_key=cfg.openai_api_key)
-
-    weather_payload = None
-    if weather:
-        weather_payload = {
-            "day": weather.day.isoformat(),
-            "temperature_max_c": weather.temperature_max_c,
-            "temperature_min_c": weather.temperature_min_c,
-            "precipitation_probability_max": weather.precipitation_probability_max,
-            "precipitation_sum_mm": weather.precipitation_sum_mm,
-            "windspeed_max_kmh": weather.windspeed_max_kmh,
-            "derived_tags": weather.derived_tags,
-        }
-
-    prompt = f"""
-Du planst ein Mikroabenteuer für ein Kleinkind (2,5 Jahre) in Düsseldorf (Fokus: Volksgarten/Südpark).
-
-Gib aus:
-1) Einen motivierenden, lustigen One‑Liner ganz am Anfang (1 Zeile).
-2) Einen konkreten Plan mit Startpunkt, Ablauf (Steps), Dauer, Distanz – praktisch, kleinkindgerecht.
-3) Vorbereitung + Packliste + Durchführungstipps (knapp aber hilfreich).
-4) Täglichen Tipp: Warum die Idee gut ist & Nutzen für Carla.
-5) Sicherheit: Gefahren + Reiseapotheke/Notfall‑Hinweise (realistisch, nicht panisch).
-6) Wenn Websuche aktiv ist: 1–2 lokale Mikro‑Tipps (z. B. ruhige Stelle/geeigneter Weg), aber ohne falsche Details zu erfinden.
-
-Schreibe auf Deutsch. Verwende klare Markdown‑Überschriften.
-
-Kriterien:
-{criteria.model_dump_json(indent=2)}
-
-Wetter (optional):
-{weather_payload}
-
-Abenteuer‑Seed:
-{adventure.__dict__}
-""".strip()
-
-    tools = [{"type": "web_search"}] if cfg.enable_web_search else []
-
-    try:
-        resp = client.responses.create(
-            model=cfg.openai_model,
-            input=[
-                {
-                    "role": "developer",
-                    "content": "Du bist ein zuverlässiger, vorsichtiger Outdoor‑Planer für Kleinkinder. Keine erfundenen Fakten.",
-                },
-                {"role": "user", "content": prompt},
-            ],
-            tools=tools,
-        )
-        text = getattr(resp, "output_text", None)
-        if isinstance(text, str) and text.strip():
-            return text.strip()
-        # last resort: stringify
-        return str(resp)
-    except Exception:
-        return _fallback_daily_markdown(adventure, criteria, weather)
+    plan = generate_activity_plan(cfg, adventure, criteria, weather)
+    return render_activity_plan_markdown(plan)

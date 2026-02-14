@@ -126,7 +126,7 @@ def _fetch_open_meteo_daily(
         else "https://api.open-meteo.com/v1/forecast"
     )
 
-    params = {
+    params: dict[str, str | float] = {
         "latitude": lat,
         "longitude": lon,
         "daily": ",".join(
