@@ -8,6 +8,8 @@
 - DE: Neue Material-Checklist (Haushaltsmaterialien) in Sidebar/Formular; ungecheckte Materialien (z. B. Papier) werden in Offline-Treffern und Plänen vermieden, inklusive Ersatzvorschlägen.
 - EN: Added a household materials checklist in sidebar/form; unchecked materials (e.g. paper) are avoided in offline matches and plans, including substitution hints.
 ### Geändert / Changed
+- DE: Streamlit-Secrets werden in `RuntimeSettings._streamlit_secret_settings()` jetzt auf Feldnamen (`openai_api_key`, `app_env`, `log_level`, `timezone`) gemappt; verschachtelte (`[openai].api_key`) und Top-Level-Secrets (`OPENAI_API_KEY`) werden weiterhin unterstützt.
+- EN: Streamlit secrets in `RuntimeSettings._streamlit_secret_settings()` are now mapped to field names (`openai_api_key`, `app_env`, `log_level`, `timezone`); nested (`[openai].api_key`) and top-level (`OPENAI_API_KEY`) secrets remain supported.
 - DE: Tagespläne ergänzen jetzt automatisch „Plan B“-Varianten je Aktivität (lower energy, higher energy, indoor swap, no materials), sodass pro Plan sofort alternative Durchführungswege verfügbar sind.
 - EN: Daily plans now automatically append “Plan B” variants per activity (lower energy, higher energy, indoor swap, no materials), so each plan immediately includes alternative execution paths.
 - DE: Docker-Compose mounted den lokalen `secrets/`-Ordner zusätzlich nach `/app/.streamlit`, damit `secrets/secrets.toml` als Streamlit-Secret-Quelle erkannt wird und der OpenAI-Key bei `ENABLE_LLM=true` wieder wie erwartet geladen wird (Konfig-Only Rollback, kein Git-Revert nötig).

@@ -70,21 +70,26 @@ class RuntimeSettings(BaseSettings):
     def _streamlit_secret_settings(cls) -> dict[str, Any]:
         merged: dict[str, Any] = {}
         try:
-            for key in (
-                "OPENAI_API_KEY",
-                "APP_ENV",
-                "LOG_LEVEL",
-                "TIMEZONE",
-            ):
-                value = st.secrets.get(key)
+            secret_mapping = {
+                "openai_api_key": "OPENAI_API_KEY",
+                "app_env": "APP_ENV",
+                "log_level": "LOG_LEVEL",
+                "timezone": "TIMEZONE",
+            }
+
+            for field_name, env_name in secret_mapping.items():
+                value = st.secrets.get(field_name)
+                if not (isinstance(value, str) and value.strip()):
+                    value = st.secrets.get(env_name)
+
                 if isinstance(value, str) and value.strip():
-                    merged[key] = value
+                    merged[field_name] = value
 
             openai = st.secrets.get("openai")
             if isinstance(openai, Mapping):
                 secret_key = openai.get("api_key")
                 if isinstance(secret_key, str) and secret_key.strip():
-                    merged["OPENAI_API_KEY"] = secret_key
+                    merged["openai_api_key"] = secret_key
         except StreamlitSecretNotFoundError:
             return {}
 

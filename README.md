@@ -75,7 +75,7 @@ streamlit run app.py
 api_key = "<dein-key>"
 ```
 
-Beim App-Start wird der Wert aus den Secrets automatisch als `OPENAI_API_KEY` gesetzt, falls die Umgebungsvariable fehlt.
+Beim App-Start wird der Wert aus den Secrets automatisch auf das Runtime-Feld `openai_api_key` gemappt (mit Fallback für alte Env-Key-Namen), falls die Umgebungsvariable fehlt.
 
 Für Docker-Setups liegt die Datei standardmäßig unter `secrets/secrets.toml`; `docker-compose.yml` mountet diesen Pfad zusätzlich nach `/app/.streamlit/secrets.toml`, damit Streamlit-Secrets zuverlässig erkannt werden.
 
