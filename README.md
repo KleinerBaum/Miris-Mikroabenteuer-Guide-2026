@@ -91,6 +91,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 
 ## Features
 - Neuer Offline-Modus (Sidebar-Toggle) für „Wetter & Veranstaltungen“: Die Vorschlagsgenerierung kann vollständig ohne LLM aus einer kuratierten Aktivitätsbibliothek (`data/activity_library.json`) erfolgen; Einträge sind nach Altersbereich, Domain-Tags, Materialien und Safety-Hinweisen strukturiert.
+- Offline-Auswahl nutzt jetzt Filter + Scoring, um die 3 besten Bibliothekseinträge zu priorisieren (Age-Fit, Dauer-Fit, Material-Präferenzen via `constraints` mit `material:<name>`), und verankert jede Empfehlung mit einer `library_id` im Begründungs-Payload.
 - UI-Texte sind jetzt vollständig auf Deutsch gehalten (keine englischen Textpassagen mehr in der Oberfläche).
 - Vor jedem LLM-Aufruf und vor der Ausgabe wird jetzt die OpenAI-Moderation (`omni-moderation-latest`) ausgeführt; bei `flagged=true` blockt die App deterministisch mit einer sicheren DE/EN-Meldung und protokolliert nur metadatenbasierte Events ohne PII.
 - OpenAI-Structured-Output-Schema ist jetzt Strict-Mode-kompatibel: URL-Felder in den Activity-Ergebnissen werden als validierte Strings modelliert (ohne `format: "uri"`), um API-Schemafehler zu vermeiden.

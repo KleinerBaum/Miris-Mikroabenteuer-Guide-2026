@@ -6,6 +6,8 @@
 ## Unreleased
 
 ### Geändert / Changed
+- DE: Offline-Bibliotheksauswahl priorisiert jetzt deterministisch die 3 besten Aktivitäten mit Filter + Scoring (Age-Fit, Dauer-Fit, Material-Präferenz aus `constraints` via `material:<name>`); jeder Vorschlag enthält `library_id` im Grund-Payload für nachvollziehbare Grounding-Herkunft.
+- EN: Offline library selection now deterministically prioritizes the top 3 activities using filters + scoring (age fit, duration fit, material preference from `constraints` via `material:<name>`); each suggestion includes `library_id` in the reason payload for grounded provenance.
 - DE: Neue kuratierte Offline-Aktivitätsbibliothek `data/activity_library.json` ergänzt (Tags für Altersbereich, Domain, Materialien, Safety-Hinweise) und in die Event-Suche integriert.
 - EN: Added a curated offline activity library `data/activity_library.json` (tags for age range, domain, materials, safety notes) and integrated it into event search.
 - DE: Neue Sidebar-Option „Offline-Modus (ohne LLM) / Offline mode (no LLM)“: Bei Aktivierung werden Vorschläge deterministisch aus der lokalen Bibliothek erzeugt, ohne OpenAI-Aufruf.

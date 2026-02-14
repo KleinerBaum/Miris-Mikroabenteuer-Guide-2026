@@ -38,3 +38,39 @@ def test_offline_suggestions_return_results_without_llm() -> None:
     assert suggestions
     assert not warnings
     assert all("Offline-Bibliothek Treffer" in s.reason_de_en for s in suggestions)
+
+
+def test_offline_selection_returns_top_3_grounded_library_matches() -> None:
+    criteria = _criteria().model_copy(
+        update={
+            "time_window": TimeWindow(start=time(9, 0), end=time(11, 0)),
+            "constraints": ["material:helm", "material:wasserflasche"],
+        }
+    )
+
+    suggestions, warnings = suggest_activities_offline(criteria, child_age_years=8.0)
+
+    assert not warnings
+    assert len(suggestions) == 3
+
+    expected_top_titles = [
+        "Mini-Radroute / Mini Bike Loop",
+        "Natur-Bingo im Park / Nature Bingo in the Park",
+        "Markt-Mathe-Rallye / Market Math Hunt",
+    ]
+    assert [suggestion.title for suggestion in suggestions] == expected_top_titles
+    assert all('"library_id":' in suggestion.reason_de_en for suggestion in suggestions)
+
+
+def test_offline_selection_filters_out_age_and_duration_mismatches() -> None:
+    criteria = _criteria().model_copy(
+        update={
+            "time_window": TimeWindow(start=time(9, 0), end=time(9, 30)),
+            "max_suggestions": 5,
+        }
+    )
+
+    suggestions, warnings = suggest_activities_offline(criteria, child_age_years=11.0)
+
+    assert not suggestions
+    assert warnings

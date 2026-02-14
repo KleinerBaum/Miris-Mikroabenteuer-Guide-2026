@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -71,7 +72,53 @@ def _score_item(
     topic_overlap = set(criteria.topics).intersection(set(item.domain_tags))
     score += min(2.0, 0.6 * len(topic_overlap))
 
+    preferred_materials = _extract_material_preferences(criteria)
+    if preferred_materials:
+        item_materials_normalized = {
+            _normalize_text(material) for material in item.materials
+        }
+        material_matches = preferred_materials.intersection(item_materials_normalized)
+        if material_matches:
+            score += min(2.0, 0.8 * len(material_matches))
+        else:
+            score -= 1.5
+
+    # Prefer shorter activities when multiple options fit the time window.
+    if criteria.available_minutes > 0:
+        duration_ratio = item.duration_min / criteria.available_minutes
+        score += max(0.0, 1.0 - duration_ratio)
+
     return score
+
+
+def _normalize_text(value: str) -> str:
+    return re.sub(r"\s+", " ", value.strip().casefold())
+
+
+def _extract_material_preferences(criteria: ActivitySearchCriteria) -> set[str]:
+    preferences: set[str] = set()
+    for constraint in criteria.constraints:
+        cleaned = _normalize_text(constraint)
+        if not cleaned:
+            continue
+        if cleaned.startswith("material:"):
+            material = cleaned.split(":", maxsplit=1)[1].strip()
+            if material:
+                preferences.add(material)
+    return preferences
+
+
+def _is_filtered_out(
+    item: ActivityLibraryItem,
+    criteria: ActivitySearchCriteria,
+    *,
+    child_age_years: float,
+) -> bool:
+    if not (item.age_min_years <= child_age_years <= item.age_max_years):
+        return True
+    if item.duration_min > criteria.available_minutes:
+        return True
+    return False
 
 
 def suggest_activities_offline(
@@ -80,8 +127,14 @@ def suggest_activities_offline(
     child_age_years: float = 6.0,
 ) -> tuple[list[ActivitySuggestion], list[str]]:
     items = load_activity_library()
+    filtered_items = [
+        item
+        for item in items
+        if not _is_filtered_out(item, criteria, child_age_years=child_age_years)
+    ]
+
     scored = sorted(
-        items,
+        filtered_items,
         key=lambda item: _score_item(item, criteria, child_age_years=child_age_years),
         reverse=True,
     )
@@ -92,10 +145,10 @@ def suggest_activities_offline(
     for item in scored:
         if len(suggestions) >= criteria.max_suggestions:
             break
-        if _score_item(item, criteria, child_age_years=child_age_years) < 0:
-            continue
         reason_payload: dict[str, Any] = {
+            "library_id": item.id,
             "age": f"{item.age_min_years}-{item.age_max_years}",
+            "duration_min": item.duration_min,
             "domain_tags": item.domain_tags,
             "materials": item.materials,
             "safety_notes": item.safety_notes,
