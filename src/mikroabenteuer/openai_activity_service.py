@@ -22,6 +22,12 @@ from .pii_redaction import redact_pii
 from .retry import retry_with_backoff
 
 
+def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
+    if len(text) <= max_chars:
+        return text, False
+    return text[:max_chars], True
+
+
 def _build_system_instructions() -> str:
     # Keep it short; schema enforcement happens via structured outputs.
     return (
@@ -93,6 +99,8 @@ def suggest_activities(
     # Optional: EU endpoint support (e.g. "https://eu.api.openai.com/v1")
     base_url: str | None = None,
     timeout_s: float = 45.0,
+    max_input_chars: int = 4000,
+    max_output_tokens: int = 800,
     # Use existing retry_with_backoff; keep SDK retries off to avoid double retry.
     sdk_max_retries: int = 0,
     # Orchestrator-provided context (recommended)
@@ -155,7 +163,11 @@ def suggest_activities(
         ]
 
     sys_msg = redact_pii(_build_system_instructions())
-    user_msg = _build_user_prompt(criteria, weather, strategy)
+    raw_user_msg = _build_user_prompt(criteria, weather, strategy)
+    user_msg, truncated = _truncate_text_with_limit(
+        raw_user_msg,
+        max_chars=max_input_chars,
+    )
 
     def _call_openai() -> ActivitySuggestionResult:
         if moderate_text(client, text=user_msg, stage="input"):
@@ -170,6 +182,7 @@ def suggest_activities(
         # responses.parse enforces schema via structured outputs :contentReference[oaicite:6]{index=6}
         resp = client.responses.parse(
             model=model,
+            max_output_tokens=max_output_tokens,
             input=[
                 {"role": "system", "content": sys_msg},
                 {"role": "user", "content": user_msg},
@@ -188,6 +201,10 @@ def suggest_activities(
         if parsed is None:
             raise RuntimeError(
                 "No structured output parsed from response (output_parsed is None)."
+            )
+        if truncated:
+            parsed.warnings_de_en.append(
+                "Hinweis / Notice: Eingabe wurde gekürzt, um das Sicherheitslimit einzuhalten. / Input was truncated to enforce the safety limit."
             )
         if moderate_text(
             client,

@@ -134,6 +134,11 @@ export DAILY_MAIL_TO="you@example.com"
 export DAILY_MAIL_FROM="you@example.com"
 export GOOGLE_CLIENT_SECRET_FILE="secrets/client_secret.json"
 export GOOGLE_TOKEN_FILE="secrets/token.json"
+# LLM safety/rate limits
+export MAX_INPUT_CHARS="4000"
+export MAX_OUTPUT_TOKENS="800"
+export TIMEOUT_S="45"
+export MAX_REQUESTS_PER_SESSION="10"
 ```
 
 Erforderliche Google Redirect URI (Production):

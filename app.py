@@ -159,6 +159,36 @@ def _t(lang: Language, de: str, en: str) -> str:
     return de
 
 
+def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
+    if len(text) <= max_chars:
+        return text, False
+    return text[:max_chars], True
+
+
+def _consume_request_budget(cfg: AppConfig, *, lang: Language, scope: str) -> bool:
+    count = int(st.session_state.get("request_count", 0))
+    if count >= cfg.max_requests_per_session:
+        st.warning(
+            _t(
+                lang,
+                f"Session-Limit erreicht ({cfg.max_requests_per_session} Anfragen). Bitte Seite neu laden. / Session limit reached ({cfg.max_requests_per_session} requests). Please reload the page.",
+                "",
+            )
+        )
+        return False
+
+    st.session_state["request_count"] = count + 1
+    current = int(st.session_state["request_count"])
+    st.caption(
+        _t(
+            lang,
+            f"Anfragebudget {current}/{cfg.max_requests_per_session} ({scope}). / Request budget {current}/{cfg.max_requests_per_session} ({scope}).",
+            "",
+        )
+    )
+    return True
+
+
 def inject_custom_styles(background_path: Path) -> None:
     if not background_path.exists():
         return
@@ -348,6 +378,28 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
     target_date = cast(date, st.session_state[f"{prefix}_date"])
     start_time = cast(time, st.session_state[f"{prefix}_start_time"])
     available_minutes = int(st.session_state[f"{prefix}_available_minutes"])
+
+    goals = list(cast(list[str], st.session_state[f"{prefix}_goals"]))
+    constraints = list(cast(list[str], st.session_state[f"{prefix}_constraints"]))
+    if prefix == "form":
+        goals_optional = _optional_csv_items(
+            str(st.session_state.get("form_goals_optional", ""))
+        )
+        constraints_optional = _optional_csv_items(
+            str(st.session_state.get("form_constraints_optional", ""))
+        )
+        extra_context_raw = str(st.session_state.get("form_extra_context", ""))
+        extra_context, _ = _truncate_text_with_limit(
+            extra_context_raw,
+            max_chars=int(st.session_state.get("cfg_max_input_chars", 4000)),
+        )
+        goals = list(dict.fromkeys(goals + goals_optional))
+        constraints = list(dict.fromkeys(constraints + constraints_optional))
+        if extra_context:
+            constraints = list(
+                dict.fromkeys(constraints + [f"Kontext / Context: {extra_context}"])
+            )
+
     return ActivitySearchCriteria(
         plz=str(st.session_state[f"{prefix}_plz"]),
         radius_km=float(st.session_state[f"{prefix}_radius_km"]),
@@ -369,8 +421,8 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
             Literal["indoor", "outdoor", "mixed"],
             st.session_state[f"{prefix}_location_preference"],
         ),
-        goals=list(cast(list[str], st.session_state[f"{prefix}_goals"])),
-        constraints=list(cast(list[str], st.session_state[f"{prefix}_constraints"])),
+        goals=goals,
+        constraints=constraints,
     )
 
 
@@ -568,6 +620,12 @@ def _generate_activity_plan_with_retry(
     wait_s = 1.0
     last_err: Optional[Exception] = None
 
+    if not _consume_request_budget(cfg, lang=lang, scope="activity-plan"):
+        cfg_payload = {**cfg.__dict__, "enable_llm": False}
+        return generate_activity_plan(
+            cfg.__class__(**cfg_payload), picked, criteria, weather
+        )
+
     cfg_payload = {**cfg.__dict__}
     if not st.session_state.get("use_ai", False):
         cfg_payload["enable_llm"] = False
@@ -760,6 +818,9 @@ class OpenAIActivityService:
                 criteria,
                 mode="genau" if mode == "genau" else "schnell",
                 base_url=os.getenv("OPENAI_BASE_URL") or None,
+                timeout_s=self.cfg.timeout_s,
+                max_input_chars=self.cfg.max_input_chars,
+                max_output_tokens=self.cfg.max_output_tokens,
                 weather=event_weather,
             )
             return {
@@ -799,7 +860,17 @@ class ActivityOrchestrator:
 
         if on_status:
             on_status("Veranstaltungen werden recherchiert …")
-        event_result = self.openai_service.search_events(criteria, weather, mode)
+        if not _consume_request_budget(self.cfg, lang="DE", scope="events-search"):
+            event_result = {
+                "suggestions": [],
+                "sources": [],
+                "warnings": [
+                    "Session-Limit für API-Anfragen erreicht. / Session request limit reached."
+                ],
+                "errors": [],
+            }
+        else:
+            event_result = self.openai_service.search_events(criteria, weather, mode)
         warnings.extend(event_result.get("warnings", []))
         warnings.extend(event_result.get("errors", []))
 
@@ -934,6 +1005,19 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 key="form_constraints_optional",
                 max_chars=80,
             )
+            st.text_area(
+                _t(
+                    lang,
+                    "Zusätzlicher Kontext / Extra context",
+                    "Zusätzlicher Kontext / Extra context",
+                ),
+                key="form_extra_context",
+                help=_t(
+                    lang,
+                    f"Wird auf {cfg.max_input_chars} Zeichen begrenzt. / Limited to {cfg.max_input_chars} characters.",
+                    "",
+                ),
+            )
 
         mode = st.radio(
             _t(lang, "Genauigkeit", ""),
@@ -955,24 +1039,15 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
         else:
             st.session_state["form_location_preference"] = "mixed"
 
-        goals_optional = _optional_csv_items(
-            str(st.session_state.get("form_goals_optional", ""))
-        )
-        constraints_optional = _optional_csv_items(
-            str(st.session_state.get("form_constraints_optional", ""))
-        )
-        st.session_state["form_goals"] = list(
-            dict.fromkeys(
-                list(cast(list[str], st.session_state.get("form_goals", [])))
-                + goals_optional
+        extra_context_raw = str(st.session_state.get("form_extra_context", ""))
+        if len(extra_context_raw) > cfg.max_input_chars:
+            st.warning(
+                _t(
+                    lang,
+                    f"Zusätzlicher Kontext wird bei Anfrage auf {cfg.max_input_chars} Zeichen gekürzt. / Extra context will be truncated to {cfg.max_input_chars} characters when requested.",
+                    "",
+                )
             )
-        )
-        st.session_state["form_constraints"] = list(
-            dict.fromkeys(
-                list(cast(list[str], st.session_state.get("form_constraints", [])))
-                + constraints_optional
-            )
-        )
 
         submitted = st.form_submit_button(
             _t(lang, "Wetter und Veranstaltungen laden", "")
@@ -1050,6 +1125,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
 def main() -> None:
     cfg = load_config()
+    st.session_state["cfg_max_input_chars"] = int(cfg.max_input_chars)
     inject_custom_styles(ROOT / "Hintergrund.png")
 
     default_profile = FamilyProfile(

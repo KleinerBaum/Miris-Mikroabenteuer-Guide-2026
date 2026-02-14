@@ -24,6 +24,12 @@ class ActivityGenerationError(RuntimeError):
     """Raised when structured activity generation fails."""
 
 
+def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
+    if len(text) <= max_chars:
+        return text, False
+    return text[:max_chars], True
+
+
 def _build_activity_request(
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
@@ -235,7 +241,7 @@ def generate_activity_plan(
             return _safe_fallback_plan(activity_request)
         return plan
 
-    client = OpenAI(api_key=cfg.openai_api_key)
+    client = OpenAI(api_key=cfg.openai_api_key, timeout=cfg.timeout_s)
 
     payload = {
         "activity_request": activity_request.model_dump(mode="json"),
@@ -247,18 +253,23 @@ def generate_activity_plan(
     tools = [{"type": "web_search"}] if cfg.enable_web_search else []
 
     def _call_openai() -> ActivityPlan:
-        user_content = redact_pii(
+        raw_user_content = redact_pii(
             (
                 "Build an ActivityPlan from this ActivityRequest and context. "
                 "Steps must be concrete and safe."
                 f"\n\nContext:\n{payload}"
             )
         )
+        user_content, truncated = _truncate_text_with_limit(
+            raw_user_content,
+            max_chars=cfg.max_input_chars,
+        )
         if moderate_text(client, text=user_content, stage="input"):
             return _blocked_activity_plan()
 
         resp = client.responses.parse(
             model=cfg.openai_model,
+            max_output_tokens=cfg.max_output_tokens,
             input=[
                 {
                     "role": "developer",
@@ -276,6 +287,13 @@ def generate_activity_plan(
             text_format=ActivityPlan,
         )
         parsed: ActivityPlan | None = getattr(resp, "output_parsed", None)
+        if truncated:
+            parsed_summary_prefix = (
+                "Hinweis / Notice: Eingabe wurde gekürzt, um das Sicherheitslimit einzuhalten. "
+                "/ Input was truncated to enforce the safety limit. "
+            )
+            if parsed is not None:
+                parsed.summary = f"{parsed_summary_prefix}{parsed.summary}"
         if parsed is None:
             raise ActivityGenerationError(
                 "No structured output parsed from response (output_parsed is None)."
