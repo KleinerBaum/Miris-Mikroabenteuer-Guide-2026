@@ -68,6 +68,10 @@ streamlit run app.py
 ## Konfiguration
 - OpenAI/LLM ist standardmäßig aktiviert (`ENABLE_LLM` default: `true`). Bei Bedarf kann es mit `ENABLE_LLM=0` deaktiviert werden.
 - OpenAI API-Schlüssel wird bevorzugt aus `OPENAI_API_KEY` gelesen.
+- OpenAI-Modelle sind jetzt pro Flow getrennt konfigurierbar:
+  - `OPENAI_MODEL_PLAN` (Plan-Generierung, Default: `gpt-4o-mini`)
+  - `OPENAI_MODEL_EVENTS_FAST` (Eventsuche „schnell“, Default: `gpt-4o-mini`)
+  - `OPENAI_MODEL_EVENTS_ACCURATE` (Eventsuche „genau“, Default: `o3-mini`)
 - Fallback: Streamlit Secrets in `.streamlit/secrets.toml` im Format:
 
 ```toml

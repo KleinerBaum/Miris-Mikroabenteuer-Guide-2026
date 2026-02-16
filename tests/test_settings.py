@@ -63,3 +63,16 @@ def test_runtime_settings_reads_openai_top_level_secret(monkeypatch) -> None:
     settings = RuntimeSettings()
 
     assert settings.openai_api_key == "sk-test-top-level"
+
+
+def test_runtime_settings_model_defaults(monkeypatch) -> None:
+    monkeypatch.setenv("ENABLE_LLM", "0")
+    monkeypatch.delenv("OPENAI_MODEL_PLAN", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL_EVENTS_FAST", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL_EVENTS_ACCURATE", raising=False)
+
+    settings = RuntimeSettings()
+
+    assert settings.openai_model_plan == "gpt-4o-mini"
+    assert settings.openai_model_events_fast == "gpt-4o-mini"
+    assert settings.openai_model_events_accurate == "o3-mini"

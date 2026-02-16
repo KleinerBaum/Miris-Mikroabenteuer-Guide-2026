@@ -26,9 +26,11 @@ class _FakeResponses:
     def __init__(self, behavior: list[object]) -> None:
         self._behavior = behavior
         self.calls = 0
+        self.last_parse_kwargs: dict[str, object] = {}
 
-    def parse(self, **_: object) -> object:
+    def parse(self, **kwargs: object) -> object:
         self.calls += 1
+        self.last_parse_kwargs = kwargs
         current = self._behavior.pop(0)
         if isinstance(current, Exception):
             raise current
@@ -148,3 +150,62 @@ def test_generate_activity_plan_returns_safe_fallback_after_retryable_failures(
 
     assert isinstance(plan, ActivityPlan)
     assert "Safe fallback plan" in plan.title
+
+
+def test_suggest_activities_uses_configured_event_models(monkeypatch) -> None:
+    from src.mikroabenteuer import openai_activity_service as module
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(output_parsed=module.ActivitySuggestionResult())
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    suggest_activities(
+        _build_criteria(),
+        mode="genau",
+        model_fast="event-fast-model",
+        model_accurate="event-accurate-model",
+    )
+
+    assert _FakeOpenAI.last_client is not None
+    assert (
+        _FakeOpenAI.last_client.responses.last_parse_kwargs["model"]
+        == "event-accurate-model"
+    )
+
+
+def test_generate_activity_plan_uses_configured_plan_model(monkeypatch) -> None:
+    from src.mikroabenteuer import openai_gen as module
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(
+            output_parsed=module.ActivityPlan(
+                title="Test",
+                summary="Test",
+                steps=["Schritt"],
+                safety_notes=["Hinweis"],
+                parent_child_prompts=["Say: x Do: y"],
+                variants=["Plan B"],
+                supports=["Sprache / Language"],
+            )
+        )
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    cfg = replace(
+        load_config(),
+        enable_llm=True,
+        openai_api_key="test-key",
+        openai_model_plan="plan-model-x",
+    )
+
+    generate_activity_plan(cfg, _build_micro_adventure(), _build_criteria(), None)
+
+    assert _FakeOpenAI.last_client is not None
+    assert (
+        _FakeOpenAI.last_client.responses.last_parse_kwargs["model"] == "plan-model-x"
+    )

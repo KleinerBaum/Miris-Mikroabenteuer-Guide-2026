@@ -45,3 +45,27 @@ def test_limit_values_are_sanitized(monkeypatch) -> None:
     assert cfg.max_output_tokens == 100
     assert cfg.timeout_s == 5.0
     assert cfg.max_requests_per_session == 1
+
+
+def test_openai_model_defaults_are_loaded(monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_MODEL_PLAN", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL_EVENTS_FAST", raising=False)
+    monkeypatch.delenv("OPENAI_MODEL_EVENTS_ACCURATE", raising=False)
+
+    cfg = load_config()
+
+    assert cfg.openai_model_plan == "gpt-4o-mini"
+    assert cfg.openai_model_events_fast == "gpt-4o-mini"
+    assert cfg.openai_model_events_accurate == "o3-mini"
+
+
+def test_openai_model_defaults_can_be_overridden(monkeypatch) -> None:
+    monkeypatch.setenv("OPENAI_MODEL_PLAN", "gpt-x-plan")
+    monkeypatch.setenv("OPENAI_MODEL_EVENTS_FAST", "gpt-x-fast")
+    monkeypatch.setenv("OPENAI_MODEL_EVENTS_ACCURATE", "gpt-x-accurate")
+
+    cfg = load_config()
+
+    assert cfg.openai_model_plan == "gpt-x-plan"
+    assert cfg.openai_model_events_fast == "gpt-x-fast"
+    assert cfg.openai_model_events_accurate == "gpt-x-accurate"

@@ -5,6 +5,8 @@
 
 ## Unreleased
 
+- DE: OpenAI-Modell-Konfiguration vereinheitlicht: statt Hardcoding nutzen Plan- und Event-Flow jetzt separate App-Config-Felder (`OPENAI_MODEL_PLAN`, `OPENAI_MODEL_EVENTS_FAST`, `OPENAI_MODEL_EVENTS_ACCURATE`).
+- EN: Unified OpenAI model configuration: instead of hardcoded values, plan and event flows now use separate app config fields (`OPENAI_MODEL_PLAN`, `OPENAI_MODEL_EVENTS_FAST`, `OPENAI_MODEL_EVENTS_ACCURATE`).
 - DE: Ergebnisse in „Wetter & Veranstaltungen“ bleiben jetzt über Reruns erhalten: Der letzte Such-`payload` wird in `st.session_state["events_payload"]` samt `events_fingerprint` gespeichert; zusätzlich gibt es Buttons für „Neu suchen“ und „Ergebnisse löschen“.
 - EN: Results in “Weather & Events” now persist across reruns: the latest search `payload` is stored in `st.session_state["events_payload"]` with an `events_fingerprint`; added buttons for “Search again” and “Clear results”.
 

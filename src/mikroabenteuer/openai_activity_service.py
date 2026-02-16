@@ -90,9 +90,13 @@ Output-Anforderungen:
     )
 
 
-def _select_model(mode: Literal["schnell", "genau"]) -> str:
-    # As requested: fast= gpt-4o-mini, accurate= o3-mini
-    return "gpt-4o-mini" if mode == "schnell" else "o3-mini"
+def _select_model(
+    mode: Literal["schnell", "genau"],
+    *,
+    model_fast: str,
+    model_accurate: str,
+) -> str:
+    return model_fast if mode == "schnell" else model_accurate
 
 
 def _is_retryable_openai_error(exc: Exception) -> bool:
@@ -139,6 +143,8 @@ def suggest_activities(
     timeout_s: float = 45.0,
     max_input_chars: int = 4000,
     max_output_tokens: int = 800,
+    model_fast: str = "gpt-4o-mini",
+    model_accurate: str = "o3-mini",
     # Use existing retry_with_backoff; keep SDK retries off to avoid double retry.
     sdk_max_retries: int = 0,
     # Orchestrator-provided context (recommended)
@@ -155,7 +161,11 @@ def suggest_activities(
     if not api_key:
         return _template_fallback_result(weather)
 
-    model = _select_model(mode)
+    model = _select_model(
+        mode,
+        model_fast=model_fast,
+        model_accurate=model_accurate,
+    )
 
     # OpenAI SDK import is local to keep module import cheap in Streamlit
     try:

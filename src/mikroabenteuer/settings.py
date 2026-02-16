@@ -37,7 +37,9 @@ class RuntimeSettings(BaseSettings):
     enable_llm: bool = True
     enable_web_search: bool = False
     openai_api_key: str | None = Field(default=None, min_length=1)
-    openai_model: str = "gpt-5-mini"
+    openai_model_plan: str = "gpt-4o-mini"
+    openai_model_events_fast: str = "gpt-4o-mini"
+    openai_model_events_accurate: str = "o3-mini"
     max_input_chars: int = 4000
     max_output_tokens: int = 800
     timeout_s: float = 45.0
