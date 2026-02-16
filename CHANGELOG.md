@@ -1,196 +1,52 @@
+
+---
+
+```md
+# CHANGELOG.md
+
 # Changelog
 
-- DE: Im Bereich "Mikroabenteuer des Tages 🌿" bleibt standardmäßig nur Kopfzeile, Titel, Ort/Dauer/Distanz und Wetter sichtbar; der übrige Inhalt ist per Details-Expander eingeklappt.
-- EN: In the "Mikroabenteuer des Tages 🌿" section, only headline, title, location/duration/distance, and weather remain visible by default; the remaining content is collapsed in a details expander.
+All notable changes to this project will be documented in this file.
+
+Format inspired by “Keep a Changelog”.  
+Language: We keep entries short and typically bilingual (DE/EN) when user-facing behavior changes.
+
+---
 
 ## Unreleased
 
-- DE: Sidebar-Elemente wurden in vier Gruppen neu organisiert; zentrale „(top)“-Felder bleiben sichtbar, zusätzliche Optionen liegen in Expandern.
-- EN: Sidebar elements were reorganized into four groups; key “(top)” fields stay visible while additional options are now inside expanders.
-- DE: Die Schalter „Wetter berücksichtigen“ und „KI-Text (OpenAI) nutzen“ werden in der Sidebar nicht mehr angezeigt.
-- EN: The “Consider weather” and “Use AI text (OpenAI)” toggles are no longer shown in the sidebar.
+### Planned / Geplant
+- **Architektur-Konsolidierung (Option A):** V1 (`/mikroabenteuer`) nach `legacy/` verschieben, V2 als einziges Paket führen und Importpfad auf standardmäßiges `src`‑Layout umstellen (weg von `src.mikroabenteuer.*`).
+- **Streamlit State Hardening:** Kriterien-State sauber trennen (Sidebar vs. Wetter/Events‑Form), Event/Plan Ergebnisse per Fingerprint in `st.session_state` cachen.
+- **Config Cleanup:** Environment variable naming vereinheitlichen (Google OAuth / Settings vs. Config), Hardcoded Modell-Auswahl in Events in Config überführen.
 
-- DE: Performance-Polishes ergänzt: `load_activity_library()` nutzt nun ein In-Memory-Cache (`lru_cache`), Wetterdaten in `_get_weather` haben eine TTL von 30 Minuten, und das Base64-Encoding des Hintergrundbildes wird gecacht.
-- EN: Added performance polishes: `load_activity_library()` now uses an in-memory cache (`lru_cache`), weather data in `_get_weather` uses a 30-minute TTL, and background image base64 encoding is cached.
+### Known Issues / Bekannte Punkte
+- Doppelter Codepfad (V1/V2) erhöht Wartungsaufwand und sorgt für Import‑Konfusion.
+- In der aktuellen UI können Reruns zu unnötigen Neuberechnungen führen (geplant: Fingerprint‑Caching).
 
-- DE: OpenAI-Modell-Konfiguration vereinheitlicht: statt Hardcoding nutzen Plan- und Event-Flow jetzt separate App-Config-Felder (`OPENAI_MODEL_PLAN`, `OPENAI_MODEL_EVENTS_FAST`, `OPENAI_MODEL_EVENTS_ACCURATE`).
-- EN: Unified OpenAI model configuration: instead of hardcoded values, plan and event flows now use separate app config fields (`OPENAI_MODEL_PLAN`, `OPENAI_MODEL_EVENTS_FAST`, `OPENAI_MODEL_EVENTS_ACCURATE`).
-- DE: Ergebnisse in „Wetter & Veranstaltungen“ bleiben jetzt über Reruns erhalten: Der letzte Such-`payload` wird in `st.session_state["events_payload"]` samt `events_fingerprint` gespeichert; zusätzlich gibt es Buttons für „Neu suchen“ und „Ergebnisse löschen“.
-- EN: Results in “Weather & Events” now persist across reruns: the latest search `payload` is stored in `st.session_state["events_payload"]` with an `events_fingerprint`; added buttons for “Search again” and “Clear results”.
+---
 
-- DE: Sicherheitsvalidierung für Scherenmaterial konsistent gemacht: „scissors/Schere“ wird nicht mehr pauschal geblockt. Für Kinder unter 6 Jahren bleibt Schere nur mit explizitem Kontext „Kinderschere“ + „unter Aufsicht“ erlaubt; sonst greift weiterhin der Safety-Block/Fallback.
-- EN: Made scissor handling in safety validation consistent: “scissors/Schere” is no longer blocked unconditionally. For children under 6, scissors are only allowed with explicit “safety scissors” + “under supervision” context; otherwise the safety block/fallback still applies.
+## 0.1.0 — 2026-02-14
 
-- DE: Alterswert des Kindes wird jetzt schema-konsistent über `ActivitySearchCriteria.child_age_years` propagiert (UI-Adapter, Recommender, OpenAI-Request), sodass Daily-Auswahl und Safety-Prüfung denselben Wert nutzen.
-- EN: Child age is now propagated consistently via `ActivitySearchCriteria.child_age_years` (UI adapter, recommender, OpenAI request), so daily selection and safety validation use the same value.
+### Added / Hinzugefügt
+- Streamlit App `app.py` für Mikroabenteuer-Auswahl, Tagesansicht und Exporte.
+- V2 Package `src/mikroabenteuer/*` mit:
+  - kanonischen Pydantic Modellen (`ActivitySearchCriteria`, `ActivityPlan`, …)
+  - Seed-Bibliothek (`data_seed.py`) + Recommender (`recommender.py`)
+  - Wetter via Open‑Meteo (ohne API-Key) (`weather.py`)
+  - Offline-Activity-Library (`data/activity_library.json`) + Offline‑Scoring (`activity_library.py`)
+  - OpenAI Responses API Structured Output + Safety Guardrails (`openai_gen.py`)
+  - Event-/Activity Web‑Recherche via `web_search` Tool (`openai_activity_service.py`, `activity_orchestrator.py`)
+  - PII‑Redaction + Moderation (`pii_redaction.py`, `moderation.py`)
+  - Plan reports (hash+reason, no PII) (`plan_reports.py`)
+  - Exporte: Markdown/JSON/ICS + HTML Email Template (`ics.py`, `email_templates.py`)
+  - Google OAuth Integrationen (Gmail/Calendar) (`google_auth.py`, `gmail_api.py`, `gcal_api.py`)
+  - Daily job runner (`scheduler.py`)
 
-- DE: Kritischen UX/Logik-Fehler in „Wetter & Veranstaltungen“ behoben: Sidebar- und Formularwerte nutzen jetzt getrennte States (`criteria_daily`/`criteria_events`), sodass Form-Submits nicht mehr durch Sidebar-Reruns überschrieben werden.
-- EN: Fixed a critical UX/logic issue in “Weather & Events”: sidebar and form values now use separate states (`criteria_daily`/`criteria_events`), so form submissions are no longer overwritten on sidebar reruns.
+### Changed / Geändert
+- CI via GitHub Actions (`.github/workflows/ci.yml`) mit ruff + pytest + import‑smoke.
+- Pre-commit hooks inkl. detect-secrets baseline (`.pre-commit-config.yaml`, `.secrets.baseline`).
 
-- DE: Neue Material-Checklist (Haushaltsmaterialien) in Sidebar/Formular; ungecheckte Materialien (z. B. Papier) werden in Offline-Treffern und Plänen vermieden, inklusive Ersatzvorschlägen.
-- EN: Added a household materials checklist in sidebar/form; unchecked materials (e.g. paper) are avoided in offline matches and plans, including substitution hints.
-### Geändert / Changed
-- DE: Streamlit-Secrets werden in `RuntimeSettings._streamlit_secret_settings()` jetzt auf Feldnamen (`openai_api_key`, `app_env`, `log_level`, `timezone`) gemappt; verschachtelte (`[openai].api_key`) und Top-Level-Secrets (`OPENAI_API_KEY`) werden weiterhin unterstützt.
-- EN: Streamlit secrets in `RuntimeSettings._streamlit_secret_settings()` are now mapped to field names (`openai_api_key`, `app_env`, `log_level`, `timezone`); nested (`[openai].api_key`) and top-level (`OPENAI_API_KEY`) secrets remain supported.
-- DE: Tagespläne ergänzen jetzt automatisch „Plan B“-Varianten je Aktivität (lower energy, higher energy, indoor swap, no materials), sodass pro Plan sofort alternative Durchführungswege verfügbar sind.
-- EN: Daily plans now automatically append “Plan B” variants per activity (lower energy, higher energy, indoor swap, no materials), so each plan immediately includes alternative execution paths.
-- DE: Docker-Compose mounted den lokalen `secrets/`-Ordner zusätzlich nach `/app/.streamlit`, damit `secrets/secrets.toml` als Streamlit-Secret-Quelle erkannt wird und der OpenAI-Key bei `ENABLE_LLM=true` wieder wie erwartet geladen wird (Konfig-Only Rollback, kein Git-Revert nötig).
-- EN: Docker Compose now mounts the local `secrets/` folder additionally to `/app/.streamlit`, so `secrets/secrets.toml` is recognized as a Streamlit secret source and the OpenAI key is loaded again as expected when `ENABLE_LLM=true` (config-only rollback, no git revert required).
-- DE: Neuer Plan-Modus „Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)“ in der Sidebar ergänzt. Tagespläne können jetzt als kindgeführtes, zeitlich begrenztes 4-Schritte-Skript (Describe, Imitate, Praise, Active listening) mit Minimal-Vorbereitung ausgegeben werden.
-- EN: Added a new sidebar plan mode “Parent script (short, repeatable)”. Daily plans can now be rendered as a child-led, timeboxed 4-step script (Describe, Imitate, Praise, Active listening) with minimal prep.
-- DE: Ziele wurden auf feste Entwicklungs-Domänen umgestellt (`gross_motor`, `fine_motor`, `language`, `social_emotional`, `sensory`, `cognitive`). Die UI erlaubt jetzt 1–2 Ziele und jeder Tagesplan zeigt verpflichtend „What this supports / Was das fördert“ passend zu den gewählten Zielen.
-- EN: Goals were migrated to fixed development domains (`gross_motor`, `fine_motor`, `language`, `social_emotional`, `sensory`, `cognitive`). The UI now allows selecting 1–2 goals, and every daily plan now includes a required “What this supports / Was das fördert” section aligned to the selected goals.
-- DE: Offline-Bibliotheksauswahl priorisiert jetzt deterministisch die 3 besten Aktivitäten mit Filter + Scoring (Age-Fit, Dauer-Fit, Material-Präferenz aus `constraints` via `material:<name>`); jeder Vorschlag enthält `library_id` im Grund-Payload für nachvollziehbare Grounding-Herkunft.
-- EN: Offline library selection now deterministically prioritizes the top 3 activities using filters + scoring (age fit, duration fit, material preference from `constraints` via `material:<name>`); each suggestion includes `library_id` in the reason payload for grounded provenance.
-- DE: Neue kuratierte Offline-Aktivitätsbibliothek `data/activity_library.json` ergänzt (Tags für Altersbereich, Domain, Materialien, Safety-Hinweise) und in die Event-Suche integriert.
-- EN: Added a curated offline activity library `data/activity_library.json` (tags for age range, domain, materials, safety notes) and integrated it into event search.
-- DE: Neue Sidebar-Option „Offline-Modus (ohne LLM) / Offline mode (no LLM)“: Bei Aktivierung werden Vorschläge deterministisch aus der lokalen Bibliothek erzeugt, ohne OpenAI-Aufruf.
-- EN: Added a sidebar option “Offline mode (no LLM)”: when enabled, suggestions are generated deterministically from the local library without OpenAI calls.
-- DE: Neue `RuntimeSettings` (Pydantic Settings) laden Konfiguration aus Environment und Streamlit-Secrets; bei `ENABLE_LLM=true` wird `OPENAI_API_KEY` jetzt als Pflichtwert validiert.
-- EN: New `RuntimeSettings` (Pydantic Settings) load configuration from environment and Streamlit secrets; with `ENABLE_LLM=true`, `OPENAI_API_KEY` is now validated as required.
-- DE: Bei fehlender Pflichtkonfiguration zeigt die Streamlit-UI eine klare zweisprachige „Missing configuration“-Meldung und beendet den Start sicher (`st.stop()`).
-- EN: When required configuration is missing, the Streamlit UI now shows a clear bilingual “Missing configuration” message and safely stops startup (`st.stop()`).
-- DE: Neue GitHub-Actions-CI unter `.github/workflows/ci.yml` ergänzt. Bei jedem Pull Request laufen jetzt automatisch `ruff format --check`, `ruff check`, `pytest -m "not integration"` sowie ein minimaler Smoke-Test `python -c "import app"`.
-- EN: Added a new GitHub Actions CI workflow at `.github/workflows/ci.yml`. On every pull request it now runs `ruff format --check`, `ruff check`, `pytest -m "not integration"`, plus a minimal smoke test `python -c "import app"` automatically.
-- DE: Neue `.pre-commit-config.yaml` ergänzt mit `ruff-format`, `ruff`, `black` und `detect-secrets`; zusätzlich wird `.streamlit/secrets.toml` jetzt per `.gitignore` ausgeschlossen, damit Secrets nicht versehentlich committed werden.
-- EN: Added a new `.pre-commit-config.yaml` with `ruff-format`, `ruff`, `black`, and `detect-secrets`; also gitignored `.streamlit/secrets.toml` to prevent accidental secret commits.
-- DE: Neue UI-Aktion „Plan melden / Report plan“ ergänzt. Nutzer:innen können jeden generierten Tagesplan mit einem Grund melden; gespeichert werden ausschließlich minimale Metadaten (`timestamp_utc`, `plan_hash`, `reason`) ohne PII in einer lokalen JSONL-Datei.
-- EN: Added a new UI action “Plan melden / Report plan”. Users can report each generated daily plan with a reason; only minimal metadata (`timestamp_utc`, `plan_hash`, `reason`) is persisted without PII in a local JSONL file.
-- DE: OpenAI-Aufrufe für Plan- und Event-Generierung sind jetzt robust gekapselt: nur 429/5xx/temporäre Fehler werden mit exponentiellem Backoff erneut versucht; bei anhaltendem API-Fehler liefert die App kuratierte sichere Fallback-Ergebnisse statt abzustürzen.
-- EN: OpenAI calls for plan and event generation are now wrapped robustly: only 429/5xx/transient failures are retried with exponential backoff; on persistent API failure the app returns curated safe fallback results instead of crashing.
-- DE: Neue Konfigurationskonstanten `MAX_INPUT_CHARS`, `MAX_OUTPUT_TOKENS`, `TIMEOUT_S` und `MAX_REQUESTS_PER_SESSION` ergänzt und in UI + OpenAI-Backend erzwungen (Eingabekürzung, Token-Limit, Timeout-Weitergabe, Session-Anfragebudget).
-- EN: Added new configuration constants `MAX_INPUT_CHARS`, `MAX_OUTPUT_TOKENS`, `TIMEOUT_S`, and `MAX_REQUESTS_PER_SESSION` and enforced them in both UI and OpenAI backend (input truncation, token cap, timeout propagation, session request budget).
-- DE: Neue Utility `redact_pii(text)` ergänzt und auf alle ausgehenden OpenAI-Texte angewendet (Moderation + Responses in Plan- und Event-Generierung); E-Mail, Telefon, adressähnliche Daten und Namensmuster werden vor dem Senden maskiert, Logs bleiben PII-frei.
-- EN: Added a new `redact_pii(text)` utility and applied it to all outbound OpenAI text (moderation + responses in plan and event generation); email, phone, address-like data, and name patterns are masked before sending, and logs stay PII-free.
-- DE: Eingaben in Sidebar und Wetter-&-Events-Form wurden auf validierte Auswahlfelder umgestellt (Altersband, Dauer, Ortspräferenz, Ziele, Rahmenbedingungen). Optionaler Freitext ist jetzt auf 80 Zeichen begrenzt und wird sanitisiert.
-- EN: Inputs in the sidebar and weather/events form now use validated selection controls (age band, duration, location preference, goals, constraints). Optional free text is now capped at 80 characters and sanitized.
-- DE: Entfernte UI-Texte: Die Überschrift "Plan (kurz & klar)" heißt jetzt "Plan"; die Hinweise "Lokale Vorschläge mit Wetter-Check und Live-Quellen.", "Diese Filter sind global und wirken auch auf die Abenteuer-Suche." sowie "Filter gelten global für Abenteuer und Veranstaltungen." wurden entfernt.
-- EN: Removed UI text: the heading "Plan (kurz & klar)" is now "Plan"; the hints "Lokale Vorschläge mit Wetter-Check und Live-Quellen.", "Diese Filter sind global und wirken auch auf die Abenteuer-Suche.", and "Filter gelten global für Abenteuer und Veranstaltungen." were removed.
-- DE: Neue regelbasierte Sicherheitsvalidierung für `ActivityPlan`: Unsichere Inhalte (u. a. Kleinteile bei <3 Jahren, scharfe Werkzeuge, Feuer/Hitze, giftige Chemikalien) werden hart geblockt; stattdessen wird automatisch ein sicheres Alternativprogramm gerendert.
-- EN: Added a new rule-based safety validator for `ActivityPlan`: unsafe content (including small parts for <3 years, sharp tools, fire/heat, and toxic chemicals) is hard-blocked and automatically replaced with a safe fallback plan.
-- DE: Strukturierte Pydantic-Modelle `ActivityRequest` und `ActivityPlan` ergänzt; die Generierung nutzt jetzt schema-validierte Structured Outputs und die UI rendert den Tagesplan ausschließlich aus `ActivityPlan`-Objekten.
-- EN: Added structured Pydantic models `ActivityRequest` and `ActivityPlan`; generation now uses schema-validated structured outputs and the UI renders the daily plan exclusively from `ActivityPlan` objects.
-- DE: Bei fehlgeschlagener KI-Planerstellung zeigt die UI eine freundliche zweisprachige Fehlermeldung und fällt auf einen sicheren strukturierten Fallback-Plan zurück.
-- EN: If AI plan generation fails, the UI now shows a friendly bilingual error message and falls back to a safe structured fallback plan.
-- DE: Jeder generierte Aktivitätsplan enthält jetzt konsistent 3–6 kurze „Say/Do“-Impulse für responsive Interaktion; fehlende oder unstrukturierte Prompts werden automatisch ergänzt und normalisiert.
-- EN: Every generated activity plan now consistently contains 3–6 short “Say/Do” prompts for responsive exchanges; missing or unstructured prompts are auto-completed and normalized.
-- DE: In der Tagesansicht wurde die Zwischenüberschrift "Motivations‑One‑Liner" entfernt; der Motivationssatz bleibt direkt unter den Basisinfos sichtbar.
-- EN: In the daily view, the "Motivations‑One‑Liner" subheading was removed; the motivation sentence now appears directly below the basic info.
-- DE: In der Sidebar gibt es jetzt ein personalisierbares Familienprofil (Kindname, Elternname(n), Kindesalter). Die Angaben ersetzen Platzhalter wie „Carla“, „Miri/Miriam“ und „2,5“ in Abenteuertexten, Titeln und Exporten zur Laufzeit.
-- EN: The sidebar now includes a customizable family profile (child name, parent name(s), child age). These values replace placeholders like “Carla”, “Miri/Miriam”, and “2.5” in adventure texts, titles, and exports at runtime.
-- DE: `src/mikroabenteuer/config.py` aktiviert OpenAI/LLM nun standardmäßig (`ENABLE_LLM` default `true`); Abschalten bleibt per `ENABLE_LLM=0` möglich.
-- EN: `src/mikroabenteuer/config.py` now enables OpenAI/LLM by default (`ENABLE_LLM` default `true`); disabling remains possible via `ENABLE_LLM=0`.
-- DE: `app.py` verwendet nun ein einheitliches Mapping zwischen `ActivitySearchCriteria` und UI-Feldern; Sidebar und Formular arbeiten als getrennte UI-Adapter auf einem einzigen fachlichen Zustand (`criteria`) ohne direkte Cross-Writes zwischen `sidebar_*` und `form_*`.
-- EN: `app.py` now uses a unified mapping between `ActivitySearchCriteria` and UI fields; sidebar and form operate as separate UI adapters over one business state (`criteria`) without direct cross-writes between `sidebar_*` and `form_*`.
-- DE: Globale Synchronisationspfade im Submit-Flow wurden entfernt/gekapselt; Rendering initialisiert Widget-Keys nur einmal, Updates laufen konsistent von UI nach `criteria`.
-- EN: Global synchronization paths in the submit flow were removed/encapsulated; rendering initializes widget keys only once, and updates now flow consistently from UI to `criteria`.
-- DE: Widget-Synchronisierung für Sidebar und Formular abgesichert: bereits gebundene Widget-Keys werden nicht mehr blind überschrieben; Änderungen fließen über `on_change`-Callbacks in den zentralen `criteria`-State und werden nach Submit kontrolliert per Re-Run verteilt.
-- EN: Hardened widget synchronization for sidebar and form: already-bound widget keys are no longer overwritten blindly; changes flow back via `on_change` callbacks into central `criteria` state and are propagated after submit via a controlled rerun.
-- DE: Sidebar-Filter und Formular „Wetter & Events“ teilen jetzt einen gemeinsamen `ActivitySearchCriteria`-State in `st.session_state["criteria"]`; beide Ansichten sind synchronisiert und nutzen identische Suchparameter.
-- EN: Sidebar filters and the “Weather & Events” form now share one `ActivitySearchCriteria` state in `st.session_state["criteria"]`; both views are synchronized and use identical search parameters.
-- DE: Die E-Mail-Vorschau im Export rendert jetzt die Mail direkt in der Oberfläche; der HTML-Quelltext ist weiterhin optional über "HTML-Code anzeigen" verfügbar.
-- EN: The email preview in the export section now renders the email directly in the UI; the HTML source remains optionally available via "Show HTML source".
-- DE: OpenAI-Strict-Output kompatibel gemacht: `source_urls` und `sources` in `src/mikroabenteuer/models.py` verwenden jetzt validierte `str`-URLs statt `AnyUrl`, damit das JSON-Schema kein nicht unterstütztes `format: "uri"` mehr enthält.
-- EN: Made OpenAI strict outputs compatible: `source_urls` and `sources` in `src/mikroabenteuer/models.py` now use validated `str` URLs instead of `AnyUrl`, so the JSON schema no longer contains unsupported `format: "uri"`.
-- DE: Contract-Test ergänzt, der sicherstellt, dass das generierte Schema für `ActivitySuggestionResult` keinen `uri`-Formatwert enthält.
-- EN: Added a contract test to ensure the generated `ActivitySuggestionResult` schema does not contain the `uri` format value.
-- DE: `requirements.txt` enthält jetzt explizit `openai>=1.0`, damit das OpenAI-SDK reproduzierbar im Ziel-Environment installiert wird.
-- EN: `requirements.txt` now explicitly includes `openai>=1.0` so the OpenAI SDK is reproducibly installed in the target environment.
-- DE: `src/mikroabenteuer/openai_activity_service.py` fängt `ImportError` beim OpenAI-Import nun explizit ab und gibt eine klare zweisprachige Installationsanleitung aus.
-- EN: `src/mikroabenteuer/openai_activity_service.py` now explicitly catches `ImportError` for the OpenAI import and returns a clear bilingual installation hint.
-- DE: `requirements.txt` pinnt `pydantic` jetzt reproduzierbar auf `>=2.6,<3`, damit Deployments zuverlässig Pydantic v2 verwenden.
-- EN: `requirements.txt` now reproducibly pins `pydantic` to `>=2.6,<3` so deployments reliably use Pydantic v2.
-- DE: Paketlayout final auf einen kanonischen Root festgezogen: `src/__init__.py` ergänzt, sodass `src.mikroabenteuer.*` als eindeutiger Importpfad fungiert (statt impliziter Namespace-Auflösung).
-- EN: Finalized the package layout to one canonical root: added `src/__init__.py` so `src.mikroabenteuer.*` acts as the unambiguous import path (instead of implicit namespace resolution).
-- DE: Neuer Strukturtest (`tests/test_src_package_structure.py`) prüft automatisiert, dass alle relativen Importe in `src/mikroabenteuer/` auf existente Module zeigen und keine Legacy-Root-Importe nutzen.
-- EN: Added a structural test (`tests/test_src_package_structure.py`) to automatically verify that all relative imports in `src/mikroabenteuer/` resolve to existing modules and avoid legacy root imports.
-- DE: Variante A (`src` als einziger Import-Root) wurde technisch vervollständigt: `src/mikroabenteuer/retry.py` und `src/mikroabenteuer/openai_settings.py` ergänzt, plus paketlokaler Retry-Import im Orchestrator korrigiert.
-- EN: Completed variant A (`src` as the single import root): added `src/mikroabenteuer/retry.py` and `src/mikroabenteuer/openai_settings.py`, plus fixed the orchestrator to use package-local retry import.
-- DE: Import-Konflikt im Wetter-&-Events-Flow behoben: `openai_activity_service` und `activity_orchestrator` nutzen jetzt Relative-Imports (`from .models ...`) auf das `src`-Paket, wodurch Kollisionen mit dem Root-Paket `mikroabenteuer` vermieden werden.
-- EN: Fixed import conflict in the weather/events flow: `openai_activity_service` and `activity_orchestrator` now use relative imports (`from .models ...`) targeting the `src` package, avoiding collisions with the root `mikroabenteuer` package.
-- DE: Such-Contract vervollständigt (`max_suggestions`, `to_llm_params`, `ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) und durch neue Contract-Tests abgesichert.
-- EN: Completed the search contract (`max_suggestions`, `to_llm_params`, `ActivitySuggestionResult`, `SearchStrategy`, `WeatherSummary`) and covered it with new contract tests.
-- DE: `to_llm_params()` ergänzt jetzt `available_minutes`; `ActivitySuggestion` und `weather.WeatherSummary` wurden auf den vom Orchestrator erwarteten Felderumfang erweitert (inkl. kompatibler Alias-Properties für bestehende Aufrufer).
-- EN: `to_llm_params()` now includes `available_minutes`; `ActivitySuggestion` and `weather.WeatherSummary` were extended to the full field contract expected by the orchestrator (including compatibility alias properties for existing callers).
-- DE: Suchvertrag auf einen kanonischen Pfad konsolidiert (`src/mikroabenteuer/models.py`): Aufrufer in App, Recommender und Export nutzen jetzt einheitlich `plz`, `date`, `time_window`, `topics`; Zeitfenster werden konsistent validiert und serialisiert.
-- EN: Consolidated the search contract to one canonical path (`src/mikroabenteuer/models.py`): callers in app, recommender, and export now consistently use `plz`, `date`, `time_window`, and `topics`; time windows are validated and serialized consistently.
-- DE: Neues „Activity Search (NEW)“-Schema in `mikroabenteuer/models.py` ergänzt (inkl. `TimeWindow`, `ActivitySearchCriteria`, `WeatherReport`, `SearchStrategy`, `ActivitySuggestion`, `ActivityPlan`) mit strikter Validierung (`extra="forbid"`).
-- EN: Added a new “Activity Search (NEW)” schema section in `mikroabenteuer/models.py` (including `TimeWindow`, `ActivitySearchCriteria`, `WeatherReport`, `SearchStrategy`, `ActivitySuggestion`, `ActivityPlan`) with strict validation (`extra="forbid"`).
-- DE: Die Landing-Page wurde auf die neuen Module unter `src/mikroabenteuer` umgestellt (Config, Seed, Wetter, Recommender, OpenAI-Planung) und konsistent integriert.
-- EN: The landing page now uses the new modules under `src/mikroabenteuer` (config, seed, weather, recommender, OpenAI planning) in a consistent integration.
-- DE: Export-Flow erweitert: Tagesplan kann jetzt direkt als JSON, Markdown und ICS heruntergeladen werden.
-- EN: Export flow extended: the daily plan can now be downloaded directly as JSON, Markdown, and ICS.
-- DE: Neuer optionaler Automation-Bereich zum manuellen Auslösen des Daily-Jobs (inkl. optionalem Gmail-/Google-Calendar-Versand bei konfigurierten Credentials).
-- EN: Added an optional automation area to manually run the daily job (including optional Gmail/Google Calendar delivery when credentials are configured).
-- DE: Für KI-Textgenerierung wurden in der UI verständliche Fehlhinweise plus Retry mit exponentiellem Backoff ergänzt.
-- EN: For AI text generation, the UI now provides clear error hints plus retry with exponential backoff.
-- DE: Alle relevanten UI- und Mail-Texte wurden auf die exklusive Zielgruppe „Miri (Mutter) und Carla (Tochter)" angepasst.
-- EN: All relevant UI and email texts were adjusted for the exclusive audience “Miri (mother) and Carla (daughter)”.
-- DE: Die Landingpage wurde visuell entschlackt und neu strukturiert: kompakter Hero, klarer 3-Schritte-Einstieg, Fokus auf Filter/Karten und reduzierter Abschlussbereich.
-- EN: The landing page was visually decluttered and restructured: compact hero, clear 3-step onboarding, focus on filters/cards, and a reduced closing section.
-- DE: Kontraste im Export-Bereich wurden erhöht; Download-Buttons und E-Mail-Vorschau sind nun auch ohne Hover eindeutig lesbar.
-- EN: Increased contrast in the export area; download buttons and email preview are now clearly readable without hover.
-- DE: Die Hero-CTA-Buttons wurden von Blau auf Dunkelgrau umgestellt; die Button-Schrift bleibt weiß für klare Lesbarkeit.
-- EN: Hero CTA buttons were changed from blue to dark gray; button text remains white for clear readability.
-- DE: Wetterabfrage ist jetzt standortkonfigurierbar über `WEATHER_LAT` und `WEATHER_LON`; Standard ist Volksgarten (Düsseldorf) statt festem Stadtzentrum.
-- EN: Weather lookup is now location-configurable via `WEATHER_LAT` and `WEATHER_LON`; default is Volksgarten (Düsseldorf) instead of a fixed city-center coordinate.
-- DE: Bei mehreren passenden Abenteuern priorisiert die Auswahl nun Einträge mit Standort „Volksgarten“.
-- EN: If multiple adventures match, selection now prioritizes entries whose location contains “Volksgarten”.
-- DE: Google OAuth2 wurde auf Least-Privilege-Scopes für Kalender und Gmail erweitert (`calendar.events`, `calendar.readonly`, `gmail.send`) und zentral im neuen Auth-Modul gebündelt.
-- EN: Google OAuth2 was expanded to least-privilege scopes for calendar and Gmail (`calendar.events`, `calendar.readonly`, `gmail.send`) and centralized in a new auth module.
-- DE: Neue Google-Integrationen für Kalender-Events und HTML-Mail-Versand inkl. API-Retry mit exponentiellem Backoff ergänzt.
-- EN: Added new Google integrations for calendar events and HTML email sending, including API retry with exponential backoff.
-- DE: Abenteuer-Detailansicht um Aktionen „In Kalender eintragen / Add to calendar“ und „Per Mail senden / Send by email“ erweitert.
-- EN: Adventure detail view now includes actions “In Kalender eintragen / Add to calendar” and “Per Mail senden / Send by email”.
-- DE: Die Startseite wurde zu einer conversion-orientierten, zweisprachigen Funnel-Landingpage ausgebaut (Hero, Problem/Lösung, Erklärsektion, Filterkarten, Nutzenargumentation, 3-Schritte-Start, Lead-Element, Abschluss-CTA).
-- EN: The homepage was expanded into a conversion-oriented bilingual funnel landing page (hero, problem/solution, explanation section, filter cards, impact arguments, 3-step start, lead element, closing CTA).
-- DE: Neue Abenteuer-Kategorien mit kombinierten Filtern (Jahreszeit, Dauer, Alter, Stimmung) und Karten-CTAs "Details ansehen / View details" unterstützen die direkte Nutzerhandlung.
-- EN: New adventure categories with combined filters (season, duration, age, mood) and card CTAs "Details ansehen / View details" support direct user action.
-- DE: Über dem Begrüßungsbild wird jetzt zentriert die Headline „Kleine Abenteuer. Große Erinnerungen 🎂“ angezeigt, ergänzt um die englische Zeile „Small adventures. Big memories.“.
-- EN: A centered headline “Kleine Abenteuer. Große Erinnerungen 🎂” is now shown above the welcome image, complemented by the English line “Small adventures. Big memories.”.
-- DE: Die Sektion „Alle Mikroabenteuer“ wurde in „Alternative Mikroabenteuer“ umbenannt und die zusätzliche Übersichtstabelle entfernt; die Abenteuer bleiben über Drop-down-Elemente (`st.expander`) erreichbar.
-- EN: Renamed the “All Micro-Adventures” section to “Alternative Micro-Adventures” and removed the extra overview table; adventures remain accessible via drop-down expanders (`st.expander`).
-- DE: Den gesamten im Header sichtbaren Begrüßungstext entfernt (Bild-Caption, Hero-Titel und Hero-Untertitel), sodass im oberen Seitenbereich nur noch das Bild angezeigt wird.
-- EN: Removed all visible welcome text in the header (image caption, hero title, and hero subtitle), so only the image remains in the top section.
-- DE: Das Begrüßungsbild im Hero-Bereich wird jetzt aus dem lokalen Asset `ChatGPT Image 14. Feb. 2026, 20_05_20.png` via `st.image` geladen, um Streamlit-`MediaFileHandler`-Fehler durch abgelaufene Media-IDs zu vermeiden.
-- EN: The hero welcome image is now loaded from the local asset `ChatGPT Image 14. Feb. 2026, 20_05_20.png` via `st.image` to avoid Streamlit `MediaFileHandler` errors caused by expired media IDs.
-- DE: Headline „🌿 Mikroabenteuer mit Carla / Kleine Abenteuer. Große Erinnerungen.“ im Hero-Bereich zentriert und das Begrüßungsbild auf eine um 70% reduzierte Darstellung (30% Breite) umgestellt.
-- EN: Centered the hero headline “🌿 Mikroabenteuer mit Carla / Kleine Abenteuer. Große Erinnerungen.” and reduced the welcome image display by 70% (30% width).
-- DE: `mikroabenteuer/ui/__init__.py` ergänzt und Package-Imports auf relative Importe umgestellt, um sporadische `KeyError`-Importprobleme in Streamlit-Reloadern zu vermeiden.
-- EN: Added `mikroabenteuer/ui/__init__.py` and switched package internals to relative imports to prevent intermittent `KeyError` import failures during Streamlit reloads.
-- DE: UI-Farbpalette in `app.py` auf einen naturverbundenen Kanon (Dark Green, Mint, Terracotta, Marigold, Sky Blue, Lavender, Cream, Charcoal) umgestellt; Sidebar, Expander und Buttons folgen jetzt einer konsistenten visuellen Hierarchie.
-- EN: Updated the UI color palette in `app.py` to a nature-inspired set (Dark Green, Mint, Terracotta, Marigold, Sky Blue, Lavender, Cream, Charcoal); sidebar, expanders, and buttons now follow a consistent visual hierarchy.
-- DE: Neue UI-Sektion „Wetter & Events“ ergänzt, inkl. Resource-Factory (`@st.cache_resource`) für `OpenAIActivityService` + `ActivityOrchestrator`, validierter Kriterien-Erfassung und Ausgabe von Wetter, Hinweisen, Events sowie Quellen.
-- EN: Added a new “Weather & Events” UI section including a resource factory (`@st.cache_resource`) for `OpenAIActivityService` + `ActivityOrchestrator`, validated criteria input, and rendering of weather, warnings, events, and sources.
-- Wetterservice (`Open-Meteo`) für Düsseldorf inkl. typed API-Parsing und Retry-Backoff.
-- Adventure Engine mit wetterbasierter Auswahl (Regen/Sonne/Wind/Kalt).
-- Daily Scheduler (APScheduler) mit Cron 08:20 (Europe/Berlin).
-- RFC-5545-konformer ICS-Builder mit escaped Feldern und UTC-Timestamps.
-- Bilinguales HTML-Mail-Template mit Inline-CSS.
-- Gmail Service für Versand von HTML-Mail + ICS Attachment via OAuth.
-- Dockerfile und `docker-compose.yml` für Deployment.
-- Unit-Tests für Adventure Engine, ICS-Builder und Mail-Template.
-
-### Changed
-- `app.py` startet Scheduler optional über `ENABLE_DAILY_SCHEDULER=1`.
-- `requirements.txt` um Scheduler-, Weather- und Google-API-Abhängigkeiten erweitert.
-- README um Architektur-, Deployment-, Security- und OAuth-Setup-Dokumentation erweitert.
-
-### Release Notes
-- DE: Eingaben und Modell-Ausgaben werden jetzt vor/nach OpenAI-Aufrufen mit `omni-moderation-latest` moderiert. Bei Flag wird der Flow deterministisch blockiert, mit sicherer DE/EN-Meldung im UI und Logging ohne PII.
-- EN: Input and model output are now moderated before/after OpenAI calls using `omni-moderation-latest`. If flagged, the flow is deterministically blocked with a safe DE/EN UI message and PII-free logging.
-- Personalisierung: Kindname, Elternname(n) und Kindesalter sind jetzt in der Sidebar einstellbar und werden konsistent in generierten Inhalten/Exporten verwendet.
-- Alle sichtbaren UI-Texte in `app.py` wurden auf reine deutsche Formulierungen umgestellt; englische Doppelbeschriftungen wurden entfernt.
-- Stabilere Criteria-State-Führung in der UI: Sidebar und Wetter-&-Events-Form nutzen jetzt ein gemeinsames, einheitlich gemapptes Zustandsmodell ohne spätes Überschreiben gebundener Widget-Keys.
-- Wetter-&-Events-Recherche ist wieder lauffähig, weil der Importvertrag jetzt eindeutig auf dem `src`-Paket basiert.
-- Activity-Suche verwendet einen konsistenten Modellvertrag inkl. `max_suggestions` und stabilen LLM-Prompt-Parametern.
-- Landing-Page integriert jetzt die neue `src`-Architektur inklusive Exporte (JSON/Markdown/ICS) und optionaler Daily-Automation.
-- Export- und Vorschau-Elemente sind kontrastoptimiert und damit in hellen/dunklen Zuständen besser zugänglich.
-- App-Texte adressieren jetzt durchgehend Miri und Carla statt allgemein Familien.
-- Landingpage ist jetzt deutlich übersichtlicher und führt Nutzer:innen mit weniger Ablenkung schneller zur Abenteuerauswahl.
-- OAuth2-Setup für Kalender + Gmail ist nun vorbereitet (Consent-Screen-Konfiguration, Desktop-Client-Datei in `secrets/`, lokale Token-Erzeugung).
-- Daily- und manuelle Mailflows verwenden dieselbe sichere Credential-Verwaltung.
-- Das Projekt unterstützt jetzt automatisierte tägliche Abenteuer-Mails als SaaS-nahe Basis.
-- Für Production wird ein HTTPS-Reverse-Proxy (z. B. Nginx + Let's Encrypt) empfohlen.
-- Wetter-Standort kann jetzt per `WEATHER_LAT`/`WEATHER_LON` gesetzt werden; die Abenteuerauswahl priorisiert bei Mehrfachtreffern den Volksgarten.
-- Neue Wetter-&-Events-Sektion liefert zusätzliche, quellenbasierte Event-Vorschläge mit klaren Status- und Fehlerhinweisen direkt im Main-Flow.
+### Security / Sicherheit
+- Moderation vor/nach OpenAI Calls + PII‑Maskierung, um keine Roh‑PII an LLM Endpoints zu senden.
+- Regelbasierte Safety-Validierung für generierte Plans mit sicheren Fallbacks.
