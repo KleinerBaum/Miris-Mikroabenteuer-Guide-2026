@@ -5,6 +5,11 @@
 
 ## Unreleased
 
+- DE: Sidebar-Elemente wurden in vier Gruppen neu organisiert; zentrale „(top)“-Felder bleiben sichtbar, zusätzliche Optionen liegen in Expandern.
+- EN: Sidebar elements were reorganized into four groups; key “(top)” fields stay visible while additional options are now inside expanders.
+- DE: Die Schalter „Wetter berücksichtigen“ und „KI-Text (OpenAI) nutzen“ werden in der Sidebar nicht mehr angezeigt.
+- EN: The “Consider weather” and “Use AI text (OpenAI)” toggles are no longer shown in the sidebar.
+
 - DE: Performance-Polishes ergänzt: `load_activity_library()` nutzt nun ein In-Memory-Cache (`lru_cache`), Wetterdaten in `_get_weather` haben eine TTL von 30 Minuten, und das Base64-Encoding des Hintergrundbildes wird gecacht.
 - EN: Added performance polishes: `load_activity_library()` now uses an in-memory cache (`lru_cache`), weather data in `_get_weather` uses a 30-minute TTL, and background image base64 encoding is cached.
 

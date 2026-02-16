@@ -486,32 +486,34 @@ def _criteria_sidebar(
     _ensure_ui_adapter_state(prefix="sidebar", criteria=criteria)
 
     st.sidebar.header("Suche")
-    lang: Language = st.sidebar.selectbox(
-        "Sprache", options=["DE"], index=0, key="lang"
-    )
+    lang: Language = cast(Language, st.session_state.get("lang", "DE"))
+
+    # Group 1 (location/time): top fields stay visible.
     st.sidebar.date_input(
         _t(lang, "Datum", ""),
         key="sidebar_date",
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
-    st.sidebar.time_input(
-        _t(lang, "Startzeit", ""),
-        key="sidebar_start_time",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-    )
-    st.sidebar.select_slider(
+
+    age_band_labels = [label for label, _ in AGE_BAND_OPTIONS]
+    age_band_map = dict(AGE_BAND_OPTIONS)
+    current_age = float(st.session_state.get("profile_child_age_years", 2.5))
+    current_band = min(AGE_BAND_OPTIONS, key=lambda item: abs(item[1] - current_age))[0]
+    selected_age_band = st.sidebar.selectbox(
         _t(
             lang,
-            "Verfügbare Zeit (Minuten) / Available time (minutes)",
-            "Verfügbare Zeit (Minuten) / Available time (minutes)",
+            "Altersband / Age band",
+            "Altersband / Age band",
         ),
-        options=list(DURATION_OPTIONS),
-        key="sidebar_available_minutes",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        options=age_band_labels,
+        index=age_band_labels.index(current_band),
+        key="profile_child_age_band",
     )
+    child_age_years = age_band_map[selected_age_band]
+    st.session_state["profile_child_age_years"] = float(child_age_years)
+    st.session_state["sidebar_child_age_years"] = float(child_age_years)
+
     st.sidebar.text_input(
         _t(lang, "PLZ", ""),
         help=_t(
@@ -532,6 +534,50 @@ def _criteria_sidebar(
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
+
+    with st.sidebar.expander(
+        _t(lang, "Weitere Suchoptionen / More search options", ""), expanded=False
+    ):
+        st.time_input(
+            _t(lang, "Startzeit", ""),
+            key="sidebar_start_time",
+            on_change=_sync_widget_change_to_criteria,
+            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        )
+        st.select_slider(
+            _t(
+                lang,
+                "Verfügbare Zeit (Minuten) / Available time (minutes)",
+                "Verfügbare Zeit (Minuten) / Available time (minutes)",
+            ),
+            options=list(DURATION_OPTIONS),
+            key="sidebar_available_minutes",
+            on_change=_sync_widget_change_to_criteria,
+            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        )
+        st.segmented_control(
+            _t(lang, "Ort / Location", "Ort / Location"),
+            options=["mixed", "outdoor", "indoor"],
+            format_func=lambda opt: {
+                "mixed": "Gemischt / Mixed",
+                "outdoor": "Draußen / Outdoor",
+                "indoor": "Drinnen / Indoor",
+            }[opt],
+            key="sidebar_location_preference",
+            on_change=_sync_widget_change_to_criteria,
+            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        )
+        st.number_input(
+            _t(lang, "Budget (max €)", "Budget (max €)"),
+            min_value=0.0,
+            max_value=250.0,
+            step=1.0,
+            key="sidebar_budget_eur_max",
+            on_change=_sync_widget_change_to_criteria,
+            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        )
+
+    # Group 2 (effort/constraints).
     st.sidebar.selectbox(
         _t(lang, "Aufwand", ""),
         options=["niedrig", "mittel", "hoch"],
@@ -540,35 +586,28 @@ def _criteria_sidebar(
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
-    st.sidebar.number_input(
-        _t(lang, "Budget (max €)", "Budget (max €)"),
-        min_value=0.0,
-        max_value=250.0,
-        step=1.0,
-        key="sidebar_budget_eur_max",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-    )
-    st.sidebar.multiselect(
-        _t(lang, "Themen / Topics", "Themen / Topics"),
-        options=theme_options(lang),
-        format_func=lambda x: theme_label(x, lang),
-        key="sidebar_topics",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-    )
-    st.sidebar.segmented_control(
-        _t(lang, "Ort / Location", "Ort / Location"),
-        options=["mixed", "outdoor", "indoor"],
-        format_func=lambda opt: {
-            "mixed": "Gemischt / Mixed",
-            "outdoor": "Draußen / Outdoor",
-            "indoor": "Drinnen / Indoor",
-        }[opt],
-        key="sidebar_location_preference",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-    )
+
+    with st.sidebar.expander(
+        _t(
+            lang,
+            "Rahmenbedingungen erweitern / More constraints",
+            "",
+        ),
+        expanded=False,
+    ):
+        st.multiselect(
+            _t(
+                lang,
+                "Rahmenbedingungen / Constraints",
+                "Rahmenbedingungen / Constraints",
+            ),
+            options=list(CONSTRAINT_OPTIONS),
+            key="sidebar_constraints",
+            on_change=_sync_widget_change_to_criteria,
+            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        )
+
+    # Group 3 (goals/topics/materials).
     st.sidebar.multiselect(
         _t(lang, "Ziele / Goals", "Ziele / Goals"),
         options=list(GOAL_OPTIONS),
@@ -578,62 +617,37 @@ def _criteria_sidebar(
         on_change=_sync_widget_change_to_criteria,
         kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
-    st.sidebar.multiselect(
-        _t(lang, "Rahmenbedingungen / Constraints", "Rahmenbedingungen / Constraints"),
-        options=list(CONSTRAINT_OPTIONS),
-        key="sidebar_constraints",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-    )
-    st.sidebar.multiselect(
-        _t(
-            lang,
-            "Haushaltsmaterialien (verfügbar) / Household materials (available)",
-            "Haushaltsmaterialien (verfügbar) / Household materials (available)",
-        ),
-        options=list(MATERIAL_OPTIONS),
-        format_func=_material_label,
-        key="sidebar_available_materials",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-    )
 
-    st.session_state["use_weather"] = st.sidebar.toggle(
-        _t(lang, "Wetter berücksichtigen", ""),
-        value=st.session_state.get("use_weather", True),
-    )
-    st.session_state["use_ai"] = st.sidebar.toggle(
-        _t(lang, "KI-Text (OpenAI) nutzen", ""),
-        value=st.session_state.get("use_ai", cfg.enable_llm),
-    )
-    st.session_state["offline_mode"] = st.sidebar.toggle(
-        _t(
-            lang,
-            "Offline-Modus (ohne LLM) / Offline mode (no LLM)",
-            "Offline-Modus (ohne LLM) / Offline mode (no LLM)",
-        ),
-        value=st.session_state.get("offline_mode", False),
-    )
-    st.session_state["plan_mode"] = st.sidebar.selectbox(
-        _t(lang, "Plan-Modus / Plan mode", "Plan mode"),
-        options=["standard", "parent_script"],
-        format_func=lambda value: (
-            "Standard"
-            if value == "standard"
-            else "Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)"
-        ),
-        index=0 if st.session_state.get("plan_mode", "standard") == "standard" else 1,
-    )
-
-    st.sidebar.divider()
-    st.sidebar.subheader(_t(lang, "Familie / Family", "Familie / Family"))
-    st.sidebar.caption(
-        _t(
-            lang,
-            "Bitte gib nicht den vollständigen Namen deines Kindes oder identifizierende Informationen ein.",
-            "Don't enter your child's full name or identifying info.",
+    with st.sidebar.expander(
+        _t(lang, "Themen & Material / Topics & materials", ""),
+        expanded=False,
+    ):
+        st.multiselect(
+            _t(lang, "Themen / Topics", "Themen / Topics"),
+            options=theme_options(lang),
+            format_func=lambda x: theme_label(x, lang),
+            key="sidebar_topics",
+            on_change=_sync_widget_change_to_criteria,
+            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
         )
-    )
+        st.multiselect(
+            _t(
+                lang,
+                "Haushaltsmaterialien (verfügbar) / Household materials (available)",
+                "Haushaltsmaterialien (verfügbar) / Household materials (available)",
+            ),
+            options=list(MATERIAL_OPTIONS),
+            format_func=_material_label,
+            key="sidebar_available_materials",
+            on_change=_sync_widget_change_to_criteria,
+            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        )
+
+    # Hidden settings (requested: do not show weather/AI toggles).
+    st.session_state["use_weather"] = bool(st.session_state.get("use_weather", True))
+    st.session_state["use_ai"] = bool(st.session_state.get("use_ai", cfg.enable_llm))
+
+    # Group 4 (profile/mode/language).
     child_name = (
         st.sidebar.text_input(
             _t(lang, "Name des Kindes / Child name", "Name des Kindes / Child name"),
@@ -654,23 +668,35 @@ def _criteria_sidebar(
         ).strip()
         or "Miri"
     )
-    age_band_labels = [label for label, _ in AGE_BAND_OPTIONS]
-    age_band_map = dict(AGE_BAND_OPTIONS)
-    current_age = float(st.session_state.get("profile_child_age_years", 2.5))
-    current_band = min(AGE_BAND_OPTIONS, key=lambda item: abs(item[1] - current_age))[0]
-    selected_age_band = st.sidebar.selectbox(
-        _t(
-            lang,
-            "Altersband / Age band",
-            "Altersband / Age band",
-        ),
-        options=age_band_labels,
-        index=age_band_labels.index(current_band),
-        key="profile_child_age_band",
-    )
-    child_age_years = age_band_map[selected_age_band]
-    st.session_state["profile_child_age_years"] = float(child_age_years)
-    st.session_state["sidebar_child_age_years"] = float(child_age_years)
+    lang = st.sidebar.selectbox("Sprache", options=["DE"], index=0, key="lang")
+
+    with st.sidebar.expander(
+        _t(lang, "Weitere Profileinstellungen / More profile settings", ""),
+        expanded=False,
+    ):
+        st.selectbox(
+            _t(lang, "Plan-Modus / Plan mode", "Plan mode"),
+            options=["standard", "parent_script"],
+            format_func=lambda value: (
+                "Standard"
+                if value == "standard"
+                else "Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)"
+            ),
+            index=(
+                0 if st.session_state.get("plan_mode", "standard") == "standard" else 1
+            ),
+            key="plan_mode",
+        )
+        st.toggle(
+            _t(
+                lang,
+                "Offline-Modus (ohne LLM) / Offline mode (no LLM)",
+                "Offline-Modus (ohne LLM) / Offline mode (no LLM)",
+            ),
+            value=st.session_state.get("offline_mode", False),
+            key="offline_mode",
+        )
+
     family_profile = FamilyProfile(
         child_name=child_name,
         parent_names=parent_names,
