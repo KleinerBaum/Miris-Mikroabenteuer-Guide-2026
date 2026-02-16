@@ -15,6 +15,9 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 
 ## Unreleased
 
+### Changed / Geändert
+- **UI-Kontrast verbessert / Improved UI contrast:** Formularfelder, Selects, Slider und Tags nutzen jetzt hellere Flächen und klarere Schriftfarben für bessere Lesbarkeit bei der bisherigen dunklen Komponenten-Optik.
+
 ### Planned / Geplant
 - **Architektur-Konsolidierung (Option A):** V1 (`/mikroabenteuer`) nach `legacy/` verschieben, V2 als einziges Paket führen und Importpfad auf standardmäßiges `src`‑Layout umstellen (weg von `src.mikroabenteuer.*`).
 - **Streamlit State Hardening:** Kriterien-State sauber trennen (Sidebar vs. Wetter/Events‑Form), Event/Plan Ergebnisse per Fingerprint in `st.session_state` cachen.

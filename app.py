@@ -233,13 +233,17 @@ def inject_custom_styles(background_path: Path) -> None:
             :root {{
                 --primary-dark-green: #00715D;
                 --primary-mint: #A4D4AE;
+                --primary-mint-soft: #d7efdc;
                 --accent-terracotta: #D98556;
                 --accent-marigold: #F4B400;
                 --secondary-sky-blue: #80C7CF;
                 --secondary-lavender: #B8B1D3;
                 --background-cream: #F9F4E7;
                 --text-charcoal: #2F353D;
+                --text-muted: #5f6873;
                 --line-soft: #E3E6E9;
+                --surface-soft: #ffffff;
+                --focus-ring: #0c8f78;
             }}
             .stApp {{
                 background: linear-gradient(
@@ -266,8 +270,53 @@ def inject_custom_styles(background_path: Path) -> None:
             }}
             .stDownloadButton button:disabled {{
                 background-color: var(--line-soft) !important;
-                color: #515862 !important;
+                color: var(--text-muted) !important;
                 border-color: #c7cfd4 !important;
+            }}
+            .stTextInput input,
+            .stNumberInput input,
+            .stDateInput input,
+            .stTimeInput input,
+            .stTextArea textarea,
+            .stSelectbox [data-baseweb="select"] > div,
+            .stMultiSelect [data-baseweb="tag"] {{
+                background-color: var(--surface-soft) !important;
+                color: var(--text-charcoal) !important;
+                border: 1px solid #b9c5cc !important;
+            }}
+            .stTextInput input::placeholder,
+            .stNumberInput input::placeholder,
+            .stTextArea textarea::placeholder {{
+                color: var(--text-muted) !important;
+                opacity: 1 !important;
+            }}
+            .stSelectbox [data-baseweb="select"] span,
+            .stMultiSelect [data-baseweb="select"] span,
+            .stDateInput span,
+            .stTimeInput span {{
+                color: var(--text-charcoal) !important;
+            }}
+            .stSlider [data-baseweb="slider"] > div > div {{
+                background-color: var(--line-soft) !important;
+            }}
+            .stSlider [data-baseweb="slider"] [role="slider"] {{
+                background-color: #ff5d5d !important;
+                border: 2px solid #ffffff !important;
+                box-shadow: 0 0 0 2px rgba(255, 93, 93, 0.35) !important;
+            }}
+            .stTextInput input:focus,
+            .stNumberInput input:focus,
+            .stDateInput input:focus,
+            .stTimeInput input:focus,
+            .stTextArea textarea:focus,
+            .stSelectbox [data-baseweb="select"] > div:focus-within,
+            .stMultiSelect [data-baseweb="select"] > div:focus-within {{
+                border-color: var(--focus-ring) !important;
+                box-shadow: 0 0 0 1px var(--focus-ring) !important;
+            }}
+            [data-baseweb="tag"] {{
+                background-color: #ffe1e1 !important;
+                color: #8a1f1f !important;
             }}
             [data-testid="stSidebar"] {{
                 background-color: rgba(128, 199, 207, 0.22) !important;
@@ -300,6 +349,10 @@ def inject_custom_styles(background_path: Path) -> None:
             .stAlert {{
                 border: 1px solid var(--line-soft) !important;
                 background-color: rgba(164, 212, 174, 0.2) !important;
+            }}
+            [data-testid="stMarkdownContainer"] code {{
+                background-color: var(--primary-mint-soft) !important;
+                color: #1f2933 !important;
             }}
         </style>
         """,

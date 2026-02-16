@@ -32,6 +32,8 @@ Die App kann:
   → `src/mikroabenteuer/plan_reports.py` (default: `data/plan_reports.jsonl`)
 - **CI & Pre‑commit**: ruff + pytest + detect-secrets  
   → `.github/workflows/ci.yml`, `.pre-commit-config.yaml`
+- **Verbesserte Lesbarkeit in der UI / Improved UI readability**: überarbeitetes Farbschema für Form-Controls (Inputs, Selects, Slider, Tags) mit höherem Kontrast.  
+  → `app.py`
 
 ---
 
