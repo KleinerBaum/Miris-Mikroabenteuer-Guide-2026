@@ -1,81 +1,44 @@
-# AGENTS.md (Scope: gesamtes Repository)
 
-## Purpose
-Operational rules for Codex Cloud contributors in this repository.
+---
 
-## Quick defaults
-- Language for code: Python >= 3.11
-- Style: PEP 8 + type hints required
-- Keep changes minimal, focused, and reversible
-- Prefer static analysis first; run commands only when needed
+```md
+# AGENTS.md
 
-## Branching & PR
-- Create feature branches as: `feat/<kurz-beschreibung>`
-- Open PRs against `dev`
-- Merge to `main` only via merge train from `dev`
-- Every PR must include Release Notes section
+# AGENTS.md (Repository scope)
 
-## Required checks before merge (CI-blocking)
-Run and ensure green:
-1. `ruff format && ruff check`
-2. `mypy` (no new type errors)
-3. `pytest -m "not integration"` (all unit tests passing)
+Operational rules for automated agents (Codex) and human contributors.
 
-## Documentation & i18n
-For every functional change:
-- Update `README` and `CHANGELOG`
-- New UI text must be bilingual (EN + DE)
-- If UI is affected, refresh screenshots in `images/`
+## Non-negotiables
 
-## Schema propagation rule (CS_SCHEMA_PROPAGATE)
-If a data field/schema changes, update consistently in:
-- schema
-- business logic
-- UI
-- export layer
-Also:
-- document mapping/migration changes
-- adapt/add tests
+- **No secrets / tokens / PII** in code, logs, commits, PR descriptions.
+- Keep changes **small, reviewable, reversible** (prefer multiple PRs).
+- If you change a schema/contract, propagate it everywhere (see CS_SCHEMA_PROPAGATE).
+- Prefer **determinism** and **cached results** in Streamlit flows to avoid costly reruns.
 
-## LLM/API usage
-- Use OpenAI Responses API with tools (`WebSearchTool`, `FileSearchTool`)
-- Require structured outputs (Pydantic models or valid JSON)
-- Default model: `gpt-4o-mini`
-- “Genau”-mode: higher model (e.g. `o3-mini`) respecting `REASONING_EFFORT`
-- Respect configured timeouts
-- Optional EU base URL allowed: `https://eu.api.openai.com/v1`
+---
 
-## Retrieval (RAG)
-- If `VECTOR_STORE_ID` is set: use OpenAI Vector Store Search
-- Otherwise continue without document retrieval
+## Repo map (important)
 
-## ESCO API
-- Allow only GET requests to `https://ec.europa.eu/esco/api`
-- Cache responses via `st.cache_data` with explicit TTL
+### Current state: two codebases
 
-## UX smoke test (after changes)
-Verify manually:
-- Wizard flow
-- Summary view
-- Export formats (JSON + Markdown)
-- Boolean-string generator
+- **V2 (active):** `src/mikroabenteuer/*`  
+  Used by `app.py` via `from src.mikroabenteuer...` imports.
+- **V1 (legacy):** `mikroabenteuer/*` (repo root)  
+  Older implementations; some tests still reference it.
 
-## Security & secrets
-- Never log PII or API keys
-- Read `OPENAI_API_KEY` only via `os.getenv` or `st.secrets`
-- Never hardcode secrets
-- Keep internet access disabled by default for agent tasks
-- If internet is needed, restrict domains + HTTP methods
+✅ New work goes into **V2**.  
+⚠️ Do not introduce new dependencies on V1 unless it’s part of the migration plan.
 
-## Collaboration protocol for Codex
-When creating tasks for the agent, include:
-- concrete file paths / IDs
-- reproduction steps
-- commands used
-- full output of failing commands
+### Planned: consolidation (Option A)
+We are moving towards a standard `src` layout where the package is imported as `mikroabenteuer.*` (no `src.` prefix) and V1 is archived under `legacy/`. Track in `CHANGELOG.md → Unreleased`.
 
-## Output format expectations (for agent responses)
-- concise summary
-- changed files
-- commands run + outcomes
-- open risks / follow-ups
+---
+
+## Local commands (baseline)
+
+### Install
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+pip install ruff pytest
