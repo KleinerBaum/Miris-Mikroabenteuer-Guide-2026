@@ -378,12 +378,10 @@ def validate_activity_plan(plan: ActivityPlan, request: ActivityRequest) -> bool
 
     always_blocked_keywords = {
         "knife",
-        "scissors",
         "cutter",
         "saw",
         "drill",
         "messer",
-        "schere",
         "säge",
         "bohrer",
         "fire",
@@ -412,6 +410,28 @@ def validate_activity_plan(plan: ActivityPlan, request: ActivityRequest) -> bool
     }
     if any(keyword in haystack for keyword in always_blocked_keywords):
         return False
+
+    scissors_keywords = {"scissors", "schere"}
+    if any(keyword in haystack for keyword in scissors_keywords):
+        age_months = _request_age_months(request)
+        if age_months < 72:
+            child_safe_markers = {
+                "safety scissors",
+                "child-safe scissors",
+                "kinderschere",
+            }
+            supervision_markers = {
+                "under supervision",
+                "with supervision",
+                "adult supervision",
+                "unter aufsicht",
+                "mit aufsicht",
+            }
+            if not (
+                any(marker in haystack for marker in child_safe_markers)
+                and any(marker in haystack for marker in supervision_markers)
+            ):
+                return False
 
     if _request_age_months(request) < 36:
         under_three_keywords = {

@@ -60,12 +60,10 @@ def _plan_with_trigger(plan: ActivityPlan, trigger: str) -> ActivityPlan:
     "trigger",
     [
         "knife",
-        "scissors",
         "candles",
         "campfire",
         "bleach",
         "Messer",
-        "Schere",
         "Kerze",
         "Lagerfeuer",
         "Bleichmittel",
@@ -81,6 +79,63 @@ def test_validator_blocks_core_hazards_across_age_bands(
 
     assert validate_activity_plan(unsafe_plan, request_under_three) is False
     assert validate_activity_plan(unsafe_plan, request_preschool) is False
+
+
+@pytest.mark.parametrize("trigger", ["scissors", "Schere"])
+def test_validator_blocks_scissors_without_safety_context_for_younger_children(
+    baseline_plan: ActivityPlan,
+    request_under_three: ActivityRequest,
+    request_preschool: ActivityRequest,
+    trigger: str,
+) -> None:
+    unsafe_plan = _plan_with_trigger(baseline_plan, trigger)
+
+    assert validate_activity_plan(unsafe_plan, request_under_three) is False
+    assert validate_activity_plan(unsafe_plan, request_preschool) is False
+
+
+def test_validator_allows_kinderschere_with_supervision_for_preschool() -> None:
+    request_preschool = ActivityRequest(
+        age_value=5,
+        age_unit=AgeUnit.years,
+        duration_minutes=20,
+        indoor_outdoor=IndoorOutdoor.indoor,
+        materials=["Kinderschere"],
+        goals=["Feinmotorik"],
+    )
+    age_suitable_plan = ActivityPlan(
+        title="Schneide-Spiel",
+        summary="Nutze eine Kinderschere unter Aufsicht.",
+        steps=[
+            "Schneide Papierstreifen mit Kinderschere unter Aufsicht.",
+        ],
+        safety_notes=["Nur mit Kinderschere und unter Aufsicht schneiden."],
+        parent_child_prompts=["Zeig mir, wie du sicher schneidest."],
+        variants=["Stattdessen reißen, wenn Schneiden zu schwierig ist."],
+    )
+
+    assert validate_activity_plan(age_suitable_plan, request_preschool) is True
+
+
+def test_validator_allows_kinderschere_for_under_six_with_supervision() -> None:
+    request_kindergarten = ActivityRequest(
+        age_value=4,
+        age_unit=AgeUnit.years,
+        duration_minutes=20,
+        indoor_outdoor=IndoorOutdoor.indoor,
+        materials=["Kinderschere"],
+        goals=["Feinmotorik"],
+    )
+    age_specific_plan = ActivityPlan(
+        title="Schneide-Spiel",
+        summary="Nutze eine Kinderschere unter Aufsicht.",
+        steps=["Schneide einfache Formen aus Papier aus."],
+        safety_notes=["Nur mit Kinderschere und unter Aufsicht schneiden."],
+        parent_child_prompts=["Möchtest du zuerst eine gerade Linie schneiden?"],
+        variants=["Formen alternativ reißen."],
+    )
+
+    assert validate_activity_plan(age_specific_plan, request_kindergarten) is True
 
 
 @pytest.mark.parametrize(

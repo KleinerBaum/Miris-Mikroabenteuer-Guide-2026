@@ -234,6 +234,32 @@ def test_generate_activity_plan_returns_safe_fallback_when_fallback_is_unsafe() 
     assert all("Perlen" not in step for step in plan.steps)
 
 
+def test_generate_activity_plan_keeps_scissors_when_age_appropriate_and_supervised() -> (
+    None
+):
+    cfg = replace(load_config(), enable_llm=False, openai_api_key=None)
+    scissors_adventure = replace(
+        _build_micro_adventure(),
+        route_steps=["Papier mit Kinderschere unter Aufsicht schneiden."],
+        mitigations=["Nur Kinderschere unter Aufsicht verwenden."],
+    )
+    criteria = _build_criteria().model_copy(
+        update={"child_age_years": 5.0, "available_materials": ["scissors", "paper"]}
+    )
+
+    plan = generate_activity_plan(
+        cfg,
+        scissors_adventure,
+        criteria,
+        weather=None,
+    )
+
+    assert "Safe fallback plan" not in plan.title
+    assert validate_activity_plan(
+        plan, _build_activity_request(scissors_adventure, criteria)
+    )
+
+
 def test_generate_activity_plan_includes_plan_b_variants() -> None:
     cfg = replace(load_config(), enable_llm=False, openai_api_key=None)
 
