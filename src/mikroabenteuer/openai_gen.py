@@ -534,7 +534,7 @@ def generate_activity_plan(
             return _blocked_activity_plan()
 
         resp = client.responses.parse(
-            model=cfg.openai_model,
+            model=cfg.openai_model_plan,
             max_output_tokens=cfg.max_output_tokens,
             input=[
                 {

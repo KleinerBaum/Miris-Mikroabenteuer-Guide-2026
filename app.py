@@ -915,6 +915,8 @@ class OpenAIActivityService:
                 timeout_s=self.cfg.timeout_s,
                 max_input_chars=self.cfg.max_input_chars,
                 max_output_tokens=self.cfg.max_output_tokens,
+                model_fast=self.cfg.openai_model_events_fast,
+                model_accurate=self.cfg.openai_model_events_accurate,
                 weather=event_weather,
             )
             return {

@@ -47,7 +47,9 @@ class AppConfig:
     enable_llm: bool
     enable_web_search: bool
     openai_api_key: str | None
-    openai_model: str
+    openai_model_plan: str
+    openai_model_events_fast: str
+    openai_model_events_accurate: str
     max_input_chars: int
     max_output_tokens: int
     timeout_s: float
@@ -78,7 +80,11 @@ def load_config() -> AppConfig:
         enable_llm=_to_bool(os.getenv("ENABLE_LLM"), default=True),
         enable_web_search=_to_bool(os.getenv("ENABLE_WEB_SEARCH"), default=False),
         openai_api_key=os.getenv("OPENAI_API_KEY") or None,
-        openai_model=os.getenv("OPENAI_MODEL", "gpt-5-mini"),
+        openai_model_plan=os.getenv("OPENAI_MODEL_PLAN", "gpt-4o-mini"),
+        openai_model_events_fast=os.getenv("OPENAI_MODEL_EVENTS_FAST", "gpt-4o-mini"),
+        openai_model_events_accurate=os.getenv(
+            "OPENAI_MODEL_EVENTS_ACCURATE", "o3-mini"
+        ),
         max_input_chars=max(200, int(os.getenv("MAX_INPUT_CHARS", "4000"))),
         max_output_tokens=max(100, int(os.getenv("MAX_OUTPUT_TOKENS", "800"))),
         timeout_s=max(5.0, float(os.getenv("TIMEOUT_S", "45"))),
