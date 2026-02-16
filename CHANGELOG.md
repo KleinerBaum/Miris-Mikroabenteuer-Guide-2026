@@ -5,6 +5,9 @@
 
 ## Unreleased
 
+- DE: Ergebnisse in „Wetter & Veranstaltungen“ bleiben jetzt über Reruns erhalten: Der letzte Such-`payload` wird in `st.session_state["events_payload"]` samt `events_fingerprint` gespeichert; zusätzlich gibt es Buttons für „Neu suchen“ und „Ergebnisse löschen“.
+- EN: Results in “Weather & Events” now persist across reruns: the latest search `payload` is stored in `st.session_state["events_payload"]` with an `events_fingerprint`; added buttons for “Search again” and “Clear results”.
+
 - DE: Sicherheitsvalidierung für Scherenmaterial konsistent gemacht: „scissors/Schere“ wird nicht mehr pauschal geblockt. Für Kinder unter 6 Jahren bleibt Schere nur mit explizitem Kontext „Kinderschere“ + „unter Aufsicht“ erlaubt; sonst greift weiterhin der Safety-Block/Fallback.
 - EN: Made scissor handling in safety validation consistent: “scissors/Schere” is no longer blocked unconditionally. For children under 6, scissors are only allowed with explicit “safety scissors” + “under supervision” context; otherwise the safety block/fallback still applies.
 
