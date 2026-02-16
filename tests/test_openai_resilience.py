@@ -5,15 +5,15 @@ from dataclasses import replace
 from datetime import date, time
 from types import SimpleNamespace
 
-from src.mikroabenteuer.config import load_config
-from src.mikroabenteuer.models import (
+from mikroabenteuer.config import load_config
+from mikroabenteuer.models import (
     ActivityPlan,
     ActivitySearchCriteria,
     MicroAdventure,
     TimeWindow,
 )
-from src.mikroabenteuer.openai_activity_service import suggest_activities
-from src.mikroabenteuer.openai_gen import generate_activity_plan
+from mikroabenteuer.openai_activity_service import suggest_activities
+from mikroabenteuer.openai_gen import generate_activity_plan
 
 
 class _RetryableError(Exception):
@@ -89,7 +89,7 @@ def _build_micro_adventure() -> MicroAdventure:
 
 
 def test_suggest_activities_retries_retryable_errors_then_returns(monkeypatch) -> None:
-    from src.mikroabenteuer import openai_activity_service as module
+    from mikroabenteuer import openai_activity_service as module
 
     _FakeOpenAI.behavior = [
         _RetryableError(429),
@@ -111,7 +111,7 @@ def test_suggest_activities_retries_retryable_errors_then_returns(monkeypatch) -
 def test_suggest_activities_returns_curated_fallback_on_repeated_5xx(
     monkeypatch,
 ) -> None:
-    from src.mikroabenteuer import openai_activity_service as module
+    from mikroabenteuer import openai_activity_service as module
 
     _FakeOpenAI.behavior = [
         _RetryableError(500),
@@ -132,7 +132,7 @@ def test_suggest_activities_returns_curated_fallback_on_repeated_5xx(
 def test_generate_activity_plan_returns_safe_fallback_after_retryable_failures(
     monkeypatch,
 ) -> None:
-    from src.mikroabenteuer import openai_gen as module
+    from mikroabenteuer import openai_gen as module
 
     _FakeOpenAI.behavior = [
         _RetryableError(503),
@@ -153,7 +153,7 @@ def test_generate_activity_plan_returns_safe_fallback_after_retryable_failures(
 
 
 def test_suggest_activities_uses_configured_event_models(monkeypatch) -> None:
-    from src.mikroabenteuer import openai_activity_service as module
+    from mikroabenteuer import openai_activity_service as module
 
     _FakeOpenAI.behavior = [
         SimpleNamespace(output_parsed=module.ActivitySuggestionResult())
@@ -178,7 +178,7 @@ def test_suggest_activities_uses_configured_event_models(monkeypatch) -> None:
 
 
 def test_generate_activity_plan_uses_configured_plan_model(monkeypatch) -> None:
-    from src.mikroabenteuer import openai_gen as module
+    from mikroabenteuer import openai_gen as module
 
     _FakeOpenAI.behavior = [
         SimpleNamespace(

@@ -16,11 +16,10 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 ## Unreleased
 
 ### Changed / Geändert
-- V1 nach `legacy/v1` verschoben; Tests auf V2 umgestellt (noch `src.mikroabenteuer` Imports).
+- Standard-`src`-Layout umgesetzt: Package unter `src/mikroabenteuer` wird als `mikroabenteuer.*` importiert; `src/__init__.py` entfernt; Packaging via `pyproject.toml` + Editable Install (`pip install -e .`) ergänzt.
 - **UI-Kontrast verbessert / Improved UI contrast:** Formularfelder, Selects, Slider und Tags nutzen jetzt hellere Flächen und klarere Schriftfarben für bessere Lesbarkeit bei der bisherigen dunklen Komponenten-Optik.
 
 ### Planned / Geplant
-- **Architektur-Konsolidierung (Option A):** V1 (`/mikroabenteuer`) nach `legacy/` verschieben, V2 als einziges Paket führen und Importpfad auf standardmäßiges `src`‑Layout umstellen (weg von `src.mikroabenteuer.*`).
 - **Streamlit State Hardening:** Kriterien-State sauber trennen (Sidebar vs. Wetter/Events‑Form), Event/Plan Ergebnisse per Fingerprint in `st.session_state` cachen.
 - **Config Cleanup:** Environment variable naming vereinheitlichen (Google OAuth / Settings vs. Config), Hardcoded Modell-Auswahl in Events in Config überführen.
 

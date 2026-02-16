@@ -5,7 +5,6 @@ import base64
 import hashlib
 import json
 import os
-import sys
 import time as time_module
 from datetime import date, datetime, time, timedelta
 from pathlib import Path
@@ -19,25 +18,23 @@ import streamlit.components.v1 as components
 from pydantic import ValidationError
 
 ROOT = Path(__file__).resolve().parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
-from src.mikroabenteuer.config import AppConfig
-from src.mikroabenteuer.constants import (
+from mikroabenteuer.config import AppConfig
+from mikroabenteuer.constants import (
     Language,
     effort_label,
     theme_label,
     theme_options,
 )
-from src.mikroabenteuer.data_seed import seed_adventures
-from src.mikroabenteuer.email_templates import render_daily_email_html
-from src.mikroabenteuer.activity_library import suggest_activities_offline
-from src.mikroabenteuer.ics import build_ics_event
-from src.mikroabenteuer.materials import (
+from mikroabenteuer.data_seed import seed_adventures
+from mikroabenteuer.email_templates import render_daily_email_html
+from mikroabenteuer.activity_library import suggest_activities_offline
+from mikroabenteuer.ics import build_ics_event
+from mikroabenteuer.materials import (
     COMMON_HOUSEHOLD_MATERIALS,
     MATERIAL_LABELS,
 )
-from src.mikroabenteuer.models import (
+from mikroabenteuer.models import (
     ActivitySearchCriteria,
     DevelopmentDomain,
     TimeWindow,
@@ -46,20 +43,20 @@ from src.mikroabenteuer.models import (
     ActivityPlan,
     MicroAdventure,
 )
-from src.mikroabenteuer.openai_gen import (
+from mikroabenteuer.openai_gen import (
     ActivityGenerationError,
     generate_activity_plan,
     render_activity_plan_markdown,
 )
-from src.mikroabenteuer.plan_reports import (
+from mikroabenteuer.plan_reports import (
     REPORT_REASONS,
     load_plan_reports,
     save_plan_report,
 )
-from src.mikroabenteuer.recommender import filter_adventures, pick_daily_adventure
-from src.mikroabenteuer.scheduler import run_daily_job_once
-from src.mikroabenteuer.settings import load_runtime_config, render_missing_config_ui
-from src.mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
+from mikroabenteuer.recommender import filter_adventures, pick_daily_adventure
+from mikroabenteuer.scheduler import run_daily_job_once
+from mikroabenteuer.settings import load_runtime_config, render_missing_config_ui
+from mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
 
 
 st.set_page_config(page_title="Mikroabenteuer", page_icon="🌿", layout="wide")
@@ -970,7 +967,7 @@ class OpenAIActivityService:
         mode: str,
     ) -> dict[str, Any]:
         try:
-            from src.mikroabenteuer.openai_activity_service import suggest_activities
+            from mikroabenteuer.openai_activity_service import suggest_activities
 
             event_weather: EventWeatherSummary | None = None
             if weather is not None:

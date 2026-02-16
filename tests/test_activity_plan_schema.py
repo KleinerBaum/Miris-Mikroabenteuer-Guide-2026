@@ -4,8 +4,8 @@ from datetime import date, time
 
 from dataclasses import replace
 
-from src.mikroabenteuer.config import load_config
-from src.mikroabenteuer.models import (
+from mikroabenteuer.config import load_config
+from mikroabenteuer.models import (
     ActivityPlan,
     ActivityRequest,
     ActivitySearchCriteria,
@@ -15,7 +15,7 @@ from src.mikroabenteuer.models import (
     MicroAdventure,
     TimeWindow,
 )
-from src.mikroabenteuer.openai_gen import (
+from mikroabenteuer.openai_gen import (
     _build_activity_request,
     _ensure_responsive_prompts,
     generate_activity_plan,

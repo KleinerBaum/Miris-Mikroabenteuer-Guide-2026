@@ -53,13 +53,15 @@ def send_html_email(to: str, subject: str, html_content: str) -> dict[str, Any]:
     body = {"raw": raw_message}
 
     return safe_api_call(
-        lambda: service.users()
-        .messages()
-        .send(
-            userId="me",
-            body=body,
+        lambda: (
+            service.users()
+            .messages()
+            .send(
+                userId="me",
+                body=body,
+            )
+            .execute()
         )
-        .execute()
     )
 
 
@@ -96,8 +98,7 @@ def send_daily_mail(adventure: Adventure) -> dict[str, Any]:
 
     raw = base64.urlsafe_b64encode(message.as_bytes()).decode("utf-8")
     return safe_api_call(
-        lambda: service.users()
-        .messages()
-        .send(userId="me", body={"raw": raw})
-        .execute()
+        lambda: (
+            service.users().messages().send(userId="me", body={"raw": raw}).execute()
+        )
     )

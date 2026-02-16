@@ -3,11 +3,11 @@ from __future__ import annotations
 from datetime import date, time
 from pathlib import Path
 
-from src.mikroabenteuer.activity_library import (
+from mikroabenteuer.activity_library import (
     load_activity_library,
     suggest_activities_offline,
 )
-from src.mikroabenteuer.models import ActivitySearchCriteria, TimeWindow
+from mikroabenteuer.models import ActivitySearchCriteria, TimeWindow
 
 
 def _criteria() -> ActivitySearchCriteria:

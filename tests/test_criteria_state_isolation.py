@@ -2,10 +2,24 @@ from __future__ import annotations
 
 from dataclasses import replace
 from datetime import date, time
+import importlib.util
+from pathlib import Path
+import sys
 
-import app
-from src.mikroabenteuer.config import load_config
-from src.mikroabenteuer.models import DevelopmentDomain
+from mikroabenteuer.config import load_config
+from mikroabenteuer.models import DevelopmentDomain
+
+
+def _load_app_module():
+    app_spec = importlib.util.spec_from_file_location("app", Path("app.py"))
+    assert app_spec is not None and app_spec.loader is not None
+    app_module = importlib.util.module_from_spec(app_spec)
+    sys.modules["app"] = app_module
+    app_spec.loader.exec_module(app_module)
+    return app_module
+
+
+app = _load_app_module()
 
 
 def _seed_widget_state(prefix: str, *, plz: str) -> dict[str, object]:

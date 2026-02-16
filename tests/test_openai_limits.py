@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from src.mikroabenteuer.openai_activity_service import (
+from mikroabenteuer.openai_activity_service import (
     _truncate_text_with_limit as truncate_events,
 )
-from src.mikroabenteuer.openai_gen import _truncate_text_with_limit as truncate_plan
+from mikroabenteuer.openai_gen import _truncate_text_with_limit as truncate_plan
 
 
 def test_truncate_text_with_limit_noop_when_short() -> None:

@@ -5,7 +5,7 @@ from datetime import date, time
 import pytest
 from pydantic import ValidationError
 
-from src.mikroabenteuer.models import ActivitySearchCriteria, TimeWindow
+from mikroabenteuer.models import ActivitySearchCriteria, TimeWindow
 
 
 def test_activity_search_criteria_rejects_invalid_plz() -> None:

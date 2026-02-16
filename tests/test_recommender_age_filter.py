@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import date, time
 
-from src.mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure, TimeWindow
-from src.mikroabenteuer.recommender import filter_adventures
+from mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure, TimeWindow
+from mikroabenteuer.recommender import filter_adventures
 
 
 def _criteria(*, child_age_years: float) -> ActivitySearchCriteria:

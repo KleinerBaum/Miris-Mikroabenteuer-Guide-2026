@@ -45,12 +45,14 @@ def create_event(title: str, description: str, start_time: datetime) -> dict[str
     }
 
     return safe_api_call(
-        lambda: service.events()
-        .insert(
-            calendarId=CALENDAR_ID,
-            body=event,
+        lambda: (
+            service.events()
+            .insert(
+                calendarId=CALENDAR_ID,
+                body=event,
+            )
+            .execute()
         )
-        .execute()
     )
 
 
@@ -58,12 +60,14 @@ def list_events(max_results: int = 10) -> dict[str, Any]:
     """List upcoming events from the configured Google Calendar."""
     service = get_calendar_service()
     return safe_api_call(
-        lambda: service.events()
-        .list(
-            calendarId=CALENDAR_ID,
-            maxResults=max_results,
-            singleEvents=True,
-            orderBy="startTime",
+        lambda: (
+            service.events()
+            .list(
+                calendarId=CALENDAR_ID,
+                maxResults=max_results,
+                singleEvents=True,
+                orderBy="startTime",
+            )
+            .execute()
         )
-        .execute()
     )

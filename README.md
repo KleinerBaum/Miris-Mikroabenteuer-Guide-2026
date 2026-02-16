@@ -41,14 +41,12 @@ Die App kann:
 
 Aktuell gibt es **zwei Codebasen**:
 
-- **V2 (aktiv):** `src/mikroabenteuer/*`  
-  Wird von `app.py` genutzt, enthält die aktuellen Pydantic‑Schemas, LLM‑Structured Outputs etc.
-- **V1 (legacy):** `mikroabenteuer/*` (Repo-Root)  
-  Ältere Implementationen (YAML Seed, legacy Engine, legacy ICS/Google).  
-  Einige Tests referenzieren V1 noch.
+- **V2 (aktiv):** `src/mikroabenteuer/*` (importierbar als `mikroabenteuer.*`)  
+  Wird von `app.py` genutzt und enthält die aktuellen Pydantic‑Schemas, LLM‑Structured Outputs etc.
+- **V1 (legacy):** `legacy/v1/*`  
+  Ältere Implementationen (YAML Seed, legacy Engine, legacy ICS/Google).
 
-👉 **Neue Entwicklung bitte in V2 (`src/mikroabenteuer`) machen.**  
-Eine Konsolidierung zu einem “normalen” `src`‑Layout (ohne `src.mikroabenteuer`‑Importprefix) ist geplant und in `CHANGELOG.md` unter **Unreleased** beschrieben.
+👉 **Neue Entwicklung bitte in V2 (`src/mikroabenteuer`) machen.**
 
 ---
 
@@ -65,3 +63,4 @@ source .venv/bin/activate  # macOS/Linux
 # .venv\Scripts\activate   # Windows
 
 pip install -r requirements.txt
+pip install -e .

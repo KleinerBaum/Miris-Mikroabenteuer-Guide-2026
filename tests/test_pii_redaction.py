@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from datetime import date, time
 
-from src.mikroabenteuer.models import (
+from mikroabenteuer.models import (
     ActivitySearchCriteria,
     DevelopmentDomain,
     TimeWindow,
 )
-from src.mikroabenteuer.openai_activity_service import _build_user_prompt
-from src.mikroabenteuer.pii_redaction import redact_pii
+from mikroabenteuer.openai_activity_service import _build_user_prompt
+from mikroabenteuer.pii_redaction import redact_pii
 
 
 def test_redact_pii_replaces_common_identifiers() -> None:

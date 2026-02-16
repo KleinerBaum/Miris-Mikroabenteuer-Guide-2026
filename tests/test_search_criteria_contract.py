@@ -5,7 +5,7 @@ from datetime import date, time
 import pytest
 from pydantic import ValidationError
 
-from src.mikroabenteuer.models import (
+from mikroabenteuer.models import (
     ActivitySearchCriteria,
     DevelopmentDomain,
     TimeWindow,

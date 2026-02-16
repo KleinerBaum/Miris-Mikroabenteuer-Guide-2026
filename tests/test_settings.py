@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from src.mikroabenteuer.settings import RuntimeSettings
+from mikroabenteuer.settings import RuntimeSettings
 
 
 def test_runtime_settings_accepts_missing_openai_when_llm_disabled(monkeypatch) -> None:
@@ -43,7 +43,7 @@ def test_runtime_settings_reads_openai_nested_secret(monkeypatch) -> None:
     monkeypatch.setenv("ENABLE_LLM", "1")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.setattr(
-        "src.mikroabenteuer.settings.st.secrets",
+        "mikroabenteuer.settings.st.secrets",
         {"openai": {"api_key": "sk-test"}},
     )
 
@@ -56,7 +56,7 @@ def test_runtime_settings_reads_openai_top_level_secret(monkeypatch) -> None:
     monkeypatch.setenv("ENABLE_LLM", "1")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.setattr(
-        "src.mikroabenteuer.settings.st.secrets",
+        "mikroabenteuer.settings.st.secrets",
         {"OPENAI_API_KEY": "sk-test-top-level"},
     )
 

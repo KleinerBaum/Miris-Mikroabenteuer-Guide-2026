@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from src.mikroabenteuer.models import ActivityPlan
-from src.mikroabenteuer.plan_reports import (
+from mikroabenteuer.models import ActivityPlan
+from mikroabenteuer.plan_reports import (
     hash_plan,
     load_plan_reports,
     save_plan_report,
