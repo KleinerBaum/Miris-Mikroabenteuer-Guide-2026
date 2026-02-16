@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from mikroabenteuer.openai_settings import resolve_openai_api_key
+from src.mikroabenteuer.openai_settings import resolve_openai_api_key
 
 
 def test_resolve_openai_api_key_prefers_environment() -> None:

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 from googleapiclient.errors import HttpError
 
-from mikroabenteuer.google.api_utils import safe_api_call
+from src.mikroabenteuer.google_api_utils import safe_api_call
 
 
 def _http_error() -> HttpError:
@@ -28,7 +28,7 @@ def test_safe_api_call_retries_then_returns(monkeypatch) -> None:
             raise _http_error()
         return "ok"
 
-    monkeypatch.setattr("mikroabenteuer.google.api_utils.time.sleep", fake_sleep)
+    monkeypatch.setattr("src.mikroabenteuer.google_api_utils.time.sleep", fake_sleep)
 
     result = safe_api_call(flaky, retries=3)
 
@@ -47,7 +47,7 @@ def test_safe_api_call_raises_after_max_retries(monkeypatch) -> None:
         attempts["count"] += 1
         raise _http_error()
 
-    monkeypatch.setattr("mikroabenteuer.google.api_utils.time.sleep", fake_sleep)
+    monkeypatch.setattr("src.mikroabenteuer.google_api_utils.time.sleep", fake_sleep)
 
     try:
         safe_api_call(always_fail, retries=2)
