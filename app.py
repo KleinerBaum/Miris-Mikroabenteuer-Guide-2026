@@ -217,11 +217,16 @@ def _consume_request_budget(cfg: AppConfig, *, lang: Language, scope: str) -> bo
     return True
 
 
+@st.cache_data(show_spinner=False)
+def _read_background_b64(background_path: str) -> str:
+    return base64.b64encode(Path(background_path).read_bytes()).decode("utf-8")
+
+
 def inject_custom_styles(background_path: Path) -> None:
     if not background_path.exists():
         return
 
-    background_b64 = base64.b64encode(background_path.read_bytes()).decode("utf-8")
+    background_b64 = _read_background_b64(str(background_path))
     st.markdown(
         f"""
         <style>
@@ -307,7 +312,7 @@ def _load_adventures() -> list[MicroAdventure]:
     return seed_adventures()
 
 
-@st.cache_data(show_spinner=False)
+@st.cache_data(show_spinner=False, ttl=1800)
 def _get_weather(day_iso: str, tz: str) -> WeatherSummary:
     y, m, d = map(int, day_iso.split("-"))
     return fetch_weather_for_day(date(y, m, d), timezone=tz)
