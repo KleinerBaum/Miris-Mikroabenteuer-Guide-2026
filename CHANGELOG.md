@@ -5,6 +5,9 @@
 
 ## Unreleased
 
+- DE: Sicherheitsvalidierung für Scherenmaterial konsistent gemacht: „scissors/Schere“ wird nicht mehr pauschal geblockt. Für Kinder unter 6 Jahren bleibt Schere nur mit explizitem Kontext „Kinderschere“ + „unter Aufsicht“ erlaubt; sonst greift weiterhin der Safety-Block/Fallback.
+- EN: Made scissor handling in safety validation consistent: “scissors/Schere” is no longer blocked unconditionally. For children under 6, scissors are only allowed with explicit “safety scissors” + “under supervision” context; otherwise the safety block/fallback still applies.
+
 - DE: Alterswert des Kindes wird jetzt schema-konsistent über `ActivitySearchCriteria.child_age_years` propagiert (UI-Adapter, Recommender, OpenAI-Request), sodass Daily-Auswahl und Safety-Prüfung denselben Wert nutzen.
 - EN: Child age is now propagated consistently via `ActivitySearchCriteria.child_age_years` (UI adapter, recommender, OpenAI request), so daily selection and safety validation use the same value.
 
