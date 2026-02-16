@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import sys
@@ -1179,6 +1180,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 raise_on_error=True,
             )
             st.session_state["weather_events_submitted"] = True
+            st.session_state["events_mode"] = mode
             st.rerun()
         except ValidationError as exc:
             st.error(
@@ -1193,18 +1195,84 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
                 st.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
             return
 
-    if not st.session_state.pop("weather_events_submitted", False):
-        return
+    def _events_fingerprint(
+        criteria_state: ActivitySearchCriteria, mode_value: str
+    ) -> str:
+        payload = {
+            "criteria": criteria_state.model_dump(mode="json"),
+            "mode": mode_value,
+        }
+        canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False, default=str)
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     criteria = get_criteria_state(cfg, key=CRITERIA_EVENTS_KEY)
-    _service, orchestrator = _get_activity_orchestrator(cfg)
-    status_box = st.empty()
+    requested_mode = str(st.session_state.get("events_mode", mode))
+    needs_refresh = bool(st.session_state.pop("weather_events_submitted", False))
 
-    def _status_update(message: str) -> None:
-        status_box.info(message)
+    if needs_refresh:
+        _service, orchestrator = _get_activity_orchestrator(cfg)
+        status_box = st.empty()
 
-    payload = orchestrator.run(criteria, mode=mode, on_status=_status_update)
-    status_box.success(_t(lang, "Fertig.", ""))
+        def _status_update(message: str) -> None:
+            status_box.info(message)
+
+        run_payload = orchestrator.run(
+            criteria, mode=requested_mode, on_status=_status_update
+        )
+        st.session_state["events_payload"] = run_payload
+        st.session_state["events_fingerprint"] = _events_fingerprint(
+            criteria, requested_mode
+        )
+        status_box.success(_t(lang, "Fertig.", "Done."))
+
+    payload_any = st.session_state.get("events_payload")
+    if not payload_any:
+        return
+    payload = cast(dict[str, Any], payload_any)
+
+    actions_left, actions_right = st.columns(2)
+    with actions_left:
+        if st.button(
+            _t(lang, "Neu suchen / Search again", "Neu suchen / Search again"),
+            key="events_refresh_button",
+        ):
+            try:
+                _sync_widget_change_to_criteria(
+                    prefix="form",
+                    state_key=CRITERIA_EVENTS_KEY,
+                    raise_on_error=True,
+                )
+                st.session_state["events_mode"] = mode
+                st.session_state["weather_events_submitted"] = True
+                st.rerun()
+            except ValidationError as exc:
+                st.error(
+                    _t(
+                        lang,
+                        "Bitte prüfe die Eingaben. Details siehe unten.",
+                        "Please verify your inputs. Details below.",
+                    )
+                )
+                for err in exc.errors():
+                    loc = ".".join(str(p) for p in err.get("loc", []))
+                    st.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+
+    with actions_right:
+        if st.button(
+            _t(
+                lang,
+                "Ergebnisse löschen / Clear results",
+                "Ergebnisse löschen / Clear results",
+            ),
+            key="events_clear_button",
+        ):
+            st.session_state.pop("events_payload", None)
+            st.session_state.pop("events_fingerprint", None)
+            st.rerun()
+
+    st.session_state["events_fingerprint"] = _events_fingerprint(
+        criteria, requested_mode
+    )
 
     weather = payload.get("weather")
     if weather:
