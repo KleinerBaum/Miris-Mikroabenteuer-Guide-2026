@@ -141,7 +141,8 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - Paketstruktur final vereinheitlicht: `src` ist jetzt explizit als Top-Level-Paket markiert (`src/__init__.py`), damit `src.mikroabenteuer.*` der eindeutige, kanonische Importpfad bleibt.
 - Neuer Strukturtest stellt sicher, dass alle `from .xyz import ...`-Referenzen in `src/mikroabenteuer/` auf tatsächlich vorhandene Module zeigen und keine Legacy-Root-Imports (`mikroabenteuer.*`) mehr in diesem Paket verwendet werden.
 
-- Sidebar enthält jetzt ein Familienprofil mit Feldern für **Name des Kindes / Child name**, **Name der Eltern / Parent name(s)** und **Alter des Kindes (Jahre) / Child age (years)**; diese Werte personalisieren Titel, Abenteuertexte und Exporte zur Laufzeit.
+- Sidebar enthält jetzt ein Familienprofil mit Feldern für **Name des Kindes / Child name**, **Name der Eltern / Parent name(s)** und **Altersband / Age band**; diese Werte personalisieren Titel, Abenteuertexte und Exporte zur Laufzeit.
+- Sidebar-Suche ist in vier Gruppen organisiert, wobei zentrale Felder dauerhaft sichtbar bleiben und erweiterte Filter in aufklappbaren Bereichen liegen; die Toggles „Wetter berücksichtigen“ und „KI-Text (OpenAI) nutzen“ werden nicht mehr angezeigt.
 - Neue PII-Redaction vor allen OpenAI-Requests: Namen, E-Mail-Adressen, Telefonnummern und adressähnliche Angaben werden vor Moderation/Responses-Aufrufen automatisch maskiert (`redact_pii`), damit keine Roh-PII an LLM-Endpunkte oder Logs gelangt.
 - OpenAI-Aufrufe sind jetzt gegen temporäre API-Fehler abgesichert: exponentielles Backoff-Retry greift nur bei 429/5xx/Timeout-Indikatoren; bei endgültigem Fehlschlag werden sichere kuratierte Fallback-Antworten geliefert (kein App-Crash).
 - Im Familienprofil zeigt die Sidebar jetzt den Hinweis: „Bitte gib nicht den vollständigen Namen deines Kindes oder identifizierende Informationen ein. / Don’t enter your child's full name or identifying info.“
