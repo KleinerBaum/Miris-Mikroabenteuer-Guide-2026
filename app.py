@@ -312,33 +312,43 @@ def _get_weather(day_iso: str, tz: str) -> WeatherSummary:
     return fetch_weather_for_day(date(y, m, d), timezone=tz)
 
 
-def get_criteria_state(cfg: AppConfig) -> ActivitySearchCriteria:
+CRITERIA_DAILY_KEY = "criteria_daily"
+CRITERIA_EVENTS_KEY = "criteria_events"
+
+
+def _default_criteria(cfg: AppConfig) -> ActivitySearchCriteria:
+    default_date = date.today()
+    default_start = time(hour=9, minute=0)
+    default_effort = (
+        cfg.default_effort
+        if cfg.default_effort in {"niedrig", "mittel", "hoch"}
+        else "mittel"
+    )
+    return ActivitySearchCriteria(
+        plz=cfg.default_postal_code,
+        radius_km=cfg.default_radius_km,
+        date=default_date,
+        time_window=TimeWindow(
+            start=default_start,
+            end=(
+                datetime.combine(default_date, default_start)
+                + timedelta(minutes=int(cfg.default_available_minutes))
+            ).time(),
+        ),
+        effort=cast(Literal["niedrig", "mittel", "hoch"], default_effort),
+        budget_eur_max=cfg.default_budget_eur,
+        topics=[],
+    )
+
+
+def get_criteria_state(
+    cfg: AppConfig, *, key: str = CRITERIA_DAILY_KEY
+) -> ActivitySearchCriteria:
     # Zentrale Quelle für die Filterlogik.
     # Nur diese Funktion setzt Initialwerte; UI-Adapter lesen/schreiben lediglich dieses Objekt.
-    if "criteria" not in st.session_state:
-        default_date = date.today()
-        default_start = time(hour=9, minute=0)
-        default_effort = (
-            cfg.default_effort
-            if cfg.default_effort in {"niedrig", "mittel", "hoch"}
-            else "mittel"
-        )
-        st.session_state["criteria"] = ActivitySearchCriteria(
-            plz=cfg.default_postal_code,
-            radius_km=cfg.default_radius_km,
-            date=default_date,
-            time_window=TimeWindow(
-                start=default_start,
-                end=(
-                    datetime.combine(default_date, default_start)
-                    + timedelta(minutes=int(cfg.default_available_minutes))
-                ).time(),
-            ),
-            effort=cast(Literal["niedrig", "mittel", "hoch"], default_effort),
-            budget_eur_max=cfg.default_budget_eur,
-            topics=[],
-        )
-    return cast(ActivitySearchCriteria, st.session_state["criteria"])
+    if key not in st.session_state:
+        st.session_state[key] = _default_criteria(cfg)
+    return cast(ActivitySearchCriteria, st.session_state[key])
 
 
 CRITERIA_WIDGET_FIELDS: tuple[str, ...] = (
@@ -393,10 +403,13 @@ def _ensure_ui_adapter_state(prefix: str, criteria: ActivitySearchCriteria) -> N
 
 
 def _sync_widget_change_to_criteria(
-    prefix: str, *, raise_on_error: bool = False
+    prefix: str,
+    *,
+    state_key: str,
+    raise_on_error: bool = False,
 ) -> None:
     try:
-        st.session_state["criteria"] = _build_criteria_from_widget_state(prefix=prefix)
+        st.session_state[state_key] = _build_criteria_from_widget_state(prefix=prefix)
     except ValidationError:
         if raise_on_error:
             raise
@@ -460,7 +473,7 @@ def _criteria_sidebar(
 ) -> tuple[Optional[ActivitySearchCriteria], Language, FamilyProfile]:
     # Developer navigation: Sidebar is a UI adapter.
     # It initializes adapter keys once from criteria and writes changes back to criteria.
-    criteria = get_criteria_state(cfg)
+    criteria = get_criteria_state(cfg, key=CRITERIA_DAILY_KEY)
     _ensure_ui_adapter_state(prefix="sidebar", criteria=criteria)
 
     st.sidebar.header("Suche")
@@ -471,13 +484,13 @@ def _criteria_sidebar(
         _t(lang, "Datum", ""),
         key="sidebar_date",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.time_input(
         _t(lang, "Startzeit", ""),
         key="sidebar_start_time",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.select_slider(
         _t(
@@ -488,7 +501,7 @@ def _criteria_sidebar(
         options=list(DURATION_OPTIONS),
         key="sidebar_available_minutes",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.text_input(
         _t(lang, "PLZ", ""),
@@ -499,7 +512,7 @@ def _criteria_sidebar(
         ),
         key="sidebar_plz",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.slider(
         "Radius (km)",
@@ -508,7 +521,7 @@ def _criteria_sidebar(
         step=0.5,
         key="sidebar_radius_km",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.selectbox(
         _t(lang, "Aufwand", ""),
@@ -516,7 +529,7 @@ def _criteria_sidebar(
         format_func=lambda x: effort_label(x, lang),
         key="sidebar_effort",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.number_input(
         _t(lang, "Budget (max €)", "Budget (max €)"),
@@ -525,7 +538,7 @@ def _criteria_sidebar(
         step=1.0,
         key="sidebar_budget_eur_max",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.multiselect(
         _t(lang, "Themen / Topics", "Themen / Topics"),
@@ -533,7 +546,7 @@ def _criteria_sidebar(
         format_func=lambda x: theme_label(x, lang),
         key="sidebar_topics",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.segmented_control(
         _t(lang, "Ort / Location", "Ort / Location"),
@@ -545,7 +558,7 @@ def _criteria_sidebar(
         }[opt],
         key="sidebar_location_preference",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.multiselect(
         _t(lang, "Ziele / Goals", "Ziele / Goals"),
@@ -554,14 +567,14 @@ def _criteria_sidebar(
         max_selections=2,
         key="sidebar_goals",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.multiselect(
         _t(lang, "Rahmenbedingungen / Constraints", "Rahmenbedingungen / Constraints"),
         options=list(CONSTRAINT_OPTIONS),
         key="sidebar_constraints",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
     st.sidebar.multiselect(
         _t(
@@ -573,7 +586,7 @@ def _criteria_sidebar(
         format_func=_material_label,
         key="sidebar_available_materials",
         on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar"},
+        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
 
     st.session_state["use_weather"] = st.sidebar.toggle(
@@ -656,7 +669,7 @@ def _criteria_sidebar(
 
     try:
         criteria = _build_criteria_from_widget_state(prefix="sidebar")
-        st.session_state["criteria"] = criteria
+        st.session_state[CRITERIA_DAILY_KEY] = criteria
         return criteria, lang, family_profile
     except ValidationError as exc:
         st.sidebar.error(_t(lang, "Ungültige Eingaben:", ""))
@@ -994,7 +1007,7 @@ def _get_activity_orchestrator(
 def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
     # Formular-Adapter folgt einer Einweg-Regel.
     # Interaktion schreibt nach criteria; Rendering liest nur für die Erstinitialisierung.
-    criteria = get_criteria_state(cfg)
+    criteria = get_criteria_state(cfg, key=CRITERIA_EVENTS_KEY)
     _ensure_ui_adapter_state(prefix="form", criteria=criteria)
 
     st.subheader(_t(lang, "Wetter & Veranstaltungen", ""))
@@ -1156,7 +1169,11 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
     if submitted:
         try:
-            _sync_widget_change_to_criteria(prefix="form", raise_on_error=True)
+            _sync_widget_change_to_criteria(
+                prefix="form",
+                state_key=CRITERIA_EVENTS_KEY,
+                raise_on_error=True,
+            )
             st.session_state["weather_events_submitted"] = True
             st.rerun()
         except ValidationError as exc:
@@ -1175,7 +1192,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
     if not st.session_state.pop("weather_events_submitted", False):
         return
 
-    criteria = get_criteria_state(cfg)
+    criteria = get_criteria_state(cfg, key=CRITERIA_EVENTS_KEY)
     _service, orchestrator = _get_activity_orchestrator(cfg)
     status_box = st.empty()
 

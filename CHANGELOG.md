@@ -5,6 +5,9 @@
 
 ## Unreleased
 
+- DE: Kritischen UX/Logik-Fehler in „Wetter & Veranstaltungen“ behoben: Sidebar- und Formularwerte nutzen jetzt getrennte States (`criteria_daily`/`criteria_events`), sodass Form-Submits nicht mehr durch Sidebar-Reruns überschrieben werden.
+- EN: Fixed a critical UX/logic issue in “Weather & Events”: sidebar and form values now use separate states (`criteria_daily`/`criteria_events`), so form submissions are no longer overwritten on sidebar reruns.
+
 - DE: Neue Material-Checklist (Haushaltsmaterialien) in Sidebar/Formular; ungecheckte Materialien (z. B. Papier) werden in Offline-Treffern und Plänen vermieden, inklusive Ersatzvorschlägen.
 - EN: Added a household materials checklist in sidebar/form; unchecked materials (e.g. paper) are avoided in offline matches and plans, including substitution hints.
 ### Geändert / Changed
