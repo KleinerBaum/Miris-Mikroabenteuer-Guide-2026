@@ -4,13 +4,13 @@ from dataclasses import replace
 from datetime import date, time
 from types import SimpleNamespace
 
-from src.mikroabenteuer.config import load_config
-from src.mikroabenteuer.moderation import SAFE_BLOCK_MESSAGE_DE_EN
-from src.mikroabenteuer.models import (
+from mikroabenteuer.config import load_config
+from mikroabenteuer.moderation import SAFE_BLOCK_MESSAGE_DE_EN
+from mikroabenteuer.models import (
     ActivitySearchCriteria,
     TimeWindow,
 )
-from src.mikroabenteuer.openai_activity_service import suggest_activities
+from mikroabenteuer.openai_activity_service import suggest_activities
 
 
 def _criteria() -> ActivitySearchCriteria:
@@ -40,11 +40,11 @@ def test_suggest_activities_blocks_when_input_moderation_is_flagged(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(
-        "src.mikroabenteuer.openai_activity_service.configure_openai_api_key",
+        "mikroabenteuer.openai_activity_service.configure_openai_api_key",
         lambda: None,
     )
     monkeypatch.setattr(
-        "src.mikroabenteuer.openai_activity_service.resolve_openai_api_key",
+        "mikroabenteuer.openai_activity_service.resolve_openai_api_key",
         lambda: "test-key",
     )
 
@@ -75,7 +75,7 @@ def test_openai_activity_service_exposes_moderation_block_as_ui_error(
     from app import OpenAIActivityService
 
     monkeypatch.setattr(
-        "src.mikroabenteuer.openai_activity_service.suggest_activities",
+        "mikroabenteuer.openai_activity_service.suggest_activities",
         lambda *args, **kwargs: SimpleNamespace(
             suggestions=[],
             sources=[],

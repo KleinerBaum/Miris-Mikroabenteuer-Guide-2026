@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.mikroabenteuer.config import load_config
+from mikroabenteuer.config import load_config
 
 
 def test_enable_llm_defaults_to_true(monkeypatch) -> None:

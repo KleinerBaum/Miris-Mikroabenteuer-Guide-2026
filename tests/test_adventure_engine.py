@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import date, time
 from typing import Literal
 
-from src.mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure, TimeWindow
-from src.mikroabenteuer.recommender import (
+from mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure, TimeWindow
+from mikroabenteuer.recommender import (
     filter_adventures,
     pick_daily_adventure,
     score_adventure,

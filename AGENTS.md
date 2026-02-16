@@ -22,15 +22,12 @@ Operational rules for automated agents (Codex) and human contributors.
 ### Current state: two codebases
 
 - **V2 (active):** `src/mikroabenteuer/*`  
-  Used by `app.py` via `from src.mikroabenteuer...` imports.
-- **V1 (legacy):** `mikroabenteuer/*` (repo root)  
-  Older implementations; some tests still reference it.
+  Imported as `mikroabenteuer.*` (`src/` is source-root only; `src/__init__.py` does not exist).
+- **V1 (legacy):** `legacy/v1/*`  
+  Older implementations; avoid new dependencies on V1.
 
 ✅ New work goes into **V2**.  
 ⚠️ Do not introduce new dependencies on V1 unless it’s part of the migration plan.
-
-### Planned: consolidation (Option A)
-We are moving towards a standard `src` layout where the package is imported as `mikroabenteuer.*` (no `src.` prefix) and V1 is archived under `legacy/`. Track in `CHANGELOG.md → Unreleased`.
 
 ---
 

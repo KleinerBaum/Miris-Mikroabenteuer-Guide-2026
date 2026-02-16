@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from datetime import date, time
 
-from src.mikroabenteuer.models import (
+from mikroabenteuer.models import (
     ActivitySearchCriteria,
     ActivitySuggestionResult,
     IndoorOutdoor,
@@ -11,7 +11,7 @@ from src.mikroabenteuer.models import (
     WeatherCondition,
     WeatherSummary,
 )
-from src.mikroabenteuer.openai_activity_service import _build_user_prompt
+from mikroabenteuer.openai_activity_service import _build_user_prompt
 
 
 def test_activity_search_criteria_to_llm_params_contains_expected_fields() -> None:

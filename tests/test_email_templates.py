@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from datetime import date, time
 
-from src.mikroabenteuer.email_templates import render_daily_email_html
-from src.mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure, TimeWindow
+from mikroabenteuer.email_templates import render_daily_email_html
+from mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure, TimeWindow
 
 
 def _sample_adventure() -> MicroAdventure:

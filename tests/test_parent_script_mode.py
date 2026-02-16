@@ -3,9 +3,9 @@ from __future__ import annotations
 from dataclasses import replace
 from datetime import date, time
 
-from src.mikroabenteuer.config import load_config
-from src.mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure, TimeWindow
-from src.mikroabenteuer.openai_gen import generate_activity_plan
+from mikroabenteuer.config import load_config
+from mikroabenteuer.models import ActivitySearchCriteria, MicroAdventure, TimeWindow
+from mikroabenteuer.openai_gen import generate_activity_plan
 
 
 def _criteria() -> ActivitySearchCriteria:

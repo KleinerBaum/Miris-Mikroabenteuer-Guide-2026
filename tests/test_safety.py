@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from src.mikroabenteuer.models import (
+from mikroabenteuer.models import (
     ActivityPlan,
     ActivityRequest,
     AgeUnit,
     IndoorOutdoor,
 )
-from src.mikroabenteuer.openai_gen import validate_activity_plan
+from mikroabenteuer.openai_gen import validate_activity_plan
 
 
 @pytest.fixture

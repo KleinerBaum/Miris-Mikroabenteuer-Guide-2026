@@ -1,5 +1,5 @@
 # tests/test_seed.py
-from src.mikroabenteuer.data_seed import seed_adventures
+from mikroabenteuer.data_seed import seed_adventures
 
 
 def test_seed_unique_slugs_and_validate():

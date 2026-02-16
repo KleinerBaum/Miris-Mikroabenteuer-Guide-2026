@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date
 
-from src.mikroabenteuer.ics import build_ics_event
+from mikroabenteuer.ics import build_ics_event
 
 
 def test_build_ics_contains_required_fields() -> None:

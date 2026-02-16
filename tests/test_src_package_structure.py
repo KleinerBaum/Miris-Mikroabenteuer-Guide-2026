@@ -47,5 +47,5 @@ def test_src_package_does_not_use_legacy_root_imports() -> None:
             ):
                 raise AssertionError(
                     f"{module_path} uses legacy absolute import '{node.module}'. "
-                    "Use package-local imports under src.mikroabenteuer instead."
+                    "Use package-local relative imports inside src/mikroabenteuer instead."
                 )
