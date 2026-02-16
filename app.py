@@ -231,6 +231,7 @@ def inject_custom_styles(background_path: Path) -> None:
                 --primary-dark-green: #00715D;
                 --primary-mint: #A4D4AE;
                 --primary-mint-soft: #d7efdc;
+                --primary-dark-green-hover: #005f4f;
                 --accent-terracotta: #D98556;
                 --accent-marigold: #F4B400;
                 --secondary-sky-blue: #80C7CF;
@@ -240,6 +241,7 @@ def inject_custom_styles(background_path: Path) -> None:
                 --text-muted: #5f6873;
                 --line-soft: #E3E6E9;
                 --surface-soft: #ffffff;
+                --surface-soft-hover: #f6f8fa;
                 --focus-ring: #0c8f78;
             }}
             .stApp {{
@@ -261,9 +263,9 @@ def inject_custom_styles(background_path: Path) -> None:
             }}
             .stDownloadButton button:hover,
             .stButton button:hover {{
-                background-color: var(--primary-mint) !important;
-                color: var(--text-charcoal) !important;
-                border-color: #7fbb8f !important;
+                background-color: var(--primary-dark-green-hover) !important;
+                color: #ffffff !important;
+                border-color: #004d40 !important;
             }}
             .stDownloadButton button:disabled {{
                 background-color: var(--line-soft) !important;
@@ -276,10 +278,23 @@ def inject_custom_styles(background_path: Path) -> None:
             .stTimeInput input,
             .stTextArea textarea,
             .stSelectbox [data-baseweb="select"] > div,
+            .stSelectbox [data-baseweb="select"] > div > div,
+            .stSelectbox [data-baseweb="select"] [role="combobox"],
             .stMultiSelect [data-baseweb="tag"] {{
                 background-color: var(--surface-soft) !important;
                 color: var(--text-charcoal) !important;
                 border: 1px solid #b9c5cc !important;
+            }}
+            .stMultiSelect [data-baseweb="select"] > div,
+            .stMultiSelect [data-baseweb="select"] > div > div,
+            .stMultiSelect [data-baseweb="select"] [role="combobox"],
+            .stMultiSelect [data-baseweb="select"] input {{
+                background-color: var(--surface-soft) !important;
+                color: var(--text-charcoal) !important;
+            }}
+            .stSelectbox [data-baseweb="select"] > div:hover,
+            .stMultiSelect [data-baseweb="select"] > div:hover {{
+                background-color: var(--surface-soft-hover) !important;
             }}
             .stTextInput input::placeholder,
             .stNumberInput input::placeholder,
@@ -289,9 +304,12 @@ def inject_custom_styles(background_path: Path) -> None:
             }}
             .stSelectbox [data-baseweb="select"] span,
             .stMultiSelect [data-baseweb="select"] span,
+            .stSelectbox [data-baseweb="select"] svg,
+            .stMultiSelect [data-baseweb="select"] svg,
             .stDateInput span,
             .stTimeInput span {{
                 color: var(--text-charcoal) !important;
+                fill: var(--text-charcoal) !important;
             }}
             .stSlider [data-baseweb="slider"] > div > div {{
                 background-color: var(--line-soft) !important;
