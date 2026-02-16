@@ -16,6 +16,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 ## Unreleased
 
 ### Changed / Geändert
+- V1 nach `legacy/v1` verschoben; Tests auf V2 umgestellt (noch `src.mikroabenteuer` Imports).
 - **UI-Kontrast verbessert / Improved UI contrast:** Formularfelder, Selects, Slider und Tags nutzen jetzt hellere Flächen und klarere Schriftfarben für bessere Lesbarkeit bei der bisherigen dunklen Komponenten-Optik.
 
 ### Planned / Geplant

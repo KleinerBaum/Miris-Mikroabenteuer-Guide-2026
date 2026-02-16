@@ -1,19 +1,21 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date
 
-from mikroabenteuer.ics_builder import build_ics
+from src.mikroabenteuer.ics import build_ics_event
 
 
 def test_build_ics_contains_required_fields() -> None:
-    payload = build_ics(
-        title="Wald, Spaß",
+    payload = build_ics_event(
+        day=date(2026, 1, 1),
+        summary="Wald, Spaß",
         description="Zeile 1\nZeile 2",
-        start_time=datetime(2026, 1, 1, 10, 0, 0, tzinfo=timezone.utc),
+        location="Volksgarten",
     )
+    text = payload.decode("utf-8")
 
-    assert "BEGIN:VCALENDAR" in payload
-    assert "BEGIN:VEVENT" in payload
-    assert "SUMMARY:Wald\\, Spaß" in payload
-    assert "DESCRIPTION:Zeile 1\\nZeile 2" in payload
-    assert payload.endswith("\r\n")
+    assert "BEGIN:VCALENDAR" in text
+    assert "BEGIN:VEVENT" in text
+    assert "SUMMARY:Wald\\, Spaß" in text
+    assert "DESCRIPTION:Zeile 1\\nZeile 2" in text
+    assert text.endswith("\r\n")
