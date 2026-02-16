@@ -49,6 +49,10 @@ def filter_adventures(
         if a.duration_minutes > criteria.available_minutes:
             continue
 
+        # age filter
+        if criteria.child_age_years < a.age_min or criteria.child_age_years > a.age_max:
+            continue
+
         # effort filter: gentle gating
         if criteria.effort == "niedrig":
             if a.energy_level == "hoch":

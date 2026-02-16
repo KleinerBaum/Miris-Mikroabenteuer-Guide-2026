@@ -16,6 +16,7 @@ from src.mikroabenteuer.models import (
     TimeWindow,
 )
 from src.mikroabenteuer.openai_gen import (
+    _build_activity_request,
     _ensure_responsive_prompts,
     generate_activity_plan,
     render_activity_plan_markdown,
@@ -57,6 +58,16 @@ def _build_criteria() -> ActivitySearchCriteria:
         budget_eur_max=20.0,
         topics=["natur"],
     )
+
+
+def test_build_activity_request_uses_child_age_from_criteria() -> None:
+    request = _build_activity_request(
+        _build_micro_adventure(),
+        _build_criteria().model_copy(update={"child_age_years": 2.5}),
+    )
+
+    assert request.age_unit is AgeUnit.years
+    assert request.age_value == 2.5
 
 
 def test_activity_request_schema_supports_age_unit_and_constraints() -> None:

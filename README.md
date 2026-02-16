@@ -100,6 +100,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 - OpenAI-Structured-Output-Schema ist jetzt Strict-Mode-kompatibel: URL-Felder in den Activity-Ergebnissen werden als validierte Strings modelliert (ohne `format: "uri"`), um API-Schemafehler zu vermeiden.
 - Activity-Search-Datenvertrag erweitert: `ActivitySearchCriteria` verwendet jetzt stabile Contract-Felder `plz`, `radius_km`, `date`, `time_window`, `effort`, `budget_eur_max`, `topics` sowie strikt validierte Vorschlags- und Planmodelle.
 - Konsolidierter Such-Contract mit einer Quelle der Wahrheit in `src/mikroabenteuer/models.py`; App, Recommender, Export und Scheduler verwenden konsistente Feldnamen inkl. `topics`-Normalisierung und `time_window`-Ableitung.
+- Alterspropagation im Daily-Flow vervollständigt: `child_age_years` ist jetzt Teil von `ActivitySearchCriteria` und wird konsistent von UI → Recommender → Plan-Generierung genutzt; dadurch greifen Altersfilter und Safety-Regeln (z. B. Kleinteile < 3 Jahre) verlässlich.
 - Neu strukturierte, zweisprachige Landingpage (DE/EN) mit klarer Hierarchie: Hero, 3-Schritte-Orientierung, Filterbereich, Karten und kompakter Abschluss
 - Reduzierte Hero-Sektion mit primärem CTA („Jetzt Abenteuer auswählen / Pick an adventure now") und direktem Scroll-Hinweis
 - Kompakter Orientierungskasten „So funktioniert's / How it works" für schnellen Einstieg

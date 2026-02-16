@@ -17,6 +17,7 @@ def _seed_widget_state(prefix: str, *, plz: str) -> dict[str, object]:
         f"{prefix}_available_minutes": 60,
         f"{prefix}_effort": "mittel",
         f"{prefix}_budget_eur_max": 20.0,
+        f"{prefix}_child_age_years": 4.5,
         f"{prefix}_topics": ["natur"],
         f"{prefix}_location_preference": "mixed",
         f"{prefix}_goals": [DevelopmentDomain.language],

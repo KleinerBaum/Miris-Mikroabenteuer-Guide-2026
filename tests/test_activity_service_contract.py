@@ -35,6 +35,7 @@ def test_activity_search_criteria_to_llm_params_contains_expected_fields() -> No
     assert params["available_minutes"] == 90
     assert params["max_suggestions"] == 4
     assert params["available_materials"] == ["pens", "tape"]
+    assert params["child_age_years"] == 2.5
 
 
 def test_openai_activity_prompt_uses_extended_contract_types() -> None:

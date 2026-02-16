@@ -194,6 +194,12 @@ class ActivitySearchCriteria(BaseModel):
         le=250.0,
         description="Budget upper bound in EUR.",
     )
+    child_age_years: float = Field(
+        default=2.5,
+        ge=0.0,
+        le=18.0,
+        description="Child age in years used for age-appropriate filtering and safety.",
+    )
     topics: List[str] = Field(default_factory=list, description="Topic keys.")
     location_preference: Literal["indoor", "outdoor", "mixed"] = Field(
         default="mixed",
@@ -328,6 +334,7 @@ class ActivitySearchCriteria(BaseModel):
             "available_minutes": self.available_minutes,
             "effort": self.effort,
             "budget_eur_max": self.budget_eur_max,
+            "child_age_years": self.child_age_years,
             "topics": self.topics,
             "location_preference": self.location_preference,
             "goals": [goal.value for goal in self.goals],
