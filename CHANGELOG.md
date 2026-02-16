@@ -5,6 +5,9 @@
 
 ## Unreleased
 
+- DE: Alterswert des Kindes wird jetzt schema-konsistent über `ActivitySearchCriteria.child_age_years` propagiert (UI-Adapter, Recommender, OpenAI-Request), sodass Daily-Auswahl und Safety-Prüfung denselben Wert nutzen.
+- EN: Child age is now propagated consistently via `ActivitySearchCriteria.child_age_years` (UI adapter, recommender, OpenAI request), so daily selection and safety validation use the same value.
+
 - DE: Kritischen UX/Logik-Fehler in „Wetter & Veranstaltungen“ behoben: Sidebar- und Formularwerte nutzen jetzt getrennte States (`criteria_daily`/`criteria_events`), sodass Form-Submits nicht mehr durch Sidebar-Reruns überschrieben werden.
 - EN: Fixed a critical UX/logic issue in “Weather & Events”: sidebar and form values now use separate states (`criteria_daily`/`criteria_events`), so form submissions are no longer overwritten on sidebar reruns.
 

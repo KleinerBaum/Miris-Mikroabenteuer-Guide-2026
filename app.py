@@ -359,6 +359,7 @@ CRITERIA_WIDGET_FIELDS: tuple[str, ...] = (
     "available_minutes",
     "effort",
     "budget_eur_max",
+    "child_age_years",
     "topics",
     "location_preference",
     "goals",
@@ -386,6 +387,7 @@ def _criteria_to_widget_values(criteria: ActivitySearchCriteria) -> dict[str, An
         "available_minutes": available_minutes,
         "effort": criteria.effort,
         "budget_eur_max": float(criteria.budget_eur_max),
+        "child_age_years": float(criteria.child_age_years),
         "topics": list(criteria.topics),
         "location_preference": criteria.location_preference,
         "goals": list(criteria.goals),
@@ -457,6 +459,7 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
             st.session_state[f"{prefix}_effort"],
         ),
         budget_eur_max=float(st.session_state[f"{prefix}_budget_eur_max"]),
+        child_age_years=float(st.session_state[f"{prefix}_child_age_years"]),
         topics=list(cast(list[str], st.session_state[f"{prefix}_topics"])),
         location_preference=cast(
             Literal["indoor", "outdoor", "mixed"],
@@ -661,6 +664,7 @@ def _criteria_sidebar(
     )
     child_age_years = age_band_map[selected_age_band]
     st.session_state["profile_child_age_years"] = float(child_age_years)
+    st.session_state["sidebar_child_age_years"] = float(child_age_years)
     family_profile = FamilyProfile(
         child_name=child_name,
         parent_names=parent_names,
@@ -1270,6 +1274,11 @@ def main() -> None:
     weather: Optional[WeatherSummary] = None
     if st.session_state.get("use_weather", True):
         weather = _get_weather(criteria.date.isoformat(), cfg.timezone)
+
+    criteria = criteria.model_copy(
+        update={"child_age_years": float(family_profile.child_age_years)}
+    )
+    st.session_state[CRITERIA_DAILY_KEY] = criteria
 
     picked, _candidates = pick_daily_adventure(adventures, criteria, weather)
     picked = _profiled_adventure(picked, family_profile)

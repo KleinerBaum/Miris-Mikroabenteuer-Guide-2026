@@ -169,7 +169,7 @@ def _build_activity_request(
     adventure: MicroAdventure,
     criteria: ActivitySearchCriteria,
 ) -> ActivityRequest:
-    age_years = max(0.0, float((adventure.age_min + adventure.age_max) / 2.0))
+    age_years = max(0.0, float(criteria.child_age_years))
     indoor_outdoor = IndoorOutdoor.outdoor
     if "indoor" in {t.lower() for t in adventure.tags}:
         indoor_outdoor = IndoorOutdoor.indoor
