@@ -16,6 +16,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 ## Unreleased
 
 ### Changed / Geändert
+- **Packaging für Cloud-Deployments / Packaging for cloud deployments:** `requirements.txt` installiert jetzt das lokale `src`-Package via `-e .`, damit `import mikroabenteuer` auch in Streamlit-Cloud-ähnlichen Umgebungen funktioniert; Docker-Installationsreihenfolge ist damit kompatibel.
 - Standard-`src`-Layout umgesetzt: Package unter `src/mikroabenteuer` wird als `mikroabenteuer.*` importiert; `src/__init__.py` entfernt; Packaging via `pyproject.toml` + Editable Install (`pip install -e .`) ergänzt.
 - **UI-Kontrast verbessert / Improved UI contrast:** Formularfelder, Selects, Slider und Tags nutzen jetzt hellere Flächen und klarere Schriftfarben für bessere Lesbarkeit bei der bisherigen dunklen Komponenten-Optik.
 - **Migration konsolidiert / Migration consolidated:** V2-Importpfade bleiben kanonisch (`mikroabenteuer.*`), V1 bleibt Legacy, und nicht mehr genutzte Dependencies wurden aus den Runtime-Anforderungen entfernt.
