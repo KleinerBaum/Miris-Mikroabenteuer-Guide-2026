@@ -5,6 +5,9 @@
 
 ## Unreleased
 
+- DE: Performance-Polishes ergänzt: `load_activity_library()` nutzt nun ein In-Memory-Cache (`lru_cache`), Wetterdaten in `_get_weather` haben eine TTL von 30 Minuten, und das Base64-Encoding des Hintergrundbildes wird gecacht.
+- EN: Added performance polishes: `load_activity_library()` now uses an in-memory cache (`lru_cache`), weather data in `_get_weather` uses a 30-minute TTL, and background image base64 encoding is cached.
+
 - DE: OpenAI-Modell-Konfiguration vereinheitlicht: statt Hardcoding nutzen Plan- und Event-Flow jetzt separate App-Config-Felder (`OPENAI_MODEL_PLAN`, `OPENAI_MODEL_EVENTS_FAST`, `OPENAI_MODEL_EVENTS_ACCURATE`).
 - EN: Unified OpenAI model configuration: instead of hardcoded values, plan and event flows now use separate app config fields (`OPENAI_MODEL_PLAN`, `OPENAI_MODEL_EVENTS_FAST`, `OPENAI_MODEL_EVENTS_ACCURATE`).
 - DE: Ergebnisse in „Wetter & Veranstaltungen“ bleiben jetzt über Reruns erhalten: Der letzte Such-`payload` wird in `st.session_state["events_payload"]` samt `events_fingerprint` gespeichert; zusätzlich gibt es Buttons für „Neu suchen“ und „Ergebnisse löschen“.

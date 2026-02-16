@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, time
+from pathlib import Path
 
 from src.mikroabenteuer.activity_library import (
     load_activity_library,
@@ -118,3 +119,25 @@ def test_offline_selection_returns_substitutions_for_missing_items() -> None:
         "statt Papier" in warning or "instead of paper" in warning
         for warning in warnings
     )
+
+
+def test_load_activity_library_uses_single_disk_read_per_process(monkeypatch) -> None:
+    load_activity_library.cache_clear()
+    read_count = 0
+    original_read_text = Path.read_text
+
+    def _counted_read_text(self: Path, *args, **kwargs) -> str:
+        nonlocal read_count
+        read_count += 1
+        return original_read_text(self, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", _counted_read_text)
+
+    first = load_activity_library()
+    second = load_activity_library()
+
+    assert first
+    assert second
+    assert read_count == 1
+
+    load_activity_library.cache_clear()

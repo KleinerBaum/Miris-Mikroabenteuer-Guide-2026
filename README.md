@@ -97,6 +97,7 @@ Optional kann als Betriebskonvention stattdessen Düsseldorf-Zentrum (`51.2277`,
 
 ## Features
 - Neuer Offline-Modus (Sidebar-Toggle) für „Wetter & Veranstaltungen“: Die Vorschlagsgenerierung kann vollständig ohne LLM aus einer kuratierten Aktivitätsbibliothek (`data/activity_library.json`) erfolgen; Einträge sind nach Altersbereich, Domain-Tags, Materialien und Safety-Hinweisen strukturiert.
+- Performance-Polish: Offline-Bibliothek, Wetterabfrage und Hintergrundbild-Ladevorgang sind jetzt gecacht (inkl. TTL für Wetterdaten), um wiederholte Disk-Reads/API-Abfragen bei Streamlit-Reruns zu reduzieren.
 - Offline-Auswahl nutzt jetzt Filter + Scoring, um die 3 besten Bibliothekseinträge zu priorisieren (Age-Fit, Dauer-Fit, Material-Präferenzen via `constraints` mit `material:<name>`), und verankert jede Empfehlung mit einer `library_id` im Begründungs-Payload.
 - Neue Material-Checklist (Haushaltsmaterialien) in Sidebar und Formular: Nicht ausgewählte Materialien werden in Vorschlägen/Plänen vermieden; stattdessen erscheinen DE/EN-Ersatzhinweise.
 - UI-Texte sind jetzt vollständig auf Deutsch gehalten (keine englischen Textpassagen mehr in der Oberfläche).

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +33,7 @@ def _activity_library_path() -> Path:
     return Path(__file__).resolve().parents[2] / "data" / "activity_library.json"
 
 
+@lru_cache(maxsize=1)
 def load_activity_library() -> list[ActivityLibraryItem]:
     data_path = _activity_library_path()
     raw_payload = json.loads(data_path.read_text(encoding="utf-8"))
