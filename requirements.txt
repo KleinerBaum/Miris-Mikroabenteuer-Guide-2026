@@ -9,3 +9,5 @@ google-auth-oauthlib>=1.2.1
 google-auth>=2.27
 openai>=1.0
 pydantic-settings>=2.2,<3
+# Install local package (src-layout) so `import mikroabenteuer` works in Streamlit Cloud
+-e .
