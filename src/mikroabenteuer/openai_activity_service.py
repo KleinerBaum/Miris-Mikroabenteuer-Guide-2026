@@ -144,7 +144,7 @@ def _error_hint_for_code(error_code: str) -> str:
     }
     return hints[error_code]
 
-  def _build_web_search_user_location(
+def _build_web_search_user_location(
     weather: WeatherSummary,
 ) -> dict[str, str] | None:
     country = (weather.country_code or "").strip()
