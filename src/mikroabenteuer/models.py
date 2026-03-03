@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from datetime import date as dt_date, datetime, time
 from enum import Enum
 from typing import Annotated, List, Literal
+from urllib.parse import urlparse, urlunparse
 
 from pydantic import (
     BaseModel,
@@ -136,9 +137,32 @@ TEXT_ITEM_MAX_CHARS = 80
 
 
 def validate_http_url(value: str) -> str:
-    if value.startswith(("http://", "https://")):
-        return value
-    raise ValueError("URL must start with http:// or https://")
+    candidate = (value or "").strip().strip("\"'")
+    candidate = candidate.rstrip(".,;:!?)]")
+    if not candidate:
+        raise ValueError("URL must not be empty")
+
+    if candidate.startswith("//"):
+        candidate = f"https:{candidate}"
+    elif not re.match(r"^[a-zA-Z][a-zA-Z0-9+.-]*://", candidate):
+        candidate = f"https://{candidate}"
+
+    parsed = urlparse(candidate)
+    if parsed.scheme not in {"http", "https"}:
+        raise ValueError("URL must use http:// or https://")
+    if not parsed.netloc:
+        raise ValueError("URL must include a valid host")
+
+    return urlunparse(
+        (
+            parsed.scheme.lower(),
+            parsed.netloc.lower(),
+            parsed.path,
+            parsed.params,
+            parsed.query,
+            parsed.fragment,
+        )
+    )
 
 
 HttpUrlStr = Annotated[str, AfterValidator(validate_http_url)]
@@ -428,7 +452,7 @@ class ActivitySuggestion(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     title: str
-    date: dt_date
+    date: dt_date | None = None
     start_time: time | None = None
     end_time: time | None = None
     location: str | None = None
