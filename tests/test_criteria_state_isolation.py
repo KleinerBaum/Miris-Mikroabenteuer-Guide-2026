@@ -64,12 +64,12 @@ def test_sync_widget_change_updates_only_target_criteria_key(monkeypatch) -> Non
     monkeypatch.setattr(app.st, "session_state", session_state)
 
     app._sync_widget_change_to_criteria(
-        prefix="sidebar",
+        namespace="daily",
         state_key=app.CRITERIA_DAILY_KEY,
         raise_on_error=True,
     )
     app._sync_widget_change_to_criteria(
-        prefix="form",
+        namespace="events",
         state_key=app.CRITERIA_EVENTS_KEY,
         raise_on_error=True,
     )
