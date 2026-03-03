@@ -27,6 +27,7 @@ ERROR_CODE_MISSING_API_KEY = "missing_api_key"
 ERROR_CODE_RETRYABLE_UPSTREAM = "retryable_upstream"
 ERROR_CODE_STRUCTURED_OUTPUT = "structured_output_validation"
 ERROR_CODE_API_NON_RETRYABLE = "api_non_retryable"
+VALIDATION_DETAIL_PREFIX = "Validation detail / Validierungsdetail: "
 
 
 def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
@@ -233,6 +234,31 @@ def _normalize_result_payload(
     return normalized
 
 
+def _safe_validation_issue_metadata(exc: ValidationError) -> list[str]:
+    def _format_loc(loc: Any) -> str:
+        if not isinstance(loc, (list, tuple)):
+            return "response"
+        path = ""
+        for part in loc:
+            if isinstance(part, int):
+                path += f"[{part}]"
+            elif isinstance(part, str):
+                path = f"{path}.{part}" if path else part
+        return path or "response"
+
+    issues: list[str] = []
+    seen: set[str] = set()
+    for error in exc.errors():
+        field_path = _format_loc(error.get("loc"))
+        error_type = str(error.get("type") or "unknown")
+        issue = f"{field_path} {error_type}"
+        if issue in seen:
+            continue
+        seen.add(issue)
+        issues.append(issue)
+    return issues
+
+
 def _build_web_search_user_location(
     weather: WeatherSummary,
 ) -> dict[str, str] | None:
@@ -406,10 +432,18 @@ def suggest_activities(
             base_delay=0.5,
             should_retry=_is_retryable_openai_error,
         )(_call_openai)()
-    except ValidationError:
+    except ValidationError as exc:
+        safe_issues = _safe_validation_issue_metadata(exc)
+        technical_notes = [
+            f"{VALIDATION_DETAIL_PREFIX}{issue}" for issue in safe_issues[:3]
+        ]
         return _template_fallback_result(
             weather,
             error_code=ERROR_CODE_STRUCTURED_OUTPUT,
+            warnings_de_en=[
+                "Antwortschema-Validierung fehlgeschlagen. / Response schema validation failed."
+            ]
+            + technical_notes,
         )
     except Exception as exc:  # noqa: BLE001
         if "No structured output payload found" in str(exc):
