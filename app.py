@@ -64,6 +64,11 @@ from mikroabenteuer.recommender import pick_daily_adventure
 from mikroabenteuer.scheduler import run_daily_job_once
 from mikroabenteuer.settings import load_runtime_config, render_missing_config_ui
 from mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
+from mikroabenteuer.ui.filter_specs import (
+    FilterFieldSpec,
+    build_core_filter_specs,
+    render_filter_fields,
+)
 
 
 st.set_page_config(page_title="Mikroabenteuer", page_icon="🌿", layout="wide")
@@ -111,6 +116,20 @@ CONSTRAINT_OPTIONS: tuple[str, ...] = (
 )
 
 MATERIAL_OPTIONS: tuple[str, ...] = COMMON_HOUSEHOLD_MATERIALS
+
+CORE_FILTER_SPECS: tuple[FilterFieldSpec, ...] = build_core_filter_specs(
+    duration_options=DURATION_OPTIONS,
+    effort_options=("niedrig", "mittel", "hoch"),
+    goal_options=GOAL_OPTIONS,
+    constraint_options=CONSTRAINT_OPTIONS,
+    material_options=MATERIAL_OPTIONS,
+    theme_options_factory=theme_options,
+)
+
+
+def _core_specs_by_id(*ids: str) -> tuple[FilterFieldSpec, ...]:
+    wanted = set(ids)
+    return tuple(spec for spec in CORE_FILTER_SPECS if spec.id in wanted)
 
 
 def _material_label(material_key: str) -> str:
@@ -599,12 +618,24 @@ def _criteria_sidebar(
     st.sidebar.header("Suche")
     lang: Language = cast(Language, st.session_state.get("lang", "DE"))
 
+    on_change_kwargs = {"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY}
+    formatters = {
+        "effort": lambda value: effort_label(value, lang),
+        "topics": lambda value: theme_label(value, lang),
+        "goals": lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
+        "available_materials": _material_label,
+    }
+
     # Group 1 (location/time): top fields stay visible.
-    st.sidebar.date_input(
-        _t(lang, "Datum", ""),
-        key="sidebar_date",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+    render_filter_fields(
+        _core_specs_by_id("date"),
+        namespace="sidebar",
+        mode="sidebar",
+        lang=lang,
+        on_change_handler=_sync_widget_change_to_criteria,
+        on_change_kwargs=on_change_kwargs,
+        container=st.sidebar,
+        formatters=formatters,
     )
 
     age_band_labels = [label for label, _ in AGE_BAND_OPTIONS]
@@ -615,7 +646,7 @@ def _criteria_sidebar(
         _t(
             lang,
             "Altersband",
-            "Altersband",
+            "Age band",
         ),
         options=age_band_labels,
         index=age_band_labels.index(current_band),
@@ -625,131 +656,96 @@ def _criteria_sidebar(
     st.session_state["profile_child_age_years"] = float(child_age_years)
     st.session_state["sidebar_child_age_years"] = float(child_age_years)
 
-    st.sidebar.text_input(
-        _t(lang, "PLZ", ""),
-        help=_t(
-            lang,
-            "5-stellige deutsche PLZ (z. B. 40215).",
-            "",
-        ),
-        key="sidebar_plz",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-    )
-    st.sidebar.slider(
-        "Radius (km)",
-        min_value=0.5,
-        max_value=50.0,
-        step=0.5,
-        key="sidebar_radius_km",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+    render_filter_fields(
+        _core_specs_by_id("plz", "radius_km"),
+        namespace="sidebar",
+        mode="sidebar",
+        lang=lang,
+        on_change_handler=_sync_widget_change_to_criteria,
+        on_change_kwargs=on_change_kwargs,
+        container=st.sidebar,
+        formatters=formatters,
     )
 
-    with st.sidebar.expander(_t(lang, "Weitere Suchoptionen", ""), expanded=False):
-        st.time_input(
-            _t(lang, "Startzeit", ""),
-            key="sidebar_start_time",
-            on_change=_sync_widget_change_to_criteria,
-            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-        )
-        st.select_slider(
-            _t(
-                lang,
-                "Verfügbare Zeit (Minuten)",
-                "Verfügbare Zeit (Minuten)",
-            ),
-            options=list(DURATION_OPTIONS),
-            key="sidebar_available_minutes",
-            on_change=_sync_widget_change_to_criteria,
-            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+    with st.sidebar.expander(
+        _t(lang, "Weitere Suchoptionen", "More search options"), expanded=False
+    ):
+        render_filter_fields(
+            _core_specs_by_id("start_time", "available_minutes", "budget_eur_max"),
+            namespace="sidebar",
+            mode="sidebar",
+            lang=lang,
+            on_change_handler=_sync_widget_change_to_criteria,
+            on_change_kwargs=on_change_kwargs,
+            formatters=formatters,
         )
         st.segmented_control(
-            _t(lang, "Ort", "Ort"),
+            _t(lang, "Ort", "Location"),
             options=["mixed", "outdoor", "indoor"],
             format_func=lambda opt: {
-                "mixed": "Gemischt",
-                "outdoor": "Draußen",
-                "indoor": "Drinnen",
+                "mixed": "Gemischt" if lang == "DE" else "Mixed",
+                "outdoor": "Draußen" if lang == "DE" else "Outdoor",
+                "indoor": "Drinnen" if lang == "DE" else "Indoor",
             }[opt],
             key="sidebar_location_preference",
             on_change=_sync_widget_change_to_criteria,
-            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-        )
-        st.number_input(
-            _t(lang, "Budget (max €)", "Budget (max €)"),
-            min_value=0.0,
-            max_value=250.0,
-            step=1.0,
-            key="sidebar_budget_eur_max",
-            on_change=_sync_widget_change_to_criteria,
-            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+            kwargs=on_change_kwargs,
         )
 
     # Group 2 (effort/constraints).
-    st.sidebar.selectbox(
-        _t(lang, "Aufwand", ""),
-        options=["niedrig", "mittel", "hoch"],
-        format_func=lambda x: effort_label(x, lang),
-        key="sidebar_effort",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+    render_filter_fields(
+        _core_specs_by_id("effort"),
+        namespace="sidebar",
+        mode="sidebar",
+        lang=lang,
+        on_change_handler=_sync_widget_change_to_criteria,
+        on_change_kwargs=on_change_kwargs,
+        container=st.sidebar,
+        formatters=formatters,
     )
 
     with st.sidebar.expander(
         _t(
             lang,
             "Rahmenbedingungen erweitern",
-            "",
+            "Expand constraints",
         ),
         expanded=False,
     ):
-        st.multiselect(
-            _t(
-                lang,
-                "Rahmenbedingungen",
-                "Rahmenbedingungen",
-            ),
-            options=list(CONSTRAINT_OPTIONS),
-            key="sidebar_constraints",
-            on_change=_sync_widget_change_to_criteria,
-            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        render_filter_fields(
+            _core_specs_by_id("constraints"),
+            namespace="sidebar",
+            mode="sidebar",
+            lang=lang,
+            on_change_handler=_sync_widget_change_to_criteria,
+            on_change_kwargs=on_change_kwargs,
+            formatters=formatters,
         )
 
     # Group 3 (goals/topics/materials).
-    st.sidebar.multiselect(
-        _t(lang, "Ziele", "Ziele"),
-        options=list(GOAL_OPTIONS),
-        format_func=lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
-        max_selections=2,
-        key="sidebar_goals",
-        on_change=_sync_widget_change_to_criteria,
-        kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+    render_filter_fields(
+        _core_specs_by_id("goals"),
+        namespace="sidebar",
+        mode="sidebar",
+        lang=lang,
+        on_change_handler=_sync_widget_change_to_criteria,
+        on_change_kwargs=on_change_kwargs,
+        container=st.sidebar,
+        formatters=formatters,
     )
 
     with st.sidebar.expander(
-        _t(lang, "Themen & Material", ""),
+        _t(lang, "Themen & Material", "Topics & material"),
         expanded=False,
     ):
-        st.multiselect(
-            _t(lang, "Themen", "Themen"),
-            options=theme_options(lang),
-            format_func=lambda x: theme_label(x, lang),
-            key="sidebar_topics",
-            on_change=_sync_widget_change_to_criteria,
-            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
-        )
-        st.multiselect(
-            _t(
-                lang,
-                "Haushaltsmaterialien (verfügbar)",
-                "Haushaltsmaterialien (verfügbar)",
-            ),
-            options=list(MATERIAL_OPTIONS),
-            format_func=_material_label,
-            key="sidebar_available_materials",
-            on_change=_sync_widget_change_to_criteria,
-            kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
+        render_filter_fields(
+            _core_specs_by_id("topics", "available_materials"),
+            namespace="sidebar",
+            mode="sidebar",
+            lang=lang,
+            on_change_handler=_sync_widget_change_to_criteria,
+            on_change_kwargs=on_change_kwargs,
+            formatters=formatters,
         )
 
     # Hidden settings (requested: do not show weather/AI toggles).
@@ -1251,90 +1247,45 @@ def render_wetter_und_events_section(
 
     with st.sidebar.form("weather_events_form", clear_on_submit=False):
         st.markdown("### " + _t(lang, "Wetter & Veranstaltungen", ""))
-        st.text_input(
-            _t(lang, "PLZ", ""),
-            key="form_plz",
-            max_chars=5,
-        )
-        st.date_input(
-            _t(lang, "Datum", ""),
-            key="form_date",
-        )
-        st.time_input(
-            _t(lang, "Startzeit", ""),
-            key="form_start_time",
-        )
-        st.select_slider(
-            _t(
-                lang,
-                "Zeitbudget (Minuten)",
-                "",
+        formatters = {
+            "effort": lambda value: effort_label(value, lang),
+            "topics": lambda value: theme_label(value, lang),
+            "goals": lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
+            "available_materials": _material_label,
+        }
+        render_filter_fields(
+            _core_specs_by_id(
+                "plz",
+                "date",
+                "start_time",
+                "available_minutes",
+                "radius_km",
+                "effort",
+                "budget_eur_max",
+                "topics",
             ),
-            options=list(DURATION_OPTIONS),
-            key="form_available_minutes",
-        )
-        st.slider(
-            _t(lang, "Radius (km)", ""),
-            min_value=0.5,
-            max_value=50.0,
-            step=0.5,
-            key="form_radius_km",
-        )
-        st.selectbox(
-            _t(lang, "Aufwand", ""),
-            options=["niedrig", "mittel", "hoch"],
-            format_func=lambda x: effort_label(x, lang),
-            key="form_effort",
-        )
-        st.number_input(
-            _t(lang, "Budget (max €)", ""),
-            min_value=0.0,
-            max_value=250.0,
-            step=1.0,
-            key="form_budget_eur_max",
-        )
-        st.multiselect(
-            _t(lang, "Themen", ""),
-            options=theme_options(lang),
-            format_func=lambda x: theme_label(x, lang),
-            key="form_topics",
+            namespace="form",
+            mode="events",
+            lang=lang,
+            formatters=formatters,
         )
         st.toggle(
-            _t(lang, "Ort: draußen bevorzugen", ""),
+            _t(lang, "Ort: draußen bevorzugen", "Prefer outdoor"),
             key="form_pref_outdoor",
             value=st.session_state.get("form_location_preference", "mixed")
             == "outdoor",
         )
         st.toggle(
-            _t(lang, "Ort: drinnen bevorzugen", ""),
+            _t(lang, "Ort: drinnen bevorzugen", "Prefer indoor"),
             key="form_pref_indoor",
             value=st.session_state.get("form_location_preference", "mixed") == "indoor",
         )
-        st.multiselect(
-            _t(lang, "Ziele", ""),
-            options=list(GOAL_OPTIONS),
-            format_func=lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
-            max_selections=2,
-            key="form_goals",
-        )
-        st.multiselect(
-            _t(
-                lang,
-                "Rahmenbedingungen",
-                "",
-            ),
-            options=list(CONSTRAINT_OPTIONS),
-            key="form_constraints",
-        )
-        st.multiselect(
-            _t(
-                lang,
-                "Haushaltsmaterialien (verfügbar)",
-                "",
-            ),
-            options=list(MATERIAL_OPTIONS),
-            format_func=_material_label,
-            key="form_available_materials",
+        render_filter_fields(
+            _core_specs_by_id("goals", "constraints", "available_materials"),
+            namespace="form",
+            mode="events",
+            lang=lang,
+            formatters=formatters,
         )
         st.text_input(
             _t(

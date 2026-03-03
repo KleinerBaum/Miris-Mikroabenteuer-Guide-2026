@@ -16,6 +16,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 ## Unreleased
 
 ### Changed / Geändert
+- **Deklarative Filter-Spezifikation eingeführt / Declarative filter specification introduced:** Gemeinsame Filterfelder werden jetzt zentral als `FilterFieldSpec` in `src/mikroabenteuer/ui/filter_specs.py` gepflegt und über eine einheitliche Render-Funktion in Sidebar und Wetter/Events-Form wiederverwendet; mode-spezifische Zusätze (z. B. Genauigkeit, Event-Kontext) bleiben separat.
 - **Fehlerklassen für Eventsuche differenziert / Event-search error classes differentiated:** `suggest_activities` unterscheidet jetzt fehlenden API-Key, retrybare Upstream-Fehler (Rate-Limit/5xx/Timeout), Structured-Output-Validierungsfehler und sonstige nicht-retrybare API-Fehler; zusätzlich werden `error_code` und `error_hint_de_en` im Ergebnis geführt und in Orchestrierung/UI gezielt angezeigt.
 - **Button- und Select-Kontraste nachgeschärft / Improved button and select contrast:** Primäre Buttons behalten im Hover-Zustand nun einen dunklen, gut lesbaren Hintergrund; Select-/MultiSelect-Flächen und Icons wurden für bessere Lesbarkeit auf hellem Theme-Hintergrund vereinheitlicht.
 - **Event-Geo-Kontext aus Suchkriterien / Event geo context from search criteria:** Für den Event-Wetter-Pfad wird Standortkontext jetzt PLZ-basiert aufgelöst (city/region/country/timezone), und `web_search.user_location` wird nur bei validen Daten gesetzt; hartcodierte Stadtwerte wurden entfernt.
