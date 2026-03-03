@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import asdict
 from typing import Any, Literal, cast
 
@@ -28,6 +29,18 @@ ERROR_CODE_RETRYABLE_UPSTREAM = "retryable_upstream"
 ERROR_CODE_STRUCTURED_OUTPUT = "structured_output_validation"
 ERROR_CODE_API_NON_RETRYABLE = "api_non_retryable"
 VALIDATION_DETAIL_PREFIX = "Validation detail / Validierungsdetail: "
+RECOVERY_MARKER_SCHEMA_REPAIR = (
+    "Recovered after schema repair / Nach Schema-Reparatur wiederhergestellt."
+)
+
+
+def _build_schema_repair_prompt(original_prompt: str) -> str:
+    return (
+        f"{original_prompt}\n\n"
+        "JSON-REPARATURHINWEIS / JSON REPAIR NOTICE:\n"
+        "Die vorherige Antwort war nicht valide. Antworte jetzt ausschließlich als valides JSON im exakten Zielschema. "
+        "Keine Prosa, keine Markdown-Blöcke, keine zusätzlichen Kommentare."
+    )
 
 
 def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
@@ -234,6 +247,63 @@ def _normalize_result_payload(
     return normalized
 
 
+def _extract_text_for_best_effort(response: Any) -> str:
+    output_text = getattr(response, "output_text", None)
+    if isinstance(output_text, str) and output_text.strip():
+        return output_text.strip()
+
+    output = getattr(response, "output", None)
+    if isinstance(output, list):
+        for item in output:
+            if not isinstance(item, dict):
+                continue
+            content = item.get("content")
+            if not isinstance(content, list):
+                continue
+            for block in content:
+                if not isinstance(block, dict):
+                    continue
+                text_value = block.get("text")
+                if isinstance(text_value, str) and text_value.strip():
+                    return text_value.strip()
+    return ""
+
+
+def _best_effort_extract_payload(response: Any) -> dict[str, Any] | None:
+    candidate_text = _extract_text_for_best_effort(response)
+    if not candidate_text:
+        return None
+
+    urls = _normalize_url_list(
+        re.findall(r"https?://[^\s\]\[\)\(\"']+", candidate_text)
+    )
+    if not urls:
+        return None
+
+    lines = [line.strip() for line in candidate_text.splitlines() if line.strip()]
+    title = lines[0] if lines else "Aktivität / Activity"
+    if len(title) > 120:
+        title = f"{title[:117].rstrip()}..."
+
+    description = " ".join(lines[1:3]).strip() if len(lines) > 1 else candidate_text
+    if not description:
+        description = "Kurzbeschreibung aus Modellantwort extrahiert. / Summary extracted from model output."
+    if len(description) > 300:
+        description = f"{description[:297].rstrip()}..."
+
+    return {
+        "suggestions": [
+            {
+                "title": title,
+                "description": description,
+                "reason_de_en": "Best-effort aus unvollständiger Modellantwort. / Best effort from incomplete model output.",
+                "source_urls": urls,
+            }
+        ],
+        "sources": urls,
+    }
+
+
 def _safe_validation_issue_metadata(exc: ValidationError) -> list[str]:
     def _format_loc(loc: Any) -> str:
         if not isinstance(loc, (list, tuple)):
@@ -390,24 +460,76 @@ def suggest_activities(
                 errors_de_en=[SAFE_BLOCK_MESSAGE_DE_EN],
             )
 
-        resp = client.responses.parse(
-            model=model,
-            max_output_tokens=max_output_tokens,
-            input=[
-                {"role": "system", "content": sys_msg},
-                {"role": "user", "content": user_msg},
-            ],
-            tools=cast(Any, tools),
-            tool_choice="auto",
-            include=["web_search_call.action.sources"],
-            text_format=ActivitySuggestionResult,
-        )
-        raw_payload = _extract_raw_result_payload(resp)
-        normalized_payload = _normalize_result_payload(
-            raw_payload,
-            criteria=criteria,
-        )
-        parsed = ActivitySuggestionResult.model_validate(normalized_payload)
+        def _request_and_validate(prompt: str) -> tuple[ActivitySuggestionResult, Any]:
+            response = client.responses.parse(
+                model=model,
+                max_output_tokens=max_output_tokens,
+                input=[
+                    {"role": "system", "content": sys_msg},
+                    {"role": "user", "content": prompt},
+                ],
+                tools=cast(Any, tools),
+                tool_choice="auto",
+                include=["web_search_call.action.sources"],
+                text_format=ActivitySuggestionResult,
+            )
+            raw_payload = _extract_raw_result_payload(response)
+            normalized_payload = _normalize_result_payload(
+                raw_payload,
+                criteria=criteria,
+            )
+            return ActivitySuggestionResult.model_validate(normalized_payload), response
+
+        try:
+            parsed, _ = _request_and_validate(user_msg)
+        except (
+            ValidationError,
+            RuntimeError,
+            json.JSONDecodeError,
+            TypeError,
+            ValueError,
+        ):
+            repair_prompt = _build_schema_repair_prompt(user_msg)
+            repair_response: Any = None
+            try:
+                parsed, _ = _request_and_validate(repair_prompt)
+                parsed.warnings_de_en.append(RECOVERY_MARKER_SCHEMA_REPAIR)
+            except (
+                ValidationError,
+                RuntimeError,
+                json.JSONDecodeError,
+                TypeError,
+                ValueError,
+            ):
+                repair_response = client.responses.parse(
+                    model=model,
+                    max_output_tokens=max_output_tokens,
+                    input=[
+                        {"role": "system", "content": sys_msg},
+                        {"role": "user", "content": repair_prompt},
+                    ],
+                    tools=cast(Any, tools),
+                    tool_choice="auto",
+                    include=["web_search_call.action.sources"],
+                    text_format=ActivitySuggestionResult,
+                )
+                best_effort_payload = _best_effort_extract_payload(repair_response)
+                if best_effort_payload is None:
+                    raise RuntimeError(
+                        "No structured output payload found in response."
+                    )
+                normalized_best_effort = _normalize_result_payload(
+                    best_effort_payload,
+                    criteria=criteria,
+                )
+                parsed = ActivitySuggestionResult.model_validate(normalized_best_effort)
+                parsed.warnings_de_en.extend(
+                    [
+                        RECOVERY_MARKER_SCHEMA_REPAIR,
+                        "Best-effort-Extraktion verwendet. / Used best-effort extraction.",
+                    ]
+                )
+
         if truncated:
             parsed.warnings_de_en.append(
                 "Hinweis / Notice: Eingabe wurde gekürzt, um das Sicherheitslimit einzuhalten. / Input was truncated to enforce the safety limit."
