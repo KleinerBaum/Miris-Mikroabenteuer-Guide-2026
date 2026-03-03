@@ -11,7 +11,10 @@ from mikroabenteuer.models import (
     WeatherCondition,
     WeatherSummary,
 )
-from mikroabenteuer.openai_activity_service import _build_user_prompt
+from mikroabenteuer.openai_activity_service import (
+    _build_user_prompt,
+    _normalize_result_payload,
+)
 
 
 def test_activity_search_criteria_to_llm_params_contains_expected_fields() -> None:
@@ -67,3 +70,46 @@ def test_activity_suggestion_schema_avoids_uri_format_for_openai_strict_mode() -
     schema_text = json.dumps(schema)
 
     assert '"format": "uri"' not in schema_text
+
+
+def test_normalize_result_payload_applies_fallback_date_and_url_cleanup() -> None:
+    criteria = ActivitySearchCriteria(
+        plz="40215",
+        radius_km=5.0,
+        date=date(2026, 1, 20),
+        time_window=TimeWindow(start=time(8, 0), end=time(9, 0)),
+        effort="mittel",
+        budget_eur_max=10.0,
+        topics=["outdoor"],
+    )
+
+    payload = {
+        "suggestions": [
+            {
+                "title": "Parkfest",
+                "date": "",
+                "reason_de_en": "Grund / reason",
+                "source_urls": [
+                    "example.com/event",
+                    "https://example.com/event",
+                    "",
+                ],
+            }
+        ],
+        "sources": ["example.com/event", "  ", "http://example.org/info"],
+        "warnings_de_en": None,
+        "errors_de_en": ["", "Hinweis"],
+    }
+
+    normalized = _normalize_result_payload(payload, criteria=criteria)
+
+    suggestion = normalized["suggestions"][0]
+    assert suggestion["date"] == "2026-01-20"
+    assert suggestion["description"] == ""
+    assert suggestion["source_urls"] == ["https://example.com/event"]
+    assert normalized["sources"] == [
+        "https://example.com/event",
+        "http://example.org/info",
+    ]
+    assert normalized["warnings_de_en"] == []
+    assert normalized["errors_de_en"] == ["Hinweis"]

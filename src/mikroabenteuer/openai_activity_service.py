@@ -1,6 +1,7 @@
 # mikroabenteuer/openai_activity_service.py
 from __future__ import annotations
 
+import json
 from dataclasses import asdict
 from typing import Any, Literal, cast
 
@@ -12,6 +13,7 @@ from .models import (
     ActivitySuggestionResult,
     SearchStrategy,
     WeatherSummary,
+    validate_http_url,
 )
 
 from .openai_settings import (
@@ -143,6 +145,93 @@ def _error_hint_for_code(error_code: str) -> str:
         ),
     }
     return hints[error_code]
+
+
+def _extract_raw_result_payload(response: Any) -> dict[str, Any]:
+    parsed_payload = getattr(response, "output_parsed", None)
+    if parsed_payload is not None:
+        if hasattr(parsed_payload, "model_dump"):
+            return cast(dict[str, Any], parsed_payload.model_dump(mode="json"))
+        if isinstance(parsed_payload, dict):
+            return cast(dict[str, Any], parsed_payload)
+
+    output_text = getattr(response, "output_text", None)
+    if isinstance(output_text, str) and output_text.strip():
+        loaded = json.loads(output_text)
+        if isinstance(loaded, dict):
+            return cast(dict[str, Any], loaded)
+
+    raise RuntimeError("No structured output payload found in response.")
+
+
+def _normalize_url_list(raw_urls: Any) -> list[str]:
+    values: list[str]
+    if isinstance(raw_urls, str):
+        values = [raw_urls]
+    elif isinstance(raw_urls, list):
+        values = [item for item in raw_urls if isinstance(item, str)]
+    else:
+        values = []
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for raw_url in values:
+        candidate = (raw_url or "").strip()
+        if not candidate:
+            continue
+        try:
+            clean_url = validate_http_url(candidate)
+        except ValueError:
+            continue
+        if clean_url in seen:
+            continue
+        normalized.append(clean_url)
+        seen.add(clean_url)
+    return normalized
+
+
+def _ensure_string_list(raw_value: Any) -> list[str]:
+    if not isinstance(raw_value, list):
+        return []
+    return [
+        item.strip() for item in raw_value if isinstance(item, str) and item.strip()
+    ]
+
+
+def _normalize_result_payload(
+    payload: dict[str, Any],
+    *,
+    criteria: ActivitySearchCriteria,
+) -> dict[str, Any]:
+    normalized = dict(payload)
+
+    raw_suggestions = normalized.get("suggestions")
+    suggestions: list[dict[str, Any]] = []
+    if isinstance(raw_suggestions, list):
+        for raw_item in raw_suggestions:
+            if not isinstance(raw_item, dict):
+                continue
+            item = dict(raw_item)
+            if item.get("date") in {None, ""}:
+                item["date"] = criteria.date.isoformat()
+            item.setdefault("description", "")
+            if item.get("start_time") == "":
+                item["start_time"] = None
+            if item.get("end_time") == "":
+                item["end_time"] = None
+            if item.get("location") == "":
+                item["location"] = None
+            item["source_urls"] = _normalize_url_list(item.get("source_urls"))
+            suggestions.append(item)
+
+    normalized["suggestions"] = suggestions
+    normalized["sources"] = _normalize_url_list(normalized.get("sources"))
+    normalized["warnings_de_en"] = _ensure_string_list(normalized.get("warnings_de_en"))
+    normalized["errors_de_en"] = _ensure_string_list(normalized.get("errors_de_en"))
+    normalized["error_code"] = normalized.get("error_code") or None
+    normalized["error_hint_de_en"] = normalized.get("error_hint_de_en") or None
+    return normalized
+
 
 def _build_web_search_user_location(
     weather: WeatherSummary,
@@ -287,12 +376,12 @@ def suggest_activities(
             include=["web_search_call.action.sources"],
             text_format=ActivitySuggestionResult,
         )
-
-        parsed: ActivitySuggestionResult | None = getattr(resp, "output_parsed", None)
-        if parsed is None:
-            raise RuntimeError(
-                "No structured output parsed from response (output_parsed is None)."
-            )
+        raw_payload = _extract_raw_result_payload(resp)
+        normalized_payload = _normalize_result_payload(
+            raw_payload,
+            criteria=criteria,
+        )
+        parsed = ActivitySuggestionResult.model_validate(normalized_payload)
         if truncated:
             parsed.warnings_de_en.append(
                 "Hinweis / Notice: Eingabe wurde gekürzt, um das Sicherheitslimit einzuhalten. / Input was truncated to enforce the safety limit."
@@ -323,7 +412,7 @@ def suggest_activities(
             error_code=ERROR_CODE_STRUCTURED_OUTPUT,
         )
     except Exception as exc:  # noqa: BLE001
-        if "output_parsed is None" in str(exc):
+        if "No structured output payload found" in str(exc):
             return _template_fallback_result(
                 weather,
                 error_code=ERROR_CODE_STRUCTURED_OUTPUT,
