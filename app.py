@@ -69,6 +69,7 @@ from mikroabenteuer.ui.filter_specs import (
     build_core_filter_specs,
     render_filter_fields,
 )
+from mikroabenteuer.ui.state_keys import CriteriaKeySpace, CriteriaNamespace
 
 
 st.set_page_config(page_title="Mikroabenteuer", page_icon="🌿", layout="wide")
@@ -532,43 +533,51 @@ def _criteria_to_widget_values(criteria: ActivitySearchCriteria) -> dict[str, An
     }
 
 
-def _ensure_ui_adapter_state(prefix: str, criteria: ActivitySearchCriteria) -> None:
+def _ensure_ui_adapter_state(
+    namespace: CriteriaNamespace, criteria: ActivitySearchCriteria
+) -> None:
+    keys = CriteriaKeySpace(namespace)
     widget_values = _criteria_to_widget_values(criteria)
     for field in CRITERIA_WIDGET_FIELDS:
-        key = f"{prefix}_{field}"
+        key = keys.widget(field)
         if key not in st.session_state:
             st.session_state[key] = widget_values[field]
 
 
 def _sync_widget_change_to_criteria(
-    prefix: str,
+    namespace: CriteriaNamespace,
     *,
     state_key: str,
     raise_on_error: bool = False,
 ) -> None:
     try:
-        st.session_state[state_key] = _build_criteria_from_widget_state(prefix=prefix)
+        st.session_state[state_key] = _build_criteria_from_widget_state(
+            namespace=namespace
+        )
     except ValidationError:
         if raise_on_error:
             raise
         return
 
 
-def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
-    target_date = cast(date, st.session_state[f"{prefix}_date"])
-    start_time = cast(time, st.session_state[f"{prefix}_start_time"])
-    available_minutes = int(st.session_state[f"{prefix}_available_minutes"])
+def _build_criteria_from_widget_state(
+    *, namespace: CriteriaNamespace
+) -> ActivitySearchCriteria:
+    keys = CriteriaKeySpace(namespace)
+    target_date = cast(date, st.session_state[keys.widget("date")])
+    start_time = cast(time, st.session_state[keys.widget("start_time")])
+    available_minutes = int(st.session_state[keys.widget("available_minutes")])
 
-    goals = list(cast(list[DevelopmentDomain], st.session_state[f"{prefix}_goals"]))
-    constraints = list(cast(list[str], st.session_state[f"{prefix}_constraints"]))
+    goals = list(cast(list[DevelopmentDomain], st.session_state[keys.widget("goals")]))
+    constraints = list(cast(list[str], st.session_state[keys.widget("constraints")]))
     available_materials = list(
-        cast(list[str], st.session_state[f"{prefix}_available_materials"])
+        cast(list[str], st.session_state[keys.widget("available_materials")])
     )
-    if prefix == "form":
+    if namespace == "events":
         constraints_optional = _optional_csv_items(
-            str(st.session_state.get("form_constraints_optional", ""))
+            str(st.session_state.get(keys.widget("constraints_optional"), ""))
         )
-        extra_context_raw = str(st.session_state.get("form_extra_context", ""))
+        extra_context_raw = str(st.session_state.get(keys.widget("extra_context"), ""))
         extra_context, _ = _truncate_text_with_limit(
             extra_context_raw,
             max_chars=int(st.session_state.get("cfg_max_input_chars", 4000)),
@@ -580,8 +589,8 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
             )
 
     return ActivitySearchCriteria(
-        plz=str(st.session_state[f"{prefix}_plz"]),
-        radius_km=float(st.session_state[f"{prefix}_radius_km"]),
+        plz=str(st.session_state[keys.widget("plz")]),
+        radius_km=float(st.session_state[keys.widget("radius_km")]),
         date=target_date,
         time_window=TimeWindow(
             start=start_time,
@@ -592,14 +601,14 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
         ),
         effort=cast(
             Literal["niedrig", "mittel", "hoch"],
-            st.session_state[f"{prefix}_effort"],
+            st.session_state[keys.widget("effort")],
         ),
-        budget_eur_max=float(st.session_state[f"{prefix}_budget_eur_max"]),
-        child_age_years=float(st.session_state[f"{prefix}_child_age_years"]),
-        topics=list(cast(list[str], st.session_state[f"{prefix}_topics"])),
+        budget_eur_max=float(st.session_state[keys.widget("budget_eur_max")]),
+        child_age_years=float(st.session_state[keys.widget("child_age_years")]),
+        topics=list(cast(list[str], st.session_state[keys.widget("topics")])),
         location_preference=cast(
             Literal["indoor", "outdoor", "mixed"],
-            st.session_state[f"{prefix}_location_preference"],
+            st.session_state[keys.widget("location_preference")],
         ),
         goals=goals if goals else [DevelopmentDomain.language],
         constraints=constraints,
@@ -613,12 +622,12 @@ def _criteria_sidebar(
     # Developer navigation: Sidebar is a UI adapter.
     # It initializes adapter keys once from criteria and writes changes back to criteria.
     criteria = get_criteria_state(cfg, key=CRITERIA_DAILY_KEY)
-    _ensure_ui_adapter_state(prefix="sidebar", criteria=criteria)
+    _ensure_ui_adapter_state(namespace="daily", criteria=criteria)
 
     st.sidebar.header("Suche")
     lang: Language = cast(Language, st.session_state.get("lang", "DE"))
 
-    on_change_kwargs = {"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY}
+    on_change_kwargs = {"namespace": "daily", "state_key": CRITERIA_DAILY_KEY}
     formatters = {
         "effort": lambda value: effort_label(value, lang),
         "topics": lambda value: theme_label(value, lang),
@@ -629,7 +638,7 @@ def _criteria_sidebar(
     # Group 1 (location/time): top fields stay visible.
     render_filter_fields(
         _core_specs_by_id("date"),
-        namespace="sidebar",
+        namespace=CriteriaKeySpace("daily").session_prefix,
         mode="sidebar",
         lang=lang,
         on_change_handler=_sync_widget_change_to_criteria,
@@ -654,11 +663,13 @@ def _criteria_sidebar(
     )
     child_age_years = age_band_map[selected_age_band]
     st.session_state["profile_child_age_years"] = float(child_age_years)
-    st.session_state["sidebar_child_age_years"] = float(child_age_years)
+    st.session_state[CriteriaKeySpace("daily").widget("child_age_years")] = float(
+        child_age_years
+    )
 
     render_filter_fields(
         _core_specs_by_id("plz", "radius_km"),
-        namespace="sidebar",
+        namespace=CriteriaKeySpace("daily").session_prefix,
         mode="sidebar",
         lang=lang,
         on_change_handler=_sync_widget_change_to_criteria,
@@ -672,7 +683,7 @@ def _criteria_sidebar(
     ):
         render_filter_fields(
             _core_specs_by_id("start_time", "available_minutes", "budget_eur_max"),
-            namespace="sidebar",
+            namespace=CriteriaKeySpace("daily").session_prefix,
             mode="sidebar",
             lang=lang,
             on_change_handler=_sync_widget_change_to_criteria,
@@ -687,7 +698,7 @@ def _criteria_sidebar(
                 "outdoor": "Draußen" if lang == "DE" else "Outdoor",
                 "indoor": "Drinnen" if lang == "DE" else "Indoor",
             }[opt],
-            key="sidebar_location_preference",
+            key=CriteriaKeySpace("daily").widget("location_preference"),
             on_change=_sync_widget_change_to_criteria,
             kwargs=on_change_kwargs,
         )
@@ -695,7 +706,7 @@ def _criteria_sidebar(
     # Group 2 (effort/constraints).
     render_filter_fields(
         _core_specs_by_id("effort"),
-        namespace="sidebar",
+        namespace=CriteriaKeySpace("daily").session_prefix,
         mode="sidebar",
         lang=lang,
         on_change_handler=_sync_widget_change_to_criteria,
@@ -714,7 +725,7 @@ def _criteria_sidebar(
     ):
         render_filter_fields(
             _core_specs_by_id("constraints"),
-            namespace="sidebar",
+            namespace=CriteriaKeySpace("daily").session_prefix,
             mode="sidebar",
             lang=lang,
             on_change_handler=_sync_widget_change_to_criteria,
@@ -725,7 +736,7 @@ def _criteria_sidebar(
     # Group 3 (goals/topics/materials).
     render_filter_fields(
         _core_specs_by_id("goals"),
-        namespace="sidebar",
+        namespace=CriteriaKeySpace("daily").session_prefix,
         mode="sidebar",
         lang=lang,
         on_change_handler=_sync_widget_change_to_criteria,
@@ -740,7 +751,7 @@ def _criteria_sidebar(
     ):
         render_filter_fields(
             _core_specs_by_id("topics", "available_materials"),
-            namespace="sidebar",
+            namespace=CriteriaKeySpace("daily").session_prefix,
             mode="sidebar",
             lang=lang,
             on_change_handler=_sync_widget_change_to_criteria,
@@ -809,7 +820,7 @@ def _criteria_sidebar(
     )
 
     try:
-        criteria = _build_criteria_from_widget_state(prefix="sidebar")
+        criteria = _build_criteria_from_widget_state(namespace="daily")
         st.session_state[CRITERIA_DAILY_KEY] = criteria
         return criteria, lang, family_profile
     except ValidationError as exc:
@@ -1243,7 +1254,7 @@ def render_wetter_und_events_section(
     # Formular-Adapter folgt einer Einweg-Regel.
     # Interaktion schreibt nach criteria; Rendering liest nur für die Erstinitialisierung.
     criteria = get_criteria_state(cfg, key=CRITERIA_EVENTS_KEY)
-    _ensure_ui_adapter_state(prefix="form", criteria=criteria)
+    _ensure_ui_adapter_state(namespace="events", criteria=criteria)
 
     with st.sidebar.form("weather_events_form", clear_on_submit=False):
         st.markdown("### " + _t(lang, "Wetter & Veranstaltungen", ""))
@@ -1264,25 +1275,30 @@ def render_wetter_und_events_section(
                 "budget_eur_max",
                 "topics",
             ),
-            namespace="form",
+            namespace=CriteriaKeySpace("events").session_prefix,
             mode="events",
             lang=lang,
             formatters=formatters,
         )
         st.toggle(
             _t(lang, "Ort: draußen bevorzugen", "Prefer outdoor"),
-            key="form_pref_outdoor",
-            value=st.session_state.get("form_location_preference", "mixed")
+            key=CriteriaKeySpace("events").widget("pref_outdoor"),
+            value=st.session_state.get(
+                CriteriaKeySpace("events").widget("location_preference"), "mixed"
+            )
             == "outdoor",
         )
         st.toggle(
             _t(lang, "Ort: drinnen bevorzugen", "Prefer indoor"),
-            key="form_pref_indoor",
-            value=st.session_state.get("form_location_preference", "mixed") == "indoor",
+            key=CriteriaKeySpace("events").widget("pref_indoor"),
+            value=st.session_state.get(
+                CriteriaKeySpace("events").widget("location_preference"), "mixed"
+            )
+            == "indoor",
         )
         render_filter_fields(
             _core_specs_by_id("goals", "constraints", "available_materials"),
-            namespace="form",
+            namespace=CriteriaKeySpace("events").session_prefix,
             mode="events",
             lang=lang,
             formatters=formatters,
@@ -1293,7 +1309,7 @@ def render_wetter_und_events_section(
                 "Weitere Rahmenbedingungen (optional, max 80)",
                 "",
             ),
-            key="form_constraints_optional",
+            key=CriteriaKeySpace("events").widget("constraints_optional"),
             max_chars=80,
         )
         st.text_area(
@@ -1302,7 +1318,7 @@ def render_wetter_und_events_section(
                 "Zusätzlicher Kontext",
                 "",
             ),
-            key="form_extra_context",
+            key=CriteriaKeySpace("events").widget("extra_context"),
             help=_t(
                 lang,
                 f"Wird auf {cfg.max_input_chars} Zeichen begrenzt.",
@@ -1319,18 +1335,36 @@ def render_wetter_und_events_section(
             horizontal=True,
         )
 
-        pref_outdoor = bool(st.session_state.get("form_pref_outdoor", False))
-        pref_indoor = bool(st.session_state.get("form_pref_indoor", False))
+        pref_outdoor = bool(
+            st.session_state.get(
+                CriteriaKeySpace("events").widget("pref_outdoor"), False
+            )
+        )
+        pref_indoor = bool(
+            st.session_state.get(
+                CriteriaKeySpace("events").widget("pref_indoor"), False
+            )
+        )
         if pref_outdoor and pref_indoor:
-            st.session_state["form_location_preference"] = "mixed"
+            st.session_state[
+                CriteriaKeySpace("events").widget("location_preference")
+            ] = "mixed"
         elif pref_outdoor:
-            st.session_state["form_location_preference"] = "outdoor"
+            st.session_state[
+                CriteriaKeySpace("events").widget("location_preference")
+            ] = "outdoor"
         elif pref_indoor:
-            st.session_state["form_location_preference"] = "indoor"
+            st.session_state[
+                CriteriaKeySpace("events").widget("location_preference")
+            ] = "indoor"
         else:
-            st.session_state["form_location_preference"] = "mixed"
+            st.session_state[
+                CriteriaKeySpace("events").widget("location_preference")
+            ] = "mixed"
 
-        extra_context_raw = str(st.session_state.get("form_extra_context", ""))
+        extra_context_raw = str(
+            st.session_state.get(CriteriaKeySpace("events").widget("extra_context"), "")
+        )
         if len(extra_context_raw) > cfg.max_input_chars:
             st.warning(
                 _t(
@@ -1347,7 +1381,7 @@ def render_wetter_und_events_section(
     if submitted:
         try:
             _sync_widget_change_to_criteria(
-                prefix="form",
+                namespace="events",
                 state_key=CRITERIA_EVENTS_KEY,
                 raise_on_error=True,
             )
@@ -1409,7 +1443,7 @@ def render_wetter_und_events_section(
             ):
                 try:
                     _sync_widget_change_to_criteria(
-                        prefix="form",
+                        namespace="events",
                         state_key=CRITERIA_EVENTS_KEY,
                         raise_on_error=True,
                     )

@@ -44,6 +44,8 @@ Die App kann:
   → `app.py`
 - **Deklarative Filter-UI / Declarative filter UI:** Gemeinsame Kernfilter für Sidebar und Wetter/Events werden über ein zentrales Feldschema (`FilterFieldSpec`) gerendert; nur mode-spezifische Felder bleiben separat.  
   → `src/mikroabenteuer/ui/filter_specs.py`, `app.py`
+- **Zentraler UI-State-Keyspace / Central UI state keyspace:** Widget-Keys für tägliche Suche und Wetter/Events werden über einen typisierten Resolver (`CriteriaKeySpace`) erzeugt; fachlicher Criteria-State bleibt in `CRITERIA_DAILY_KEY`/`CRITERIA_EVENTS_KEY`.  
+  → `src/mikroabenteuer/ui/state_keys.py`, `app.py`
 - **Bibliothek als eigene Seite:** Die Abenteuerliste wurde in eine separate Streamlit-Seite ausgelagert und als kompakte Kartenansicht umgesetzt.  
   → `pages/2_Bibliothek.py`
 
