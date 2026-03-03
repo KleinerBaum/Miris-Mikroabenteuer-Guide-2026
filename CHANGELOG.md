@@ -16,6 +16,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 ## Unreleased
 
 ### Changed / Geändert
+- **Daily-Export vollständig in Sidebar / Daily export fully moved to sidebar:** Die Sektion „Export“ inklusive JSON/Markdown/ICS sowie „E-Mail-Vorschau“ und „Automatisierung (optional)“ wurde aus der Landing-Page entfernt und komplett in die Sidebar verlegt.
 - **UI-Key-Resolver zentralisiert / Centralized UI key resolver:** Neue `CriteriaKeySpace`-Abstraktion (`daily`/`events` → `sidebar`/`form`) erzeugt Widget-Keys zentral; die Criteria-Domain-States (`CRITERIA_DAILY_KEY`/`CRITERIA_EVENTS_KEY`) bleiben davon entkoppelt und weiterhin fachliche Single Source of Truth.
 - **Deklarative Filter-Spezifikation eingeführt / Declarative filter specification introduced:** Gemeinsame Filterfelder werden jetzt zentral als `FilterFieldSpec` in `src/mikroabenteuer/ui/filter_specs.py` gepflegt und über eine einheitliche Render-Funktion in Sidebar und Wetter/Events-Form wiederverwendet; mode-spezifische Zusätze (z. B. Genauigkeit, Event-Kontext) bleiben separat.
 - **Fehlerklassen für Eventsuche differenziert / Event-search error classes differentiated:** `suggest_activities` unterscheidet jetzt fehlenden API-Key, retrybare Upstream-Fehler (Rate-Limit/5xx/Timeout), Structured-Output-Validierungsfehler und sonstige nicht-retrybare API-Fehler; zusätzlich werden `error_code` und `error_hint_de_en` im Ergebnis geführt und in Orchestrierung/UI gezielt angezeigt.
