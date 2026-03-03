@@ -56,11 +56,11 @@ def test_parent_script_mode_is_timeboxed_and_child_led() -> None:
     )
 
     joined = "\n".join(plan.steps)
-    assert "Describe" in joined
-    assert "Imitate" in joined
-    assert "Praise" in joined
-    assert "Active listening" in joined
-    assert any("Child-led" in step for step in plan.steps)
+    assert "Beschreiben" in joined
+    assert "Nachmachen" in joined
+    assert "Loben" in joined
+    assert "Aktives Zuhören" in joined
+    assert any("Kindgeführte Wiederholung" in step for step in plan.steps)
     assert any("min" in step for step in plan.steps)
 
 
@@ -77,5 +77,5 @@ def test_parent_script_mode_keeps_plan_b_variants() -> None:
 
     variants_text = "\n".join(plan.variants).casefold()
     assert len(plan.variants) >= 2
-    assert "lower energy" in variants_text
-    assert "higher energy" in variants_text
+    assert "weniger energie" in variants_text
+    assert "mehr energie" in variants_text

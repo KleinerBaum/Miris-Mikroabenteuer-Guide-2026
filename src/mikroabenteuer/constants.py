@@ -15,7 +15,7 @@ WEATHER_TAGS: Tuple[str, ...] = ("Sonne", "Bewölkt", "Regen", "Wind", "Kalt", "
 
 DEFAULT_TIMEZONE = "Europe/Berlin"
 DEFAULT_CITY = "Düsseldorf"
-DEFAULT_AREA = "Volksgarten / Südpark"
+DEFAULT_AREA = "Volksgarten"
 
 
 @dataclass(frozen=True)
@@ -70,8 +70,8 @@ def theme_label(theme_key: str, lang: Language) -> str:
 
 def effort_label(effort_key: str, lang: Language) -> str:
     labels = {
-        "niedrig": {"DE": "niedrig (easy)", "EN": "low (easy)"},
-        "mittel": {"DE": "mittel (normal)", "EN": "medium (normal)"},
-        "hoch": {"DE": "hoch (sporty)", "EN": "high (sporty)"},
+        "niedrig": {"DE": "niedrig", "EN": "low (easy)"},
+        "mittel": {"DE": "mittel", "EN": "medium (normal)"},
+        "hoch": {"DE": "hoch", "EN": "high (sporty)"},
     }
     return labels.get(effort_key, {}).get(lang, effort_key)

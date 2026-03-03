@@ -30,12 +30,12 @@ def test_save_plan_report_writes_minimal_metadata(
     report_path = tmp_path / "reports.jsonl"
     monkeypatch.setenv("PLAN_REPORTS_PATH", str(report_path))
 
-    report = save_plan_report(_sample_plan(), "Unsicher / Unsafe")
+    report = save_plan_report(_sample_plan(), "Unsicher")
 
     assert report_path.exists()
     payload = json.loads(report_path.read_text(encoding="utf-8").strip())
     assert set(payload.keys()) == {"timestamp_utc", "plan_hash", "reason"}
-    assert payload["reason"] == "Unsicher / Unsafe"
+    assert payload["reason"] == "Unsicher"
     assert payload["plan_hash"] == report.plan_hash
 
 
@@ -46,14 +46,14 @@ def test_load_plan_reports_returns_latest_first(
     monkeypatch.setenv("PLAN_REPORTS_PATH", str(report_path))
 
     plan = _sample_plan()
-    save_plan_report(plan, "Unpassend / Not relevant")
-    save_plan_report(plan, "Sonstiges / Other")
+    save_plan_report(plan, "Unpassend")
+    save_plan_report(plan, "Sonstiges")
 
     reports = load_plan_reports(limit=10)
 
     assert len(reports) == 2
-    assert reports[0]["reason"] == "Sonstiges / Other"
-    assert reports[1]["reason"] == "Unpassend / Not relevant"
+    assert reports[0]["reason"] == "Sonstiges"
+    assert reports[1]["reason"] == "Unpassend"
 
 
 def test_hash_plan_is_stable_for_same_content() -> None:

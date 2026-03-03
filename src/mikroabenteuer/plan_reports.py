@@ -12,10 +12,10 @@ from .models import ActivityPlan
 
 
 REPORT_REASONS: tuple[str, ...] = (
-    "Unsicher / Unsafe",
-    "Unpassend / Not relevant",
-    "Faktisch falsch / Factually wrong",
-    "Sonstiges / Other",
+    "Unsicher",
+    "Unpassend",
+    "Faktisch falsch",
+    "Sonstiges",
 )
 
 
