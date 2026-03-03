@@ -17,6 +17,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 
 ### Changed / Geändert
 - **Button- und Select-Kontraste nachgeschärft / Improved button and select contrast:** Primäre Buttons behalten im Hover-Zustand nun einen dunklen, gut lesbaren Hintergrund; Select-/MultiSelect-Flächen und Icons wurden für bessere Lesbarkeit auf hellem Theme-Hintergrund vereinheitlicht.
+- **Event-Geo-Kontext aus Suchkriterien / Event geo context from search criteria:** Für den Event-Wetter-Pfad wird Standortkontext jetzt PLZ-basiert aufgelöst (city/region/country/timezone), und `web_search.user_location` wird nur bei validen Daten gesetzt; hartcodierte Stadtwerte wurden entfernt.
 - **Packaging für Cloud-Deployments / Packaging for cloud deployments:** `requirements.txt` installiert jetzt das lokale `src`-Package via `-e .`, damit `import mikroabenteuer` auch in Streamlit-Cloud-ähnlichen Umgebungen funktioniert; Docker-Installationsreihenfolge ist damit kompatibel.
 - Standard-`src`-Layout umgesetzt: Package unter `src/mikroabenteuer` wird als `mikroabenteuer.*` importiert; `src/__init__.py` entfernt; Packaging via `pyproject.toml` + Editable Install (`pip install -e .`) ergänzt.
 - **UI-Kontrast verbessert / Improved UI contrast:** Formularfelder, Selects, Slider und Tags nutzen jetzt hellere Flächen und klarere Schriftfarben für bessere Lesbarkeit bei der bisherigen dunklen Komponenten-Optik.
