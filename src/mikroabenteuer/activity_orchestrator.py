@@ -14,7 +14,13 @@ from .models import (
     WeatherCondition,
     WeatherSummary,
 )
-from .openai_activity_service import suggest_activities
+from .openai_activity_service import (
+    ERROR_CODE_API_NON_RETRYABLE,
+    ERROR_CODE_MISSING_API_KEY,
+    ERROR_CODE_RETRYABLE_UPSTREAM,
+    ERROR_CODE_STRUCTURED_OUTPUT,
+    suggest_activities,
+)
 
 from .retry import retry_with_backoff
 
@@ -262,6 +268,26 @@ def prioritize_suggestions(
     return scored[: criteria.max_suggestions]
 
 
+def _orchestrator_warning_for_error_code(error_code: str | None) -> str | None:
+    messages = {
+        ERROR_CODE_MISSING_API_KEY: (
+            "Eventsuche: API-Key fehlt; Live-Suche deaktiviert / Event search: API key missing; live lookup disabled"
+        ),
+        ERROR_CODE_RETRYABLE_UPSTREAM: (
+            "Eventsuche: Rate-Limit/5xx/Timeout, Retry empfohlen / Event search: rate-limit/5xx/timeout, retry recommended"
+        ),
+        ERROR_CODE_STRUCTURED_OUTPUT: (
+            "Eventsuche: Structured Output ungültig / Event search: structured output invalid"
+        ),
+        ERROR_CODE_API_NON_RETRYABLE: (
+            "Eventsuche: nicht-retrybarer API-Fehler / Event search: non-retryable API error"
+        ),
+    }
+    if error_code is None:
+        return None
+    return messages.get(error_code)
+
+
 def orchestrate_activity_search(
     criteria: ActivitySearchCriteria,
     mode: Literal["schnell", "genau"],
@@ -309,6 +335,9 @@ def orchestrate_activity_search(
 
     # 4) Prioritize + enforce deterministic weather
     result.weather = weather
+    class_warning = _orchestrator_warning_for_error_code(result.error_code)
+    if class_warning:
+        warnings.append(class_warning)
     result.warnings_de_en = list(
         dict.fromkeys((result.warnings_de_en or []) + warnings)
     )

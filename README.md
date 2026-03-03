@@ -24,6 +24,8 @@ Die App kann:
   → `src/mikroabenteuer/weather.py`
 - **“Wetter & Events”**: Web‑Recherche über OpenAI `web_search` Tool (optional) + Offline‑Fallback  
   → `src/mikroabenteuer/openai_activity_service.py`, `src/mikroabenteuer/activity_orchestrator.py`
+- **Fehlerhinweise pro Klasse / Class-specific error hints:** Bei Event-Fehlern zeigt die UI jetzt differenzierte DE/EN-Hinweise für API-Key, retrybare Upstream-Probleme, Structured-Output-Validierung und nicht-retrybare API-Fehler.  
+  → `src/mikroabenteuer/openai_activity_service.py`, `app.py`
 - **PLZ-basierte Standortauflösung für Event-Suche / Postal-code based location resolution for event search**: `user_location` wird nur mit validen Ortsdaten an das `web_search`-Tool übergeben; keine hartcodierte Stadt im Event-Wetter-Pfad.  
   → `app.py`, `src/mikroabenteuer/openai_activity_service.py`
 - **LLM-Planung als Schema** (`ActivityPlan`) + Safety‑Validator + “Plan B” Varianten  
