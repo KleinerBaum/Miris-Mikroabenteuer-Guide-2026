@@ -46,6 +46,8 @@ Die App kann:
   → `src/mikroabenteuer/ui/filter_specs.py`, `app.py`
 - **Zentraler UI-State-Keyspace / Central UI state keyspace:** Widget-Keys für tägliche Suche und Wetter/Events werden über einen typisierten Resolver (`CriteriaKeySpace`) erzeugt; fachlicher Criteria-State bleibt in `CRITERIA_DAILY_KEY`/`CRITERIA_EVENTS_KEY`.  
   → `src/mikroabenteuer/ui/state_keys.py`, `app.py`
+- **Normalisierte Filter-Inputs / Normalized filter inputs:** Widget-Eingaben werden vor dem Criteria-Building in ein gemeinsames Zwischenmodell normalisiert; Events-Sonderfälle (Toggle-Location, optionale Constraints, Kontext-Trunkierung) sind in wiederverwendbaren Normalizern gekapselt und Validierungsfehler werden konsistent gerendert.  
+  → `app.py`
 - **Bibliothek als eigene Seite:** Die Abenteuerliste wurde in eine separate Streamlit-Seite ausgelagert und als kompakte Kartenansicht umgesetzt.  
   → `pages/2_Bibliothek.py`
 
