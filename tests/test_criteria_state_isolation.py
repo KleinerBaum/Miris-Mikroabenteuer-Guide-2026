@@ -79,3 +79,58 @@ def test_sync_widget_change_updates_only_target_criteria_key(monkeypatch) -> Non
 
     assert daily.plz == "40215"
     assert events.plz == "50667"
+
+
+def test_normalize_widget_input_events_merges_special_constraints() -> None:
+    raw_values: dict[str, object] = {
+        "plz": "50667",
+        "radius_km": 8.0,
+        "date": date(2026, 2, 14),
+        "start_time": time(10, 0),
+        "available_minutes": 90,
+        "effort": "mittel",
+        "budget_eur_max": 30.0,
+        "child_age_years": 4.5,
+        "topics": ["natur"],
+        "location_preference": "mixed",
+        "goals": [],
+        "constraints": ["Kein Auto"],
+        "available_materials": ["paper"],
+        "pref_outdoor": True,
+        "pref_indoor": False,
+        "constraints_optional": "Reizarm, Barrierearm",
+        "extra_context": "A" * 30,
+    }
+
+    normalized = app.normalize_widget_input(
+        raw_values,
+        mode="events",
+        max_input_chars=10,
+    )
+
+    assert normalized.location_preference == "outdoor"
+    assert normalized.goals == [DevelopmentDomain.language]
+    assert normalized.constraints == [
+        "Kein Auto",
+        "Reizarm",
+        "Barrierearm",
+        "Kontext: AAAAAAAAAA",
+    ]
+
+
+def test_build_criteria_from_widget_state_uses_normalized_location_for_events(
+    monkeypatch,
+) -> None:
+    session_state: dict[str, object] = {
+        **_seed_widget_state("form", plz="50667"),
+        "cfg_max_input_chars": 100,
+        "form_pref_outdoor": False,
+        "form_pref_indoor": True,
+        "form_constraints_optional": "",
+        "form_extra_context": "",
+    }
+    monkeypatch.setattr(app.st, "session_state", session_state)
+
+    criteria = app._build_criteria_from_widget_state(namespace="events")
+
+    assert criteria.location_preference == "indoor"

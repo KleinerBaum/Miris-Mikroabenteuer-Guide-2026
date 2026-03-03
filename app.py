@@ -483,6 +483,8 @@ def get_criteria_state(
 ) -> ActivitySearchCriteria:
     # Zentrale Quelle für die Filterlogik.
     # Nur diese Funktion setzt Initialwerte; UI-Adapter lesen/schreiben lediglich dieses Objekt.
+    # Interaktionsmodell (einheitlich): Kernfilter werden in beiden Bereichen per on-change
+    # in den Criteria-State gespiegelt. Explizite Buttons starten nur teure Folgeaktionen.
     if key not in st.session_state:
         st.session_state[key] = _default_criteria(cfg)
     return cast(ActivitySearchCriteria, st.session_state[key])
@@ -560,60 +562,174 @@ def _sync_widget_change_to_criteria(
         return
 
 
+@dataclass(frozen=True)
+class NormalizedWidgetInput:
+    plz: str
+    radius_km: float
+    date_value: date
+    start_time: time
+    available_minutes: int
+    effort: Literal["niedrig", "mittel", "hoch"]
+    budget_eur_max: float
+    child_age_years: float
+    topics: list[str]
+    location_preference: Literal["indoor", "outdoor", "mixed"]
+    goals: list[DevelopmentDomain]
+    constraints: list[str]
+    available_materials: list[str]
+
+
+def _collect_widget_raw_values(namespace: CriteriaNamespace) -> dict[str, Any]:
+    keys = CriteriaKeySpace(namespace)
+    raw_values: dict[str, Any] = {
+        "plz": st.session_state[keys.widget("plz")],
+        "radius_km": st.session_state[keys.widget("radius_km")],
+        "date": st.session_state[keys.widget("date")],
+        "start_time": st.session_state[keys.widget("start_time")],
+        "available_minutes": st.session_state[keys.widget("available_minutes")],
+        "effort": st.session_state[keys.widget("effort")],
+        "budget_eur_max": st.session_state[keys.widget("budget_eur_max")],
+        "child_age_years": st.session_state[keys.widget("child_age_years")],
+        "topics": st.session_state[keys.widget("topics")],
+        "location_preference": st.session_state[keys.widget("location_preference")],
+        "goals": st.session_state[keys.widget("goals")],
+        "constraints": st.session_state[keys.widget("constraints")],
+        "available_materials": st.session_state[keys.widget("available_materials")],
+    }
+    if namespace == "events":
+        raw_values["pref_outdoor"] = st.session_state.get(
+            keys.widget("pref_outdoor"), False
+        )
+        raw_values["pref_indoor"] = st.session_state.get(
+            keys.widget("pref_indoor"), False
+        )
+        raw_values["constraints_optional"] = st.session_state.get(
+            keys.widget("constraints_optional"), ""
+        )
+        raw_values["extra_context"] = st.session_state.get(
+            keys.widget("extra_context"), ""
+        )
+    return raw_values
+
+
+def _normalize_location_preference(
+    raw_values: dict[str, Any], *, mode: CriteriaNamespace
+) -> Literal["indoor", "outdoor", "mixed"]:
+    if mode != "events":
+        return cast(
+            Literal["indoor", "outdoor", "mixed"],
+            str(raw_values.get("location_preference", "mixed")),
+        )
+
+    pref_outdoor = bool(raw_values.get("pref_outdoor", False))
+    pref_indoor = bool(raw_values.get("pref_indoor", False))
+    if pref_outdoor and pref_indoor:
+        return "mixed"
+    if pref_outdoor:
+        return "outdoor"
+    if pref_indoor:
+        return "indoor"
+    return "mixed"
+
+
+def _normalize_optional_constraints(raw_values: dict[str, Any]) -> list[str]:
+    return _optional_csv_items(str(raw_values.get("constraints_optional", "")))
+
+
+def _normalize_extra_context_constraint(
+    raw_values: dict[str, Any], *, max_input_chars: int
+) -> list[str]:
+    extra_context_raw = str(raw_values.get("extra_context", ""))
+    extra_context, _ = _truncate_text_with_limit(
+        extra_context_raw,
+        max_chars=max_input_chars,
+    )
+    if not extra_context:
+        return []
+    return [f"Kontext: {extra_context}"]
+
+
+def normalize_widget_input(
+    raw_values: dict[str, Any],
+    *,
+    mode: CriteriaNamespace,
+    max_input_chars: int,
+) -> NormalizedWidgetInput:
+    constraints = list(cast(list[str], raw_values.get("constraints", [])))
+    if mode == "events":
+        constraints = list(
+            dict.fromkeys(
+                constraints
+                + _normalize_optional_constraints(raw_values)
+                + _normalize_extra_context_constraint(
+                    raw_values, max_input_chars=max_input_chars
+                )
+            )
+        )
+
+    goals = list(cast(list[DevelopmentDomain], raw_values.get("goals", [])))
+    return NormalizedWidgetInput(
+        plz=str(raw_values.get("plz", "")),
+        radius_km=float(raw_values.get("radius_km", 0.0)),
+        date_value=cast(date, raw_values.get("date")),
+        start_time=cast(time, raw_values.get("start_time")),
+        available_minutes=int(raw_values.get("available_minutes", 0)),
+        effort=cast(Literal["niedrig", "mittel", "hoch"], raw_values.get("effort")),
+        budget_eur_max=float(raw_values.get("budget_eur_max", 0.0)),
+        child_age_years=float(raw_values.get("child_age_years", 0.0)),
+        topics=list(cast(list[str], raw_values.get("topics", []))),
+        location_preference=_normalize_location_preference(raw_values, mode=mode),
+        goals=goals if goals else [DevelopmentDomain.language],
+        constraints=constraints,
+        available_materials=list(
+            cast(list[str], raw_values.get("available_materials", []))
+        ),
+    )
+
+
 def _build_criteria_from_widget_state(
     *, namespace: CriteriaNamespace
 ) -> ActivitySearchCriteria:
-    keys = CriteriaKeySpace(namespace)
-    target_date = cast(date, st.session_state[keys.widget("date")])
-    start_time = cast(time, st.session_state[keys.widget("start_time")])
-    available_minutes = int(st.session_state[keys.widget("available_minutes")])
-
-    goals = list(cast(list[DevelopmentDomain], st.session_state[keys.widget("goals")]))
-    constraints = list(cast(list[str], st.session_state[keys.widget("constraints")]))
-    available_materials = list(
-        cast(list[str], st.session_state[keys.widget("available_materials")])
+    raw_values = _collect_widget_raw_values(namespace)
+    normalized = normalize_widget_input(
+        raw_values,
+        mode=namespace,
+        max_input_chars=int(st.session_state.get("cfg_max_input_chars", 4000)),
     )
-    if namespace == "events":
-        constraints_optional = _optional_csv_items(
-            str(st.session_state.get(keys.widget("constraints_optional"), ""))
-        )
-        extra_context_raw = str(st.session_state.get(keys.widget("extra_context"), ""))
-        extra_context, _ = _truncate_text_with_limit(
-            extra_context_raw,
-            max_chars=int(st.session_state.get("cfg_max_input_chars", 4000)),
-        )
-        constraints = list(dict.fromkeys(constraints + constraints_optional))
-        if extra_context:
-            constraints = list(
-                dict.fromkeys(constraints + [f"Kontext: {extra_context}"])
-            )
 
     return ActivitySearchCriteria(
-        plz=str(st.session_state[keys.widget("plz")]),
-        radius_km=float(st.session_state[keys.widget("radius_km")]),
-        date=target_date,
+        plz=normalized.plz,
+        radius_km=normalized.radius_km,
+        date=normalized.date_value,
         time_window=TimeWindow(
-            start=start_time,
+            start=normalized.start_time,
             end=(
-                datetime.combine(target_date, start_time)
-                + timedelta(minutes=available_minutes)
+                datetime.combine(normalized.date_value, normalized.start_time)
+                + timedelta(minutes=normalized.available_minutes)
             ).time(),
         ),
-        effort=cast(
-            Literal["niedrig", "mittel", "hoch"],
-            st.session_state[keys.widget("effort")],
-        ),
-        budget_eur_max=float(st.session_state[keys.widget("budget_eur_max")]),
-        child_age_years=float(st.session_state[keys.widget("child_age_years")]),
-        topics=list(cast(list[str], st.session_state[keys.widget("topics")])),
-        location_preference=cast(
-            Literal["indoor", "outdoor", "mixed"],
-            st.session_state[keys.widget("location_preference")],
-        ),
-        goals=goals if goals else [DevelopmentDomain.language],
-        constraints=constraints,
-        available_materials=available_materials,
+        effort=normalized.effort,
+        budget_eur_max=normalized.budget_eur_max,
+        child_age_years=normalized.child_age_years,
+        topics=normalized.topics,
+        location_preference=normalized.location_preference,
+        goals=normalized.goals,
+        constraints=normalized.constraints,
+        available_materials=normalized.available_materials,
     )
+
+
+def _render_criteria_validation_error(exc: ValidationError, *, lang: Language) -> None:
+    st.sidebar.error(
+        _t(
+            lang,
+            "Bitte prüfe die Eingaben. Details siehe unten.",
+            "Please review your inputs. Details are listed below.",
+        )
+    )
+    for err in exc.errors():
+        loc = ".".join(str(p) for p in err.get("loc", []))
+        st.sidebar.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
 
 
 def _criteria_sidebar(
@@ -824,10 +940,7 @@ def _criteria_sidebar(
         st.session_state[CRITERIA_DAILY_KEY] = criteria
         return criteria, lang, family_profile
     except ValidationError as exc:
-        st.sidebar.error(_t(lang, "Ungültige Eingaben:", ""))
-        for err in exc.errors():
-            loc = ".".join(str(p) for p in err.get("loc", []))
-            st.sidebar.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+        _render_criteria_validation_error(exc, lang=lang)
         return (
             None,
             lang,
@@ -1335,32 +1448,14 @@ def render_wetter_und_events_section(
             horizontal=True,
         )
 
-        pref_outdoor = bool(
-            st.session_state.get(
-                CriteriaKeySpace("events").widget("pref_outdoor"), False
-            )
+        normalized_preview = normalize_widget_input(
+            _collect_widget_raw_values("events"),
+            mode="events",
+            max_input_chars=cfg.max_input_chars,
         )
-        pref_indoor = bool(
-            st.session_state.get(
-                CriteriaKeySpace("events").widget("pref_indoor"), False
-            )
+        st.session_state[CriteriaKeySpace("events").widget("location_preference")] = (
+            normalized_preview.location_preference
         )
-        if pref_outdoor and pref_indoor:
-            st.session_state[
-                CriteriaKeySpace("events").widget("location_preference")
-            ] = "mixed"
-        elif pref_outdoor:
-            st.session_state[
-                CriteriaKeySpace("events").widget("location_preference")
-            ] = "outdoor"
-        elif pref_indoor:
-            st.session_state[
-                CriteriaKeySpace("events").widget("location_preference")
-            ] = "indoor"
-        else:
-            st.session_state[
-                CriteriaKeySpace("events").widget("location_preference")
-            ] = "mixed"
 
         extra_context_raw = str(
             st.session_state.get(CriteriaKeySpace("events").widget("extra_context"), "")
@@ -1370,7 +1465,7 @@ def render_wetter_und_events_section(
                 _t(
                     lang,
                     f"Zusätzlicher Kontext wird bei Anfrage auf {cfg.max_input_chars} Zeichen gekürzt.",
-                    "",
+                    f"Additional context will be truncated to {cfg.max_input_chars} characters for the request.",
                 )
             )
 
@@ -1389,16 +1484,7 @@ def render_wetter_und_events_section(
             st.session_state["events_mode"] = mode
             st.rerun()
         except ValidationError as exc:
-            st.sidebar.error(
-                _t(
-                    lang,
-                    "Bitte prüfe die Eingaben. Details siehe unten.",
-                    "",
-                )
-            )
-            for err in exc.errors():
-                loc = ".".join(str(p) for p in err.get("loc", []))
-                st.sidebar.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+            _render_criteria_validation_error(exc, lang=lang)
             return None
 
     def _events_fingerprint(
