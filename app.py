@@ -54,6 +54,7 @@ from mikroabenteuer.openai_activity_service import (
     ERROR_CODE_MISSING_API_KEY,
     ERROR_CODE_RETRYABLE_UPSTREAM,
     ERROR_CODE_STRUCTURED_OUTPUT,
+    VALIDATION_DETAIL_PREFIX,
 )
 from mikroabenteuer.plan_reports import (
     REPORT_REASONS,
@@ -1259,6 +1260,27 @@ class OpenAIActivityService:
             }
 
 
+def _extract_validation_failure_details(warnings: list[str]) -> list[str]:
+    details: list[str] = []
+    for warning in warnings:
+        if not warning.startswith(VALIDATION_DETAIL_PREFIX):
+            continue
+        detail = warning[len(VALIDATION_DETAIL_PREFIX) :].strip()
+        if detail:
+            details.append(detail)
+    return details
+
+
+def _format_validation_failure_hint(details: list[str]) -> str | None:
+    if not details:
+        return None
+    top_detail = details[0]
+    return (
+        f"Feldtyp-Fehler: {top_detail}. Retry nur sinnvoll nach Eingabe-/Filteranpassung. "
+        f"/ Field type failure: {top_detail}. Retry is mainly useful after adjusting inputs/filters."
+    )
+
+
 def _event_error_message_for_code(error_code: str | None) -> str | None:
     messages = {
         ERROR_CODE_MISSING_API_KEY: (
@@ -1342,11 +1364,18 @@ class ActivityOrchestrator:
         warnings.extend(cast(list[str], event_result.get("warnings", [])))
         warnings.extend(cast(list[str], event_result.get("errors", [])))
 
+        validation_details = _extract_validation_failure_details(
+            cast(list[str], event_result.get("warnings", []))
+        )
+        validation_hint = _format_validation_failure_hint(validation_details)
+
         class_warning = _event_error_message_for_code(event_error_code)
         if class_warning:
             warnings.append(f"Eventsuche [{event_error_code}]: {class_warning}")
         if event_error_hint:
             warnings.append(f"Technischer Hinweis / Technical hint: {event_error_hint}")
+        if validation_hint:
+            warnings.append(validation_hint)
 
         if on_status:
             on_status("Suche abgeschlossen")
