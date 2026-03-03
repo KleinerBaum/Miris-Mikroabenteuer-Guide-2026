@@ -52,6 +52,8 @@ Die App kann:
   → `app.py`
 - **Bibliothek als eigene Seite:** Die Abenteuerliste wurde in eine separate Streamlit-Seite ausgelagert und als kompakte Kartenansicht umgesetzt.  
   → `pages/2_Bibliothek.py`
+- **Bibliothek: In-Page Filterleiste in 3 Spalten / Library: in-page filter bar in 3 columns:** Auf der Bibliothek-Seite stehen Suche und Filter jetzt direkt unter der Überschrift in drei gruppierten Spalten; standardmäßig sind keine Filter gesetzt und die komplette Abenteuerliste ist sichtbar.  
+  → `pages/2_Bibliothek.py`
 
 ---
 
