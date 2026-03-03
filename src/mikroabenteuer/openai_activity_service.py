@@ -144,6 +144,23 @@ def _error_hint_for_code(error_code: str) -> str:
     }
     return hints[error_code]
 
+  def _build_web_search_user_location(
+    weather: WeatherSummary,
+) -> dict[str, str] | None:
+    country = (weather.country_code or "").strip()
+    city = (weather.city or "").strip()
+    region = (weather.region or "").strip()
+    timezone = (weather.timezone or "").strip()
+    if not all((country, city, region, timezone)):
+        return None
+    return {
+        "type": "approximate",
+        "country": country,
+        "city": city,
+        "region": region,
+        "timezone": timezone,
+    }
+
 
 def _template_fallback_result(
     weather: WeatherSummary | None,
@@ -235,24 +252,11 @@ def suggest_activities(
 
     tools: list[dict] = [{"type": "web_search"}]
 
-    # If we have geo context, pass it to web_search for better local results.
-    if (
-        weather
-        and weather.country_code
-        and (weather.city or weather.region or weather.timezone)
-    ):
-        tools = [
-            {
-                "type": "web_search",
-                "user_location": {
-                    "type": "approximate",
-                    "country": weather.country_code,
-                    "city": weather.city or "",
-                    "region": weather.region or "",
-                    "timezone": weather.timezone or "",
-                },
-            }
-        ]
+    # If we have complete geo context, pass it to web_search for better local results.
+    if weather:
+        user_location = _build_web_search_user_location(weather)
+        if user_location is not None:
+            tools = [{"type": "web_search", "user_location": user_location}]
 
     sys_msg = redact_pii(_build_system_instructions())
     raw_user_msg = _build_user_prompt(criteria, weather, strategy)

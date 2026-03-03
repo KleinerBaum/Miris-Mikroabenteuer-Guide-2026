@@ -13,6 +13,7 @@ from typing import Any, Callable, Literal, Optional, cast
 
 import re
 
+import requests
 import streamlit as st
 import streamlit.components.v1 as components
 from pydantic import ValidationError
@@ -223,6 +224,42 @@ def _consume_request_budget(cfg: AppConfig, *, lang: Language, scope: str) -> bo
 @st.cache_data(show_spinner=False)
 def _read_background_b64(background_path: str) -> str:
     return base64.b64encode(Path(background_path).read_bytes()).decode("utf-8")
+
+
+@st.cache_data(show_spinner=False, ttl=24 * 60 * 60)
+def _resolve_location_from_plz(
+    plz: str,
+    *,
+    timeout_s: float = 6.0,
+) -> dict[str, str] | None:
+    """Resolve a German postal code to coarse user-location metadata."""
+    try:
+        response = requests.get(
+            f"https://api.zippopotam.us/de/{plz}",
+            timeout=timeout_s,
+        )
+        response.raise_for_status()
+        payload = response.json()
+    except Exception:
+        return None
+
+    places = payload.get("places") or []
+    if not places:
+        return None
+
+    first_place = places[0]
+    city = str(first_place.get("place name") or "").strip()
+    region = str(first_place.get("state") or "").strip()
+    country_code = str(payload.get("country abbreviation") or "").strip()
+
+    if not city or not region or not country_code:
+        return None
+
+    return {
+        "city": city,
+        "region": region,
+        "country_code": country_code,
+    }
 
 
 def inject_custom_styles(background_path: Path) -> None:
@@ -1023,23 +1060,41 @@ class OpenAIActivityService:
 
             event_weather: EventWeatherSummary | None = None
             if weather is not None:
-                event_weather = EventWeatherSummary(
-                    condition=EventWeatherCondition.unknown,
-                    summary_de_en="Wetter lokal geladen",
-                    temperature_min_c=weather.temperature_min_c,
-                    temperature_max_c=weather.temperature_max_c,
-                    precipitation_probability_pct=(
-                        int(weather.precipitation_probability_max)
-                        if weather.precipitation_probability_max is not None
-                        else None
-                    ),
-                    precipitation_sum_mm=weather.precipitation_sum_mm,
-                    wind_speed_max_kmh=weather.windspeed_max_kmh,
-                    country_code="DE",
-                    city="Düsseldorf",
-                    timezone=self.cfg.timezone,
-                    data_source="open-meteo",
-                )
+                resolved_location = _resolve_location_from_plz(criteria.plz)
+                if resolved_location is not None:
+                    event_weather = EventWeatherSummary(
+                        condition=EventWeatherCondition.unknown,
+                        summary_de_en="Wetter lokal geladen",
+                        temperature_min_c=weather.temperature_min_c,
+                        temperature_max_c=weather.temperature_max_c,
+                        precipitation_probability_pct=(
+                            int(weather.precipitation_probability_max)
+                            if weather.precipitation_probability_max is not None
+                            else None
+                        ),
+                        precipitation_sum_mm=weather.precipitation_sum_mm,
+                        wind_speed_max_kmh=weather.windspeed_max_kmh,
+                        country_code=resolved_location["country_code"],
+                        city=resolved_location["city"],
+                        region=resolved_location["region"],
+                        timezone=self.cfg.timezone,
+                        data_source="open-meteo",
+                    )
+                else:
+                    event_weather = EventWeatherSummary(
+                        condition=EventWeatherCondition.unknown,
+                        summary_de_en="Wetter lokal geladen",
+                        temperature_min_c=weather.temperature_min_c,
+                        temperature_max_c=weather.temperature_max_c,
+                        precipitation_probability_pct=(
+                            int(weather.precipitation_probability_max)
+                            if weather.precipitation_probability_max is not None
+                            else None
+                        ),
+                        precipitation_sum_mm=weather.precipitation_sum_mm,
+                        wind_speed_max_kmh=weather.windspeed_max_kmh,
+                        data_source="open-meteo",
+                    )
 
             result = suggest_activities(
                 criteria,
