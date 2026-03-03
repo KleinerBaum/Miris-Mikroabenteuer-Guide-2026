@@ -42,6 +42,8 @@ Die App kann:
   → `app.py`
 - **UI-Flow neu strukturiert:** Wetter & Veranstaltungen werden über die Sidebar gesteuert; Ergebnisse erscheinen direkt unter dem Tagesabenteuer im Hauptbereich.  
   → `app.py`
+- **Daily-Export in der Sidebar / Daily export in the sidebar:** Die komplette Sektion „Export“ (JSON/Markdown/ICS), „E-Mail-Vorschau“ und „Automatisierung (optional)“ liegt jetzt ausschließlich in der Sidebar und wurde aus der Landing-Page entfernt.  
+  → `app.py`
 - **Deklarative Filter-UI / Declarative filter UI:** Gemeinsame Kernfilter für Sidebar und Wetter/Events werden über ein zentrales Feldschema (`FilterFieldSpec`) gerendert; nur mode-spezifische Felder bleiben separat.  
   → `src/mikroabenteuer/ui/filter_specs.py`, `app.py`
 - **Zentraler UI-State-Keyspace / Central UI state keyspace:** Widget-Keys für tägliche Suche und Wetter/Events werden über einen typisierten Resolver (`CriteriaKeySpace`) erzeugt; fachlicher Criteria-State bleibt in `CRITERIA_DAILY_KEY`/`CRITERIA_EVENTS_KEY`.  

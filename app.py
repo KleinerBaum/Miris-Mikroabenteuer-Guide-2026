@@ -1084,7 +1084,6 @@ def _render_export_block(
     markdown: str,
     lang: Language,
 ) -> None:
-    st.subheader(_t(lang, "Export", ""))
     json_payload = {
         "criteria": criteria.model_dump(mode="json"),
         "weather": weather.__dict__ if weather else None,
@@ -1096,12 +1095,14 @@ def _render_export_block(
         data=json.dumps(json_payload, ensure_ascii=False, indent=2, default=str),
         file_name=f"mikroabenteuer-{criteria.date.isoformat()}.json",
         mime="application/json",
+        key="daily_export_json",
     )
     st.download_button(
         label=_t(lang, "Markdown herunterladen", ""),
         data=markdown,
         file_name=f"mikroabenteuer-{criteria.date.isoformat()}.md",
         mime="text/markdown",
+        key="daily_export_md",
     )
 
     ics_bytes = build_ics_event(
@@ -1118,6 +1119,7 @@ def _render_export_block(
         data=ics_bytes,
         file_name="mikroabenteuer.ics",
         mime="text/calendar",
+        key="daily_export_ics",
     )
 
     email_html = render_daily_email_html(
@@ -1144,9 +1146,15 @@ def _render_automation_block(
     cfg: AppConfig, criteria: ActivitySearchCriteria, lang: Language
 ) -> None:
     with st.expander(_t(lang, "Automatisierung (optional)", ""), expanded=False):
-        send_email = st.checkbox("E-Mail senden", value=False)
-        create_calendar_event = st.checkbox("Kalendereintrag erstellen", value=False)
-        if st.button("Daily-Job jetzt ausführen"):
+        send_email = st.checkbox(
+            "E-Mail senden", value=False, key="daily_job_send_email"
+        )
+        create_calendar_event = st.checkbox(
+            "Kalendereintrag erstellen",
+            value=False,
+            key="daily_job_create_calendar_event",
+        )
+        if st.button("Daily-Job jetzt ausführen", key="daily_job_run_once"):
             try:
                 result = run_daily_job_once(
                     cfg,
@@ -1778,8 +1786,10 @@ def main() -> None:
         lang,
     )
 
-    _render_export_block(picked, criteria, weather, daily_md, lang)
-    _render_automation_block(cfg, criteria, lang)
+    with st.sidebar:
+        st.markdown("### " + _t(lang, "Export", ""))
+        _render_export_block(picked, criteria, weather, daily_md, lang)
+        _render_automation_block(cfg, criteria, lang)
 
     if os.getenv("ENABLE_DAILY_SCHEDULER", "0") == "1":
         st.info(
