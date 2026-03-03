@@ -48,6 +48,12 @@ from mikroabenteuer.openai_gen import (
     generate_activity_plan,
     render_activity_plan_markdown,
 )
+from mikroabenteuer.openai_activity_service import (
+    ERROR_CODE_API_NON_RETRYABLE,
+    ERROR_CODE_MISSING_API_KEY,
+    ERROR_CODE_RETRYABLE_UPSTREAM,
+    ERROR_CODE_STRUCTURED_OUTPUT,
+)
 from mikroabenteuer.plan_reports import (
     REPORT_REASONS,
     load_plan_reports,
@@ -1051,14 +1057,47 @@ class OpenAIActivityService:
                 "sources": list(getattr(result, "sources", [])),
                 "warnings": list(getattr(result, "warnings_de_en", [])),
                 "errors": list(getattr(result, "errors_de_en", [])),
+                "error_code": getattr(result, "error_code", None),
+                "error_hint": getattr(result, "error_hint_de_en", None),
             }
-        except Exception as exc:
+        except Exception:
             return {
                 "suggestions": [],
                 "sources": [],
-                "warnings": [f"OpenAI-Suche aktuell nicht verfügbar: {exc}"],
+                "warnings": [
+                    "Die OpenAI-Suche konnte nicht gestartet werden. / OpenAI search could not be started."
+                ],
                 "errors": [],
+                "error_code": ERROR_CODE_API_NON_RETRYABLE,
+                "error_hint": (
+                    "Interner Aufruffehler in der Eventsuche. Bitte später erneut versuchen. "
+                    "/ Internal invocation error in event search. Please try again later."
+                ),
             }
+
+
+def _event_error_message_for_code(error_code: str | None) -> str | None:
+    messages = {
+        ERROR_CODE_MISSING_API_KEY: (
+            "OpenAI API-Key fehlt – Live-Eventsuche ist deaktiviert. "
+            "/ OpenAI API key is missing – live event search is disabled."
+        ),
+        ERROR_CODE_RETRYABLE_UPSTREAM: (
+            "Rate Limit oder Serverproblem erkannt, bitte in 1 Minute erneut versuchen. "
+            "/ Rate limit or upstream server issue detected, please retry in 1 minute."
+        ),
+        ERROR_CODE_STRUCTURED_OUTPUT: (
+            "Antwort konnte nicht zuverlässig validiert werden; bitte Suche erneut starten. "
+            "/ Response validation failed; please run the search again."
+        ),
+        ERROR_CODE_API_NON_RETRYABLE: (
+            "Nicht-retrybarer API-Fehler – bitte Eingaben/Konfiguration prüfen. "
+            "/ Non-retryable API error – please review inputs/configuration."
+        ),
+    }
+    if error_code is None:
+        return None
+    return messages.get(error_code)
 
 
 @dataclass
@@ -1114,8 +1153,17 @@ class ActivityOrchestrator:
                 event_result = self.openai_service.search_events(
                     criteria, weather, mode
                 )
+        event_error_code = cast(Optional[str], event_result.get("error_code"))
+        event_error_hint = cast(Optional[str], event_result.get("error_hint"))
+
         warnings.extend(cast(list[str], event_result.get("warnings", [])))
         warnings.extend(cast(list[str], event_result.get("errors", [])))
+
+        class_warning = _event_error_message_for_code(event_error_code)
+        if class_warning:
+            warnings.append(f"Eventsuche [{event_error_code}]: {class_warning}")
+        if event_error_hint:
+            warnings.append(f"Technischer Hinweis / Technical hint: {event_error_hint}")
 
         if on_status:
             on_status("Suche abgeschlossen")
@@ -1125,6 +1173,8 @@ class ActivityOrchestrator:
             "warnings": list(dict.fromkeys(warnings)),
             "events": event_result.get("suggestions", []),
             "sources": event_result.get("sources", []),
+            "error_code": event_error_code,
+            "error_hint": event_error_hint,
         }
 
 

@@ -448,3 +448,5 @@ class ActivitySuggestionResult(BaseModel):
     sources: List[HttpUrlStr] = Field(default_factory=list)
     warnings_de_en: List[str] = Field(default_factory=list)
     errors_de_en: List[str] = Field(default_factory=list)
+    error_code: str | None = None
+    error_hint_de_en: str | None = None

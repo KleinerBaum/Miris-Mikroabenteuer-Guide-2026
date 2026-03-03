@@ -21,6 +21,11 @@ from .openai_settings import (
 from .pii_redaction import redact_pii
 from .retry import retry_with_backoff
 
+ERROR_CODE_MISSING_API_KEY = "missing_api_key"
+ERROR_CODE_RETRYABLE_UPSTREAM = "retryable_upstream"
+ERROR_CODE_STRUCTURED_OUTPUT = "structured_output_validation"
+ERROR_CODE_API_NON_RETRYABLE = "api_non_retryable"
+
 
 def _truncate_text_with_limit(text: str, *, max_chars: int) -> tuple[str, bool]:
     if len(text) <= max_chars:
@@ -118,19 +123,49 @@ def _is_retryable_openai_error(exc: Exception) -> bool:
     return any(marker in lower_message for marker in transient_markers)
 
 
+def _error_hint_for_code(error_code: str) -> str:
+    hints = {
+        ERROR_CODE_MISSING_API_KEY: (
+            "OpenAI API-Schlüssel fehlt. Bitte Konfiguration prüfen. "
+            "/ OpenAI API key missing. Please verify configuration."
+        ),
+        ERROR_CODE_RETRYABLE_UPSTREAM: (
+            "Rate-Limit oder temporärer Dienstfehler. Bitte in etwa 1 Minute erneut versuchen. "
+            "/ Rate limit or temporary upstream failure. Please retry in about 1 minute."
+        ),
+        ERROR_CODE_STRUCTURED_OUTPUT: (
+            "Antwortformat konnte nicht validiert werden. Bitte erneut versuchen oder Filter anpassen. "
+            "/ Structured output could not be validated. Please retry or adjust filters."
+        ),
+        ERROR_CODE_API_NON_RETRYABLE: (
+            "Nicht-retrybarer API-Fehler. Eingaben/Konfiguration prüfen. "
+            "/ Non-retryable API error. Please review inputs/configuration."
+        ),
+    }
+    return hints[error_code]
+
+
 def _template_fallback_result(
     weather: WeatherSummary | None,
+    *,
+    error_code: str,
+    warnings_de_en: list[str] | None = None,
+    errors_de_en: list[str] | None = None,
 ) -> ActivitySuggestionResult:
     return ActivitySuggestionResult(
         weather=weather,
         suggestions=[],
         sources=[],
-        warnings_de_en=[
+        warnings_de_en=warnings_de_en
+        or [
             "Die Online-Suche war vorübergehend nicht verfügbar. / Online search was temporarily unavailable."
         ],
-        errors_de_en=[
+        errors_de_en=errors_de_en
+        or [
             "Wir zeigen aktuell sichere Offline-Vorlagen statt Live-Ergebnissen. / Showing safe curated templates instead of live results."
         ],
+        error_code=error_code,
+        error_hint_de_en=_error_hint_for_code(error_code),
     )
 
 
@@ -159,7 +194,16 @@ def suggest_activities(
     configure_openai_api_key()
     api_key = resolve_openai_api_key()
     if not api_key:
-        return _template_fallback_result(weather)
+        return _template_fallback_result(
+            weather,
+            error_code=ERROR_CODE_MISSING_API_KEY,
+            warnings_de_en=[
+                "OpenAI-Zugang ist nicht konfiguriert. / OpenAI access is not configured."
+            ],
+            errors_de_en=[
+                "Live-Eventsuche derzeit deaktiviert, bis ein API-Key verfügbar ist. / Live event search is disabled until an API key is configured."
+            ],
+        )
 
     model = _select_model(
         mode,
@@ -171,7 +215,16 @@ def suggest_activities(
     try:
         from openai import OpenAI  # type: ignore
     except ImportError:
-        return _template_fallback_result(weather)
+        return _template_fallback_result(
+            weather,
+            error_code=ERROR_CODE_API_NON_RETRYABLE,
+            warnings_de_en=[
+                "OpenAI-SDK nicht verfügbar. / OpenAI SDK is not available."
+            ],
+            errors_de_en=[
+                "Live-Eventsuche kann ohne SDK nicht ausgeführt werden. / Live event search cannot run without the SDK."
+            ],
+        )
 
     client = OpenAI(
         api_key=api_key,
@@ -261,16 +314,28 @@ def suggest_activities(
             should_retry=_is_retryable_openai_error,
         )(_call_openai)()
     except ValidationError:
-        return _template_fallback_result(weather)
+        return _template_fallback_result(
+            weather,
+            error_code=ERROR_CODE_STRUCTURED_OUTPUT,
+        )
     except Exception as exc:  # noqa: BLE001
+        if "output_parsed is None" in str(exc):
+            return _template_fallback_result(
+                weather,
+                error_code=ERROR_CODE_STRUCTURED_OUTPUT,
+            )
         if _is_retryable_openai_error(exc):
-            return _template_fallback_result(weather)
-        return ActivitySuggestionResult(
-            weather=weather,
-            suggestions=[],
-            sources=[],
-            warnings_de_en=[],
-            errors_de_en=[
+            return _template_fallback_result(
+                weather,
+                error_code=ERROR_CODE_RETRYABLE_UPSTREAM,
+            )
+        return _template_fallback_result(
+            weather,
+            error_code=ERROR_CODE_API_NON_RETRYABLE,
+            warnings_de_en=[
                 "Die Eventsuche ist aktuell nicht verfügbar. / Event search is currently unavailable."
+            ],
+            errors_de_en=[
+                "Bitte Eingaben und Konfiguration prüfen; der Fehler ist nicht automatisch retrybar. / Please review inputs and configuration; this error is not automatically retryable."
             ],
         )

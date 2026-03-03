@@ -209,3 +209,48 @@ def test_generate_activity_plan_uses_configured_plan_model(monkeypatch) -> None:
     assert (
         _FakeOpenAI.last_client.responses.last_parse_kwargs["model"] == "plan-model-x"
     )
+
+
+def test_suggest_activities_marks_missing_api_key(monkeypatch) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "")
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert result.error_code == module.ERROR_CODE_MISSING_API_KEY
+    assert result.error_hint_de_en is not None
+
+
+def test_suggest_activities_marks_non_retryable_api_error(monkeypatch) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    class _NonRetryableError(Exception):
+        status_code = 400
+
+    _FakeOpenAI.behavior = [_NonRetryableError("bad request")]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert result.error_code == module.ERROR_CODE_API_NON_RETRYABLE
+    assert result.error_hint_de_en is not None
+
+
+def test_suggest_activities_marks_structured_output_error(monkeypatch) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    _FakeOpenAI.behavior = [SimpleNamespace(output_parsed=None)]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert result.error_code == module.ERROR_CODE_STRUCTURED_OUTPUT
+    assert result.error_hint_de_en is not None
