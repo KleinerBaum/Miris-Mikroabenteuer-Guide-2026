@@ -7,10 +7,7 @@ from .pii_redaction import redact_pii
 
 logger = logging.getLogger(__name__)
 
-SAFE_BLOCK_MESSAGE_DE_EN = (
-    "Inhalt wurde aus Sicherheitsgründen blockiert. Bitte formuliere die Anfrage neutral und ohne sensible/problematische Inhalte. "
-    "/ Content was blocked for safety reasons. Please rephrase with neutral and safe wording."
-)
+SAFE_BLOCK_MESSAGE_DE_EN = "Inhalt wurde aus Sicherheitsgründen blockiert. Bitte formuliere die Anfrage neutral und ohne sensible/problematische Inhalte."
 
 
 def moderate_text(client: Any, *, text: str, stage: str) -> bool:

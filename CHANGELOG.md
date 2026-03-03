@@ -23,6 +23,12 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 - **Migration konsolidiert / Migration consolidated:** V2-Importpfade bleiben kanonisch (`mikroabenteuer.*`), V1 bleibt Legacy, und nicht mehr genutzte Dependencies wurden aus den Runtime-Anforderungen entfernt.
 - **Import-Guardrails hinzugefügt / Import guardrails added:** Neue Tests verhindern in aktivem Code Rückfälle auf `src.mikroabenteuer`- oder `legacy.v1`-Imports.
 
+### Changed / Geändert
+- **Deutschsprachige UI vereinheitlicht:** Sichtbare UI-Texte im Tagesplan, in Fallback-Plänen und im Wetter/Events-Flow sind jetzt rein deutsch; englische Slash-Texte wurden entfernt.
+- **Tagesabenteuer-Layout verbessert:** Aktivitätstitel wird im Hauptbereich als eigene Überschrift gerendert; Planabschnitte werden strukturiert angezeigt, wobei "Sicherheit" eingeklappt startet.
+- **Wetter & Veranstaltungen in die Sidebar verschoben:** Eingabeformular, Aktionen und Event-Exporte liegen jetzt in der Sidebar; Ergebnisse werden im Hauptbereich unter dem Tagesabenteuer gerendert.
+- **Bibliothek als eigene Seite:** Hauptseite zeigt nur Suche, Tagesabenteuer und Events; die Abenteuerbibliothek ist nun als Streamlit-Seite unter `pages/2_Bibliothek.py` umgesetzt und mit kompakten Karten statt Tabelle dargestellt.
+
 ### Planned / Geplant
 - **Streamlit State Hardening:** Kriterien-State sauber trennen (Sidebar vs. Wetter/Events‑Form), Event/Plan Ergebnisse per Fingerprint in `st.session_state` cachen.
 - **Config Cleanup:** Environment variable naming vereinheitlichen (Google OAuth / Settings vs. Config), Hardcoded Modell-Auswahl in Events in Config überführen.

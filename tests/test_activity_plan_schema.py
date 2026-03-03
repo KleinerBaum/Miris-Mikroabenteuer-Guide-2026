@@ -101,7 +101,7 @@ def test_generate_activity_plan_returns_structured_fallback_when_llm_disabled() 
     assert plan.parent_child_prompts
     assert 3 <= len(plan.parent_child_prompts) <= 6
     assert all(
-        "Say:" in prompt and "Do:" in prompt for prompt in plan.parent_child_prompts
+        "Sag:" in prompt and "Mach:" in prompt for prompt in plan.parent_child_prompts
     )
 
 
@@ -124,15 +124,15 @@ def test_language_goal_adds_language_support_and_prompt() -> None:
 def test_ensure_responsive_prompts_guarantees_three_to_six_say_do_entries() -> None:
     prompts = _ensure_responsive_prompts(
         [
-            "Say: Start here? / Do: Wait for response.",
+            "Sag: Start hier? / Mach: Warte auf die Antwort.",
             "Plain instruction without structure",
-            "Say: Continue? / Do: Follow your child.",
+            "Sag: Weiter? / Mach: Folge deinem Kind.",
         ],
-        goals=["Sprache / Language"],
+        goals=["Sprache"],
     )
 
     assert 3 <= len(prompts) <= 6
-    assert all("Say:" in prompt and "Do:" in prompt for prompt in prompts)
+    assert all("Sag:" in prompt and "Mach:" in prompt for prompt in prompts)
 
 
 def test_multiple_plan_generations_keep_prompt_contract_consistent() -> None:
@@ -149,7 +149,8 @@ def test_multiple_plan_generations_keep_prompt_contract_consistent() -> None:
     for plan in plans:
         assert 3 <= len(plan.parent_child_prompts) <= 6
         assert all(
-            "Say:" in prompt and "Do:" in prompt for prompt in plan.parent_child_prompts
+            "Sag:" in prompt and "Mach:" in prompt
+            for prompt in plan.parent_child_prompts
         )
 
 
@@ -166,7 +167,7 @@ def test_render_activity_plan_markdown_contains_required_sections() -> None:
     markdown = render_activity_plan_markdown(plan)
 
     assert "## Plan" in markdown
-    assert "## What this supports / Was das fördert" in markdown
+    assert "## Was das fördert" in markdown
     assert "## Sicherheit" in markdown
     assert "## Eltern-Kind-Impulse" in markdown
     assert "## Varianten" in markdown
@@ -230,7 +231,7 @@ def test_generate_activity_plan_returns_safe_fallback_when_fallback_is_unsafe() 
         weather=None,
     )
 
-    assert "Safe fallback plan" in plan.title
+    assert "Sicheres Alternativprogramm" in plan.title
     assert all("Perlen" not in step for step in plan.steps)
 
 
@@ -254,7 +255,7 @@ def test_generate_activity_plan_keeps_scissors_when_age_appropriate_and_supervis
         weather=None,
     )
 
-    assert "Safe fallback plan" not in plan.title
+    assert "Sicheres Alternativprogramm" not in plan.title
     assert validate_activity_plan(
         plan, _build_activity_request(scissors_adventure, criteria)
     )
@@ -272,7 +273,7 @@ def test_generate_activity_plan_includes_plan_b_variants() -> None:
 
     variants_text = "\n".join(plan.variants).casefold()
     assert len(plan.variants) >= 2
-    assert "lower energy" in variants_text
-    assert "higher energy" in variants_text
-    assert "indoor swap" in variants_text
-    assert "no materials" in variants_text
+    assert "weniger energie" in variants_text
+    assert "mehr energie" in variants_text
+    assert "indoor-tausch" in variants_text
+    assert "ohne material" in variants_text

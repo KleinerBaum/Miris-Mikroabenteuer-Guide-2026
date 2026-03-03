@@ -36,6 +36,10 @@ Die App kann:
   → `app.py`
 - **Button- und Select-Kontraste verfeinert / Refined button and select contrast**: bessere Lesbarkeit für primäre Buttons im Hover-Zustand sowie konsistente, helle Select-/MultiSelect-Hintergründe inkl. Icons.  
   → `app.py`
+- **UI-Flow neu strukturiert:** Wetter & Veranstaltungen werden über die Sidebar gesteuert; Ergebnisse erscheinen direkt unter dem Tagesabenteuer im Hauptbereich.  
+  → `app.py`
+- **Bibliothek als eigene Seite:** Die Abenteuerliste wurde in eine separate Streamlit-Seite ausgelagert und als kompakte Kartenansicht umgesetzt.  
+  → `pages/2_Bibliothek.py`
 
 ---
 

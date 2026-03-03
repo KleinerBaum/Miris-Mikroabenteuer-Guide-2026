@@ -149,7 +149,7 @@ def test_generate_activity_plan_returns_safe_fallback_after_retryable_failures(
     )
 
     assert isinstance(plan, ActivityPlan)
-    assert "Safe fallback plan" in plan.title
+    assert "Sicheres Alternativprogramm" in plan.title
 
 
 def test_suggest_activities_uses_configured_event_models(monkeypatch) -> None:
@@ -189,7 +189,7 @@ def test_generate_activity_plan_uses_configured_plan_model(monkeypatch) -> None:
                 safety_notes=["Hinweis"],
                 parent_child_prompts=["Say: x Do: y"],
                 variants=["Plan B"],
-                supports=["Sprache / Language"],
+                supports=["Sprache"],
             )
         )
     ]

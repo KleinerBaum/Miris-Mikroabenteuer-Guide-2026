@@ -53,7 +53,7 @@ from mikroabenteuer.plan_reports import (
     load_plan_reports,
     save_plan_report,
 )
-from mikroabenteuer.recommender import filter_adventures, pick_daily_adventure
+from mikroabenteuer.recommender import pick_daily_adventure
 from mikroabenteuer.scheduler import run_daily_job_once
 from mikroabenteuer.settings import load_runtime_config, render_missing_config_ui
 from mikroabenteuer.weather import WeatherSummary, fetch_weather_for_day
@@ -87,20 +87,20 @@ GOAL_OPTIONS: tuple[DevelopmentDomain, ...] = (
 )
 
 DOMAIN_LABELS: dict[DevelopmentDomain, str] = {
-    DevelopmentDomain.gross_motor: "Grobmotorik / Gross motor",
-    DevelopmentDomain.fine_motor: "Feinmotorik / Fine motor",
-    DevelopmentDomain.language: "Sprache / Language",
-    DevelopmentDomain.social_emotional: "Sozial-emotional / Social-emotional",
-    DevelopmentDomain.sensory: "Sensorik / Sensory",
-    DevelopmentDomain.cognitive: "Kognitiv / Cognitive",
+    DevelopmentDomain.gross_motor: "Grobmotorik",
+    DevelopmentDomain.fine_motor: "Feinmotorik",
+    DevelopmentDomain.language: "Sprache",
+    DevelopmentDomain.social_emotional: "Sozial-emotional",
+    DevelopmentDomain.sensory: "Sensorik",
+    DevelopmentDomain.cognitive: "Kognitiv",
 }
 CONSTRAINT_OPTIONS: tuple[str, ...] = (
-    "Kein Auto / No car",
-    "Kinderwagen / Stroller",
-    "Wetterfest / Weather-proof",
-    "Niedriges Budget / Low budget",
-    "Reizarm / Low sensory",
-    "Barrierearm / Accessible",
+    "Kein Auto",
+    "Kinderwagen",
+    "Wetterfest",
+    "Niedriges Budget",
+    "Reizarm",
+    "Barrierearm",
 )
 
 MATERIAL_OPTIONS: tuple[str, ...] = COMMON_HOUSEHOLD_MATERIALS
@@ -196,7 +196,7 @@ def _consume_request_budget(cfg: AppConfig, *, lang: Language, scope: str) -> bo
         st.warning(
             _t(
                 lang,
-                f"Session-Limit erreicht ({cfg.max_requests_per_session} Anfragen). Bitte Seite neu laden. / Session limit reached ({cfg.max_requests_per_session} requests). Please reload the page.",
+                f"Session-Limit erreicht ({cfg.max_requests_per_session} Anfragen). Bitte Seite neu laden.",
                 "",
             )
         )
@@ -207,7 +207,7 @@ def _consume_request_budget(cfg: AppConfig, *, lang: Language, scope: str) -> bo
     st.caption(
         _t(
             lang,
-            f"Anfragebudget {current}/{cfg.max_requests_per_session} ({scope}). / Request budget {current}/{cfg.max_requests_per_session} ({scope}).",
+            f"Anfragebudget {current}/{cfg.max_requests_per_session} ({scope}).",
             "",
         )
     )
@@ -514,7 +514,7 @@ def _build_criteria_from_widget_state(*, prefix: str) -> ActivitySearchCriteria:
         constraints = list(dict.fromkeys(constraints + constraints_optional))
         if extra_context:
             constraints = list(
-                dict.fromkeys(constraints + [f"Kontext / Context: {extra_context}"])
+                dict.fromkeys(constraints + [f"Kontext: {extra_context}"])
             )
 
     return ActivitySearchCriteria(
@@ -571,8 +571,8 @@ def _criteria_sidebar(
     selected_age_band = st.sidebar.selectbox(
         _t(
             lang,
-            "Altersband / Age band",
-            "Altersband / Age band",
+            "Altersband",
+            "Altersband",
         ),
         options=age_band_labels,
         index=age_band_labels.index(current_band),
@@ -603,9 +603,7 @@ def _criteria_sidebar(
         kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
     )
 
-    with st.sidebar.expander(
-        _t(lang, "Weitere Suchoptionen / More search options", ""), expanded=False
-    ):
+    with st.sidebar.expander(_t(lang, "Weitere Suchoptionen", ""), expanded=False):
         st.time_input(
             _t(lang, "Startzeit", ""),
             key="sidebar_start_time",
@@ -615,8 +613,8 @@ def _criteria_sidebar(
         st.select_slider(
             _t(
                 lang,
-                "Verfügbare Zeit (Minuten) / Available time (minutes)",
-                "Verfügbare Zeit (Minuten) / Available time (minutes)",
+                "Verfügbare Zeit (Minuten)",
+                "Verfügbare Zeit (Minuten)",
             ),
             options=list(DURATION_OPTIONS),
             key="sidebar_available_minutes",
@@ -624,12 +622,12 @@ def _criteria_sidebar(
             kwargs={"prefix": "sidebar", "state_key": CRITERIA_DAILY_KEY},
         )
         st.segmented_control(
-            _t(lang, "Ort / Location", "Ort / Location"),
+            _t(lang, "Ort", "Ort"),
             options=["mixed", "outdoor", "indoor"],
             format_func=lambda opt: {
-                "mixed": "Gemischt / Mixed",
-                "outdoor": "Draußen / Outdoor",
-                "indoor": "Drinnen / Indoor",
+                "mixed": "Gemischt",
+                "outdoor": "Draußen",
+                "indoor": "Drinnen",
             }[opt],
             key="sidebar_location_preference",
             on_change=_sync_widget_change_to_criteria,
@@ -658,7 +656,7 @@ def _criteria_sidebar(
     with st.sidebar.expander(
         _t(
             lang,
-            "Rahmenbedingungen erweitern / More constraints",
+            "Rahmenbedingungen erweitern",
             "",
         ),
         expanded=False,
@@ -666,8 +664,8 @@ def _criteria_sidebar(
         st.multiselect(
             _t(
                 lang,
-                "Rahmenbedingungen / Constraints",
-                "Rahmenbedingungen / Constraints",
+                "Rahmenbedingungen",
+                "Rahmenbedingungen",
             ),
             options=list(CONSTRAINT_OPTIONS),
             key="sidebar_constraints",
@@ -677,7 +675,7 @@ def _criteria_sidebar(
 
     # Group 3 (goals/topics/materials).
     st.sidebar.multiselect(
-        _t(lang, "Ziele / Goals", "Ziele / Goals"),
+        _t(lang, "Ziele", "Ziele"),
         options=list(GOAL_OPTIONS),
         format_func=lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
         max_selections=2,
@@ -687,11 +685,11 @@ def _criteria_sidebar(
     )
 
     with st.sidebar.expander(
-        _t(lang, "Themen & Material / Topics & materials", ""),
+        _t(lang, "Themen & Material", ""),
         expanded=False,
     ):
         st.multiselect(
-            _t(lang, "Themen / Topics", "Themen / Topics"),
+            _t(lang, "Themen", "Themen"),
             options=theme_options(lang),
             format_func=lambda x: theme_label(x, lang),
             key="sidebar_topics",
@@ -701,8 +699,8 @@ def _criteria_sidebar(
         st.multiselect(
             _t(
                 lang,
-                "Haushaltsmaterialien (verfügbar) / Household materials (available)",
-                "Haushaltsmaterialien (verfügbar) / Household materials (available)",
+                "Haushaltsmaterialien (verfügbar)",
+                "Haushaltsmaterialien (verfügbar)",
             ),
             options=list(MATERIAL_OPTIONS),
             format_func=_material_label,
@@ -718,7 +716,7 @@ def _criteria_sidebar(
     # Group 4 (profile/mode/language).
     child_name = (
         st.sidebar.text_input(
-            _t(lang, "Name des Kindes / Child name", "Name des Kindes / Child name"),
+            _t(lang, "Name des Kindes", "Name des Kindes"),
             value=st.session_state.get("profile_child_name", "Carla"),
             key="profile_child_name",
         ).strip()
@@ -728,8 +726,8 @@ def _criteria_sidebar(
         st.sidebar.text_input(
             _t(
                 lang,
-                "Name der Eltern / Parent name(s)",
-                "Name der Eltern / Parent name(s)",
+                "Name der Eltern",
+                "",
             ),
             value=st.session_state.get("profile_parent_names", "Miri"),
             key="profile_parent_names",
@@ -739,16 +737,16 @@ def _criteria_sidebar(
     lang = st.sidebar.selectbox("Sprache", options=["DE"], index=0, key="lang")
 
     with st.sidebar.expander(
-        _t(lang, "Weitere Profileinstellungen / More profile settings", ""),
+        _t(lang, "Weitere Profileinstellungen", ""),
         expanded=False,
     ):
         st.selectbox(
-            _t(lang, "Plan-Modus / Plan mode", "Plan mode"),
+            _t(lang, "Plan-Modus", "Plan mode"),
             options=["standard", "parent_script"],
             format_func=lambda value: (
                 "Standard"
                 if value == "standard"
-                else "Elternskript (kurz, wiederholbar) / Parent script (short, repeatable)"
+                else "Elternskript (kurz, wiederholbar)"
             ),
             index=(
                 0 if st.session_state.get("plan_mode", "standard") == "standard" else 1
@@ -758,8 +756,8 @@ def _criteria_sidebar(
         st.toggle(
             _t(
                 lang,
-                "Offline-Modus (ohne LLM) / Offline mode (no LLM)",
-                "Offline-Modus (ohne LLM) / Offline mode (no LLM)",
+                "Offline-Modus (ohne LLM)",
+                "Offline-Modus (ohne LLM)",
             ),
             value=st.session_state.get("offline_mode", False),
             key="offline_mode",
@@ -831,7 +829,7 @@ def _generate_activity_plan_with_retry(
     st.error(
         _t(
             lang,
-            "Die Plan-Erstellung ist gerade fehlgeschlagen. Wir zeigen eine sichere Fallback-Version an. / Plan generation failed right now. Showing a safe fallback version.",
+            "Die Plan-Erstellung ist gerade fehlgeschlagen. Wir zeigen eine sichere Fallback-Version an.",
             "",
         )
     )
@@ -847,27 +845,57 @@ def _generate_activity_plan_with_retry(
     )
 
 
-def _split_daily_markdown(markdown: str) -> tuple[str, str]:
-    lines = markdown.splitlines()
-    content_lines = [line for line in lines if line.strip()]
-    if len(content_lines) < 4:
-        return markdown, ""
-
-    preview_candidates = content_lines[:4]
-    remaining_preview = list(preview_candidates)
-    preview_lines: list[str] = []
-    details_lines: list[str] = []
-
-    for line in lines:
-        if remaining_preview and line == remaining_preview[0]:
-            preview_lines.append(line)
-            remaining_preview.pop(0)
+def _split_markdown_sections(markdown: str) -> dict[str, str]:
+    section_map: dict[str, str] = {
+        "plan": "",
+        "supports": "",
+        "sicherheit": "",
+        "impulse": "",
+        "varianten": "",
+    }
+    heading_map = {
+        "## Plan": "plan",
+        "## Was das fördert": "supports",
+        "## Sicherheit": "sicherheit",
+        "## Eltern-Kind-Impulse": "impulse",
+        "## Varianten": "varianten",
+    }
+    current_key: Optional[str] = None
+    for line in markdown.splitlines():
+        stripped = line.strip()
+        if stripped in heading_map:
+            current_key = heading_map[stripped]
             continue
-        details_lines.append(line)
+        if stripped.startswith("# "):
+            continue
+        if current_key is None:
+            continue
+        section_map[current_key] += f"{line}\n"
+    return {key: value.strip() for key, value in section_map.items()}
 
-    preview = "\n".join(preview_lines).strip()
-    details = "\n".join(details_lines).strip()
-    return preview, details
+
+def render_daily_plan_sections(markdown: str, lang: Language) -> None:
+    sections = _split_markdown_sections(markdown)
+
+    if sections["plan"]:
+        st.markdown("## " + _t(lang, "Plan", ""))
+        st.markdown(sections["plan"])
+
+    if sections["supports"]:
+        st.markdown("## " + _t(lang, "Was das fördert", ""))
+        st.markdown(sections["supports"])
+
+    if sections["sicherheit"]:
+        with st.expander(_t(lang, "Sicherheit", ""), expanded=False):
+            st.markdown(sections["sicherheit"])
+
+    if sections["impulse"]:
+        with st.expander(_t(lang, "Eltern-Kind-Impulse", ""), expanded=False):
+            st.markdown(sections["impulse"])
+
+    if sections["varianten"]:
+        with st.expander(_t(lang, "Varianten", ""), expanded=False):
+            st.markdown(sections["varianten"])
 
 
 def _render_adventure_details(a: MicroAdventure, lang: Language) -> None:
@@ -1068,7 +1096,7 @@ class ActivityOrchestrator:
                 "sources": [],
                 "warnings": offline_warnings
                 + [
-                    "Offline-Modus aktiv: Ergebnisse stammen aus data/activity_library.json. / Offline mode active: results are from data/activity_library.json."
+                    "Offline-Modus aktiv: Ergebnisse stammen aus data/activity_library.json."
                 ],
                 "errors": [],
             }
@@ -1079,9 +1107,7 @@ class ActivityOrchestrator:
                 event_result = {
                     "suggestions": [],
                     "sources": [],
-                    "warnings": [
-                        "Session-Limit für API-Anfragen erreicht. / Session request limit reached."
-                    ],
+                    "warnings": ["Session-Limit für API-Anfragen erreicht."],
                     "errors": [],
                 }
             else:
@@ -1110,134 +1136,123 @@ def _get_activity_orchestrator(
     return openai_service, ActivityOrchestrator(cfg=cfg, openai_service=openai_service)
 
 
-def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
+def render_wetter_und_events_section(
+    cfg: AppConfig, lang: Language
+) -> Optional[dict[str, Any]]:
     # Formular-Adapter folgt einer Einweg-Regel.
     # Interaktion schreibt nach criteria; Rendering liest nur für die Erstinitialisierung.
     criteria = get_criteria_state(cfg, key=CRITERIA_EVENTS_KEY)
     _ensure_ui_adapter_state(prefix="form", criteria=criteria)
 
-    st.subheader(_t(lang, "Wetter & Veranstaltungen", ""))
-
-    with st.form("weather_events_form", clear_on_submit=False):
-        top_left, top_right = st.columns(2)
-        with top_left:
-            st.text_input(
-                _t(lang, "PLZ", ""),
-                key="form_plz",
-                max_chars=5,
-            )
-            st.date_input(
-                _t(lang, "Datum", ""),
-                key="form_date",
-            )
-            st.time_input(
-                _t(lang, "Startzeit", ""),
-                key="form_start_time",
-            )
-            st.select_slider(
-                _t(
-                    lang,
-                    "Zeitbudget (Minuten) / Duration",
-                    "Zeitbudget (Minuten) / Duration",
-                ),
-                options=list(DURATION_OPTIONS),
-                key="form_available_minutes",
-            )
-        with top_right:
-            st.slider(
-                _t(lang, "Radius (km)", "Radius (km)"),
-                min_value=0.5,
-                max_value=50.0,
-                step=0.5,
-                key="form_radius_km",
-            )
-            st.selectbox(
-                _t(lang, "Aufwand", ""),
-                options=["niedrig", "mittel", "hoch"],
-                format_func=lambda x: effort_label(x, lang),
-                key="form_effort",
-            )
-            st.number_input(
-                _t(lang, "Budget (max €)", "Budget (max €)"),
-                min_value=0.0,
-                max_value=250.0,
-                step=1.0,
-                key="form_budget_eur_max",
-            )
-            st.multiselect(
-                _t(lang, "Themen / Topics", "Themen / Topics"),
-                options=theme_options(lang),
-                format_func=lambda x: theme_label(x, lang),
-                key="form_topics",
-            )
-            st.toggle(
-                _t(
-                    lang,
-                    "Ort: draußen bevorzugen / Prefer outdoor",
-                    "Ort: draußen bevorzugen / Prefer outdoor",
-                ),
-                key="form_pref_outdoor",
-                value=st.session_state.get("form_location_preference", "mixed")
-                == "outdoor",
-            )
-            st.toggle(
-                _t(
-                    lang,
-                    "Ort: drinnen bevorzugen / Prefer indoor",
-                    "Ort: drinnen bevorzugen / Prefer indoor",
-                ),
-                key="form_pref_indoor",
-                value=st.session_state.get("form_location_preference", "mixed")
-                == "indoor",
-            )
-            st.multiselect(
-                _t(lang, "Ziele / Goals", "Ziele / Goals"),
-                options=list(GOAL_OPTIONS),
-                format_func=lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
-                max_selections=2,
-                key="form_goals",
-            )
-            st.multiselect(
-                _t(
-                    lang,
-                    "Rahmenbedingungen / Constraints",
-                    "Rahmenbedingungen / Constraints",
-                ),
-                options=list(CONSTRAINT_OPTIONS),
-                key="form_constraints",
-            )
-            st.multiselect(
-                _t(
-                    lang,
-                    "Haushaltsmaterialien (verfügbar) / Household materials (available)",
-                    "Haushaltsmaterialien (verfügbar) / Household materials (available)",
-                ),
-                options=list(MATERIAL_OPTIONS),
-                format_func=_material_label,
-                key="form_available_materials",
-            )
-            st.text_input(
-                _t(
-                    lang,
-                    "Weitere Rahmenbedingungen (optional, max 80) / Other constraints (optional, max 80)",
-                    "Weitere Rahmenbedingungen (optional, max 80) / Other constraints (optional, max 80)",
-                ),
-                key="form_constraints_optional",
-                max_chars=80,
-            )
-            st.text_area(
-                _t(
-                    lang,
-                    "Zusätzlicher Kontext / Extra context",
-                    "Zusätzlicher Kontext / Extra context",
-                ),
-                key="form_extra_context",
-                help=_t(
-                    lang,
-                    f"Wird auf {cfg.max_input_chars} Zeichen begrenzt. / Limited to {cfg.max_input_chars} characters.",
-                    "",
-                ),
-            )
+    with st.sidebar.form("weather_events_form", clear_on_submit=False):
+        st.markdown("### " + _t(lang, "Wetter & Veranstaltungen", ""))
+        st.text_input(
+            _t(lang, "PLZ", ""),
+            key="form_plz",
+            max_chars=5,
+        )
+        st.date_input(
+            _t(lang, "Datum", ""),
+            key="form_date",
+        )
+        st.time_input(
+            _t(lang, "Startzeit", ""),
+            key="form_start_time",
+        )
+        st.select_slider(
+            _t(
+                lang,
+                "Zeitbudget (Minuten)",
+                "",
+            ),
+            options=list(DURATION_OPTIONS),
+            key="form_available_minutes",
+        )
+        st.slider(
+            _t(lang, "Radius (km)", ""),
+            min_value=0.5,
+            max_value=50.0,
+            step=0.5,
+            key="form_radius_km",
+        )
+        st.selectbox(
+            _t(lang, "Aufwand", ""),
+            options=["niedrig", "mittel", "hoch"],
+            format_func=lambda x: effort_label(x, lang),
+            key="form_effort",
+        )
+        st.number_input(
+            _t(lang, "Budget (max €)", ""),
+            min_value=0.0,
+            max_value=250.0,
+            step=1.0,
+            key="form_budget_eur_max",
+        )
+        st.multiselect(
+            _t(lang, "Themen", ""),
+            options=theme_options(lang),
+            format_func=lambda x: theme_label(x, lang),
+            key="form_topics",
+        )
+        st.toggle(
+            _t(lang, "Ort: draußen bevorzugen", ""),
+            key="form_pref_outdoor",
+            value=st.session_state.get("form_location_preference", "mixed")
+            == "outdoor",
+        )
+        st.toggle(
+            _t(lang, "Ort: drinnen bevorzugen", ""),
+            key="form_pref_indoor",
+            value=st.session_state.get("form_location_preference", "mixed") == "indoor",
+        )
+        st.multiselect(
+            _t(lang, "Ziele", ""),
+            options=list(GOAL_OPTIONS),
+            format_func=lambda goal: DOMAIN_LABELS[cast(DevelopmentDomain, goal)],
+            max_selections=2,
+            key="form_goals",
+        )
+        st.multiselect(
+            _t(
+                lang,
+                "Rahmenbedingungen",
+                "",
+            ),
+            options=list(CONSTRAINT_OPTIONS),
+            key="form_constraints",
+        )
+        st.multiselect(
+            _t(
+                lang,
+                "Haushaltsmaterialien (verfügbar)",
+                "",
+            ),
+            options=list(MATERIAL_OPTIONS),
+            format_func=_material_label,
+            key="form_available_materials",
+        )
+        st.text_input(
+            _t(
+                lang,
+                "Weitere Rahmenbedingungen (optional, max 80)",
+                "",
+            ),
+            key="form_constraints_optional",
+            max_chars=80,
+        )
+        st.text_area(
+            _t(
+                lang,
+                "Zusätzlicher Kontext",
+                "",
+            ),
+            key="form_extra_context",
+            help=_t(
+                lang,
+                f"Wird auf {cfg.max_input_chars} Zeichen begrenzt.",
+                "",
+            ),
+        )
 
         mode = st.radio(
             _t(lang, "Genauigkeit", ""),
@@ -1264,7 +1279,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             st.warning(
                 _t(
                     lang,
-                    f"Zusätzlicher Kontext wird bei Anfrage auf {cfg.max_input_chars} Zeichen gekürzt. / Extra context will be truncated to {cfg.max_input_chars} characters when requested.",
+                    f"Zusätzlicher Kontext wird bei Anfrage auf {cfg.max_input_chars} Zeichen gekürzt.",
                     "",
                 )
             )
@@ -1284,7 +1299,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             st.session_state["events_mode"] = mode
             st.rerun()
         except ValidationError as exc:
-            st.error(
+            st.sidebar.error(
                 _t(
                     lang,
                     "Bitte prüfe die Eingaben. Details siehe unten.",
@@ -1293,8 +1308,8 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
             )
             for err in exc.errors():
                 loc = ".".join(str(p) for p in err.get("loc", []))
-                st.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
-            return
+                st.sidebar.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+            return None
 
     def _events_fingerprint(
         criteria_state: ActivitySearchCriteria, mode_value: str
@@ -1312,7 +1327,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
     if needs_refresh:
         _service, orchestrator = _get_activity_orchestrator(cfg)
-        status_box = st.empty()
+        status_box = st.sidebar.empty()
 
         def _status_update(message: str) -> None:
             status_box.info(message)
@@ -1324,76 +1339,128 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
         st.session_state["events_fingerprint"] = _events_fingerprint(
             criteria, requested_mode
         )
-        status_box.success(_t(lang, "Fertig.", "Done."))
+        status_box.success(_t(lang, "Fertig.", ""))
 
     payload_any = st.session_state.get("events_payload")
-    if not payload_any:
-        return
-    payload = cast(dict[str, Any], payload_any)
+    payload = cast(Optional[dict[str, Any]], payload_any)
 
-    actions_left, actions_right = st.columns(2)
-    with actions_left:
-        if st.button(
-            _t(lang, "Neu suchen / Search again", "Neu suchen / Search again"),
-            key="events_refresh_button",
-        ):
-            try:
-                _sync_widget_change_to_criteria(
-                    prefix="form",
-                    state_key=CRITERIA_EVENTS_KEY,
-                    raise_on_error=True,
-                )
-                st.session_state["events_mode"] = mode
-                st.session_state["weather_events_submitted"] = True
-                st.rerun()
-            except ValidationError as exc:
-                st.error(
-                    _t(
-                        lang,
-                        "Bitte prüfe die Eingaben. Details siehe unten.",
-                        "Please verify your inputs. Details below.",
+    if payload is not None:
+        actions_left, actions_right = st.sidebar.columns(2)
+        with actions_left:
+            if st.button(
+                _t(lang, "Neu suchen", ""),
+                key="events_refresh_button",
+            ):
+                try:
+                    _sync_widget_change_to_criteria(
+                        prefix="form",
+                        state_key=CRITERIA_EVENTS_KEY,
+                        raise_on_error=True,
                     )
-                )
-                for err in exc.errors():
-                    loc = ".".join(str(p) for p in err.get("loc", []))
-                    st.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
+                    st.session_state["events_mode"] = mode
+                    st.session_state["weather_events_submitted"] = True
+                    st.rerun()
+                except ValidationError as exc:
+                    st.sidebar.error(
+                        _t(
+                            lang,
+                            "Bitte prüfe die Eingaben. Details siehe unten.",
+                            "",
+                        )
+                    )
+                    for err in exc.errors():
+                        loc = ".".join(str(p) for p in err.get("loc", []))
+                        st.sidebar.write(f"- `{loc}`: {err.get('msg', 'invalid')}")
 
-    with actions_right:
-        if st.button(
-            _t(
-                lang,
-                "Ergebnisse löschen / Clear results",
-                "Ergebnisse löschen / Clear results",
-            ),
-            key="events_clear_button",
-        ):
-            st.session_state.pop("events_payload", None)
-            st.session_state.pop("events_fingerprint", None)
-            st.rerun()
+        with actions_right:
+            if st.button(
+                _t(
+                    lang,
+                    "Ergebnisse löschen",
+                    "",
+                ),
+                key="events_clear_button",
+            ):
+                st.session_state.pop("events_payload", None)
+                st.session_state.pop("events_fingerprint", None)
+                st.rerun()
 
-    st.session_state["events_fingerprint"] = _events_fingerprint(
-        criteria, requested_mode
-    )
+        st.session_state["events_fingerprint"] = _events_fingerprint(
+            criteria, requested_mode
+        )
 
+    export_payload_any = st.session_state.get("events_payload")
+    export_payload = cast(Optional[dict[str, Any]], export_payload_any)
+    if export_payload is not None:
+        with st.sidebar:
+            st.markdown("### " + _t(lang, "Export", ""))
+            st.download_button(
+                label=_t(lang, "JSON herunterladen", ""),
+                data=json.dumps(
+                    export_payload, ensure_ascii=False, indent=2, default=str
+                ),
+                file_name=f"wetter-events-{criteria.date.isoformat()}.json",
+                mime="application/json",
+                key="events_export_json",
+            )
+            st.download_button(
+                label=_t(lang, "Markdown herunterladen", ""),
+                data=_events_payload_to_markdown(export_payload, lang),
+                file_name=f"wetter-events-{criteria.date.isoformat()}.md",
+                mime="text/markdown",
+                key="events_export_md",
+            )
+
+    return payload
+
+
+def _events_payload_to_markdown(payload: dict[str, Any], lang: Language) -> str:
+    lines = ["# Wetter & Veranstaltungen", ""]
     weather = payload.get("weather")
     if weather:
-        st.markdown("#### " + _t(lang, "Wetter", ""))
-        st.write(
-            _t(
-                lang,
-                f"Tags: {', '.join(weather.derived_tags)}",
-                f"Tags: {', '.join(weather.derived_tags)}",
-            )
-        )
+        tags = ", ".join(getattr(weather, "derived_tags", []))
+        lines.extend([f"## {_t(lang, 'Wetter', '')}", f"- Tags: {tags}", ""])
 
     warnings = payload.get("warnings", [])
     if warnings:
-        st.markdown("#### " + _t(lang, "Hinweise", ""))
+        lines.append(f"## {_t(lang, 'Hinweise', '')}")
+        lines.extend([f"- {warning}" for warning in warnings])
+        lines.append("")
+
+    lines.append(f"## {_t(lang, 'Veranstaltungen', '')}")
+    events = payload.get("events", [])
+    if not events:
+        lines.append("- Aktuell keine Treffer bei Veranstaltungen.")
+    for event in events:
+        title = str(getattr(event, "title", _t(lang, "Vorschlag", "")))
+        reason = str(getattr(event, "reason_de_en", ""))
+        lines.append(f"- {title}: {reason}")
+    lines.append("")
+
+    sources = payload.get("sources", [])
+    if sources:
+        lines.append(f"## {_t(lang, 'Quellen', '')}")
+        lines.extend([f"- {source}" for source in sources])
+    return "\n".join(lines).strip() + "\n"
+
+
+def render_events_results(payload: Optional[dict[str, Any]], lang: Language) -> None:
+    if not payload:
+        return
+
+    weather = payload.get("weather")
+    if weather:
+        st.subheader(_t(lang, "Wetter", ""))
+        st.write(f"Tags: {', '.join(weather.derived_tags)}")
+
+    warnings = payload.get("warnings", [])
+    if warnings:
+        st.subheader(_t(lang, "Hinweise", ""))
         for warning in warnings:
             st.warning(str(warning))
 
+    st.subheader(_t(lang, "Veranstaltungen", ""))
     events = payload.get("events", [])
-    st.markdown("#### " + _t(lang, "Veranstaltungen", ""))
     if not events:
         st.info(
             _t(
@@ -1409,7 +1476,7 @@ def render_wetter_und_events_section(cfg: AppConfig, lang: Language) -> None:
 
     sources = payload.get("sources", [])
     if sources:
-        st.markdown("#### " + _t(lang, "Quellen", ""))
+        st.subheader(_t(lang, "Quellen", ""))
         for source in sources:
             st.markdown(f"- {source}")
 
@@ -1453,6 +1520,7 @@ def main() -> None:
     picked = _profiled_adventure(picked, family_profile)
 
     st.subheader(_t(lang, "Abenteuer des Tages", ""))
+    st.subheader(picked.title)
     if weather:
         st.caption(
             _t(
@@ -1495,72 +1563,47 @@ def main() -> None:
         }
     )
     daily_md = render_activity_plan_markdown(activity_plan)
-    daily_preview_md, daily_details_md = _split_daily_markdown(daily_md)
-    st.markdown(daily_preview_md)
-    if daily_details_md:
-        with st.expander(
-            _t(lang, "Details anzeigen / ausblenden", ""),
-            expanded=False,
-        ):
-            st.markdown(daily_details_md)
+    render_daily_plan_sections(daily_md, lang)
 
-    st.markdown("#### " + _t(lang, "Plan melden / Report plan", ""))
+    st.markdown("#### " + _t(lang, "Plan melden", ""))
     report_reason = st.selectbox(
-        _t(lang, "Grund / Reason", ""),
+        _t(lang, "Grund", ""),
         options=REPORT_REASONS,
         key="plan_report_reason",
     )
-    if st.button(_t(lang, "Diesen Plan melden / Report this plan", "")):
+    if st.button(_t(lang, "Diesen Plan melden", "")):
         report = save_plan_report(activity_plan, report_reason)
         st.success(
             _t(
                 lang,
-                f"Meldung gespeichert ({report.timestamp_utc}). Keine Personenangaben wurden gespeichert. / Report saved ({report.timestamp_utc}). No personal data was stored.",
+                f"Meldung gespeichert ({report.timestamp_utc}). Keine Personenangaben wurden gespeichert.",
                 "",
             )
         )
 
     with st.expander(
-        _t(lang, "Gemeldete Pläne ansehen / Review reported plans", ""),
+        _t(lang, "Gemeldete Pläne ansehen", ""),
         expanded=False,
     ):
         reports = load_plan_reports(limit=100)
         if reports:
             st.dataframe(reports, width="stretch", hide_index=True)
         else:
-            st.caption(
-                _t(lang, "Noch keine Meldungen vorhanden. / No reports yet.", "")
-            )
+            st.caption(_t(lang, "Noch keine Meldungen vorhanden.", ""))
 
     st.divider()
-    render_wetter_und_events_section(cfg, lang)
+    events_payload = render_wetter_und_events_section(cfg, lang)
+
+    render_events_results(
+        cast(
+            Optional[dict[str, Any]],
+            st.session_state.get("events_payload") or events_payload,
+        ),
+        lang,
+    )
 
     _render_export_block(picked, criteria, weather, daily_md, lang)
     _render_automation_block(cfg, criteria, lang)
-
-    st.divider()
-    st.subheader(_t(lang, "Bibliothek", ""))
-    filtered = filter_adventures(adventures, criteria)
-    st.caption(
-        _t(
-            lang,
-            f"{len(filtered)} passende Abenteuer (von {len(adventures)}).",
-            "",
-        )
-    )
-    st.dataframe(
-        [_profiled_adventure(a, family_profile).summary_row() for a in filtered],
-        width="stretch",
-        hide_index=True,
-    )
-
-    for a in filtered:
-        profiled_adventure = _profiled_adventure(a, family_profile)
-        with st.expander(
-            f"{profiled_adventure.title} · {profiled_adventure.area} · {profiled_adventure.duration_minutes} min",
-            expanded=False,
-        ):
-            _render_adventure_details(profiled_adventure, lang)
 
     if os.getenv("ENABLE_DAILY_SCHEDULER", "0") == "1":
         st.info(
