@@ -32,6 +32,11 @@ VALIDATION_DETAIL_PREFIX = "Validation detail / Validierungsdetail: "
 RECOVERY_MARKER_SCHEMA_REPAIR = (
     "Recovered after schema repair / Nach Schema-Reparatur wiederhergestellt."
 )
+SUGGESTION_TITLE_FALLBACK = "Aktivität / Activity"
+SUGGESTION_REASON_FALLBACK = (
+    "Keine Begründung geliefert. / No rationale provided."
+)
+INDOOR_OUTDOOR_ALLOWED_VALUES = {"indoor", "outdoor", "mixed"}
 
 
 def _build_schema_repair_prompt(original_prompt: str) -> str:
@@ -221,11 +226,16 @@ def _normalize_result_payload(
 
     raw_suggestions = normalized.get("suggestions")
     suggestions: list[dict[str, Any]] = []
+    normalization_warnings: list[str] = []
     if isinstance(raw_suggestions, list):
-        for raw_item in raw_suggestions:
+        for index, raw_item in enumerate(raw_suggestions):
             if not isinstance(raw_item, dict):
                 continue
             item = dict(raw_item)
+            title = str(item.get("title") or "").strip()
+            item["title"] = title or SUGGESTION_TITLE_FALLBACK
+            reason_de_en = str(item.get("reason_de_en") or "").strip()
+            item["reason_de_en"] = reason_de_en or SUGGESTION_REASON_FALLBACK
             if item.get("date") in {None, ""}:
                 item["date"] = criteria.date.isoformat()
             item.setdefault("description", "")
@@ -235,12 +245,22 @@ def _normalize_result_payload(
                 item["end_time"] = None
             if item.get("location") == "":
                 item["location"] = None
+            normalized_indoor_outdoor = str(item.get("indoor_outdoor") or "").strip()
+            if normalized_indoor_outdoor not in INDOOR_OUTDOOR_ALLOWED_VALUES:
+                item["indoor_outdoor"] = "mixed"
+            else:
+                item["indoor_outdoor"] = normalized_indoor_outdoor
             item["source_urls"] = _normalize_url_list(item.get("source_urls"))
+            if not item["source_urls"]:
+                normalization_warnings.append(
+                    f"Vorschlag #{index + 1} ohne valide Quellen-URL übernommen. / Suggestion #{index + 1} kept without a valid source URL."
+                )
             suggestions.append(item)
 
     normalized["suggestions"] = suggestions
     normalized["sources"] = _normalize_url_list(normalized.get("sources"))
     normalized["warnings_de_en"] = _ensure_string_list(normalized.get("warnings_de_en"))
+    normalized["warnings_de_en"].extend(normalization_warnings)
     normalized["errors_de_en"] = _ensure_string_list(normalized.get("errors_de_en"))
     normalized["error_code"] = normalized.get("error_code") or None
     normalized["error_hint_de_en"] = normalized.get("error_hint_de_en") or None
