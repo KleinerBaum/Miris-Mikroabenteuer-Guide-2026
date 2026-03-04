@@ -383,3 +383,65 @@ def test_suggest_activities_uses_best_effort_after_second_invalid_response(
     assert result.suggestions
     assert result.suggestions[0].source_urls == ["https://example.org/event"]
     assert module.RECOVERY_MARKER_SCHEMA_REPAIR in result.warnings_de_en
+
+
+def test_suggest_activities_fills_missing_reason_without_invalidating(
+    monkeypatch,
+) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(
+            output_parsed={
+                "suggestions": [
+                    {
+                        "title": "Spielplatz-Spaziergang",
+                        "indoor_outdoor": "unknown",
+                        "source_urls": ["https://example.org/tipp"],
+                    }
+                ]
+            }
+        )
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert result.errors_de_en == []
+    assert result.error_code is None
+    assert result.suggestions
+    assert (
+        result.suggestions[0].reason_de_en
+        == "Keine Begründung geliefert. / No rationale provided."
+    )
+    assert result.suggestions[0].indoor_outdoor == "mixed"
+
+
+def test_suggest_activities_fills_empty_title_with_fallback(monkeypatch) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(
+            output_parsed={
+                "suggestions": [
+                    {
+                        "title": "   ",
+                        "reason_de_en": "Grund / reason",
+                        "source_urls": ["https://example.org/tipp"],
+                    }
+                ]
+            }
+        )
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert result.suggestions
+    assert result.suggestions[0].title == "Aktivität / Activity"
