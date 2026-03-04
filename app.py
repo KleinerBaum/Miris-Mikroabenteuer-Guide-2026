@@ -69,10 +69,11 @@ from mikroabenteuer.ui.filter_specs import (
     build_core_filter_specs,
     render_filter_fields,
 )
+from mikroabenteuer.ui.sidebar_nav import page_label_daily, page_label_library
 from mikroabenteuer.ui.state_keys import CriteriaKeySpace, CriteriaNamespace
 
 
-st.set_page_config(page_title="Mikroabenteuer", page_icon="🌿", layout="wide")
+st.set_page_config(page_title="Mikroabenteuer des Tages", page_icon="🌿", layout="wide")
 
 
 @dataclass(frozen=True)
@@ -413,6 +414,11 @@ def inject_custom_styles(background_path: Path) -> None:
                 background-color: rgba(128, 199, 207, 0.22) !important;
                 border-right: 1px solid var(--line-soft);
             }}
+            @media (max-width: 768px) {{
+                [data-testid="stSidebar"] {{
+                    background-color: rgba(128, 199, 207, 1) !important;
+                }}
+            }}
             [data-testid="stExpander"] {{
                 border: 1px solid var(--line-soft) !important;
                 border-radius: 0.75rem !important;
@@ -750,8 +756,13 @@ def _criteria_sidebar(
     criteria = get_criteria_state(cfg, key=CRITERIA_DAILY_KEY)
     _ensure_ui_adapter_state(namespace="daily", criteria=criteria)
 
-    st.sidebar.header("Suche")
     lang: Language = cast(Language, st.session_state.get("lang", "DE"))
+    st.sidebar.page_link("app.py", label=page_label_daily(lang), icon="🌿")
+    st.sidebar.page_link(
+        "pages/2_Bibliothek.py", label=page_label_library(lang), icon="📚"
+    )
+    st.sidebar.divider()
+    st.sidebar.header(_t(lang, "Suche kompakt", "Compact search"))
 
     on_change_kwargs = {"namespace": "daily", "state_key": CRITERIA_DAILY_KEY}
     formatters = {
@@ -761,7 +772,6 @@ def _criteria_sidebar(
         "available_materials": _material_label,
     }
 
-    # Group 1 (location/time): top fields stay visible.
     render_filter_fields(
         _core_specs_by_id("date"),
         namespace=CriteriaKeySpace("daily").session_prefix,
@@ -793,46 +803,49 @@ def _criteria_sidebar(
         child_age_years
     )
 
-    render_filter_fields(
-        _core_specs_by_id("plz", "radius_km"),
-        namespace=CriteriaKeySpace("daily").session_prefix,
-        mode="sidebar",
-        lang=lang,
-        on_change_handler=_sync_widget_change_to_criteria,
-        on_change_kwargs=on_change_kwargs,
-        container=st.sidebar,
-        formatters=formatters,
+    st.sidebar.caption(
+        _t(
+            lang,
+            "Essentiell: Datum + Altersband. Weitere Filter über die Gruppen unten.",
+            "Essential: date + age band. More filters in the groups below.",
+        )
     )
 
-    render_filter_fields(
-        _core_specs_by_id("start_time", "available_minutes"),
-        namespace=CriteriaKeySpace("daily").session_prefix,
-        mode="sidebar",
-        lang=lang,
-        on_change_handler=_sync_widget_change_to_criteria,
-        on_change_kwargs=on_change_kwargs,
-        container=st.sidebar,
-        formatters=formatters,
-    )
-    st.sidebar.segmented_control(
-        _t(lang, "Ort", "Location"),
-        options=["mixed", "outdoor", "indoor"],
-        format_func=lambda opt: {
-            "mixed": "Gemischt" if lang == "DE" else "Mixed",
-            "outdoor": "Draußen" if lang == "DE" else "Outdoor",
-            "indoor": "Drinnen" if lang == "DE" else "Indoor",
-        }[opt],
-        key=CriteriaKeySpace("daily").widget("location_preference"),
-        on_change=_sync_widget_change_to_criteria,
-        kwargs=on_change_kwargs,
-    )
-
-    # Group 2 (constraints and advanced options).
     with st.sidebar.expander(
         _t(
             lang,
-            "Rahmenbedingungen erweitern",
-            "Expand constraints",
+            "Ort & Zeit anzeigen / Show location & time",
+            "Show location & time / Ort & Zeit anzeigen",
+        ),
+        expanded=False,
+    ):
+        render_filter_fields(
+            _core_specs_by_id("plz", "radius_km", "start_time", "available_minutes"),
+            namespace=CriteriaKeySpace("daily").session_prefix,
+            mode="sidebar",
+            lang=lang,
+            on_change_handler=_sync_widget_change_to_criteria,
+            on_change_kwargs=on_change_kwargs,
+            formatters=formatters,
+        )
+        st.segmented_control(
+            _t(lang, "Ort", "Location"),
+            options=["mixed", "outdoor", "indoor"],
+            format_func=lambda opt: {
+                "mixed": "Gemischt" if lang == "DE" else "Mixed",
+                "outdoor": "Draußen" if lang == "DE" else "Outdoor",
+                "indoor": "Drinnen" if lang == "DE" else "Indoor",
+            }[opt],
+            key=CriteriaKeySpace("daily").widget("location_preference"),
+            on_change=_sync_widget_change_to_criteria,
+            kwargs=on_change_kwargs,
+        )
+
+    with st.sidebar.expander(
+        _t(
+            lang,
+            "Suche verfeinern anzeigen / Show advanced search",
+            "Show advanced search / Suche verfeinern anzeigen",
         ),
         expanded=False,
     ):
@@ -853,14 +866,15 @@ def _criteria_sidebar(
             formatters=formatters,
         )
 
-    # Hidden settings (requested: do not show weather/AI toggles).
     st.session_state["use_weather"] = bool(st.session_state.get("use_weather", True))
     st.session_state["use_ai"] = bool(st.session_state.get("use_ai", cfg.enable_llm))
 
-    # Group 4 (profile/mode/language).
-
     with st.sidebar.expander(
-        _t(lang, "Weitere Profileinstellungen", "Additional profile settings"),
+        _t(
+            lang,
+            "Profil & Optionen anzeigen / Show profile & options",
+            "Show profile & options / Profil & Optionen anzeigen",
+        ),
         expanded=False,
     ):
         st.text_input(

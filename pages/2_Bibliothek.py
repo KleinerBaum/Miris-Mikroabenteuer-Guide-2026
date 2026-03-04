@@ -22,6 +22,7 @@ from mikroabenteuer.materials import (
 )
 from mikroabenteuer.models import DevelopmentDomain, MicroAdventure
 from mikroabenteuer.settings import load_runtime_config, render_missing_config_ui
+from mikroabenteuer.ui.sidebar_nav import page_label_daily, page_label_library
 
 DOMAIN_LABELS: dict[DevelopmentDomain, str] = {
     DevelopmentDomain.gross_motor: "Grobmotorik",
@@ -129,7 +130,7 @@ def _render_library_filters(
     adventures: list[MicroAdventure], lang: Language
 ) -> LibraryFilters:
     st.markdown(
-        f"**{_t(lang, 'Filter & Suche / Filters & Search', 'Filters & Search / Filter & Suche')}**"
+        f"**{_t(lang, 'Suche kompakt / Compact search', 'Compact search / Suche kompakt')}**"
     )
     min_age = min(adventure.age_min for adventure in adventures)
     max_age = max(adventure.age_max for adventure in adventures)
@@ -137,46 +138,38 @@ def _render_library_filters(
     max_duration = max(adventure.duration_minutes for adventure in adventures)
     max_distance = max(adventure.distance_km for adventure in adventures)
 
-    col_left, col_mid, col_right = st.columns(3)
+    query = st.text_input(
+        _t(lang, "Freitextsuche / Text search", "Text search / Freitextsuche"),
+        value="",
+        placeholder=_t(
+            lang,
+            "Titel, Gebiet, Tags oder Kurzbeschreibung… / Title, area, tags or summary…",
+            "Title, area, tags or summary… / Titel, Gebiet, Tags oder Kurzbeschreibung…",
+        ),
+    ).strip()
+    effort_levels = st.multiselect(
+        _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
+        options=list(EFFORT_LEVELS),
+        default=[],
+        format_func=lambda value: effort_label(value, lang),
+    )
 
-    with col_left:
-        st.markdown(
-            f"**{_t(lang, 'Suche & Aufwand / Search & Effort', 'Search & Effort / Suche & Aufwand')}**"
+    st.caption(
+        _t(
+            lang,
+            "Essentiell: Suche + Aufwand. Weitere Filter bei Bedarf ausklappen.",
+            "Essential: search + effort. Expand more filters on demand.",
         )
-        query = st.text_input(
-            _t(lang, "Freitextsuche / Text search", "Text search / Freitextsuche"),
-            value="",
-            placeholder=_t(
-                lang,
-                "Titel, Gebiet, Tags oder Kurzbeschreibung… / Title, area, tags or summary…",
-                "Title, area, tags or summary… / Titel, Gebiet, Tags oder Kurzbeschreibung…",
-            ),
-        ).strip()
-        effort_levels = st.multiselect(
-            _t(lang, "Aufwand / Effort", "Effort / Aufwand"),
-            options=list(EFFORT_LEVELS),
-            default=[],
-            format_func=lambda value: effort_label(value, lang),
-        )
-        stroller_mode = st.selectbox(
-            _t(lang, "Kinderwagen / Stroller", "Stroller / Kinderwagen"),
-            options=["all", "yes", "no"],
-            index=0,
-            format_func=lambda value: {
-                "all": _t(lang, "Alle / All", "All / Alle"),
-                "yes": _t(
-                    lang, "Nur geeignet / Suitable only", "Suitable only / Nur geeignet"
-                ),
-                "no": _t(
-                    lang,
-                    "Nur nicht geeignet / Not suitable only",
-                    "Not suitable only / Nur nicht geeignet",
-                ),
-            }[value],
-        )
+    )
 
-    with col_mid:
-        st.markdown(f"**{_t(lang, 'Rahmen / Conditions', 'Conditions / Rahmen')}**")
+    with st.expander(
+        _t(
+            lang,
+            "Rahmen anzeigen / Show conditions",
+            "Show conditions / Rahmen anzeigen",
+        ),
+        expanded=False,
+    ):
         age_range = st.slider(
             _t(lang, "Alter (Jahre) / Age (years)", "Age (years) / Alter (Jahre)"),
             min_value=float(min_age),
@@ -206,9 +199,27 @@ def _render_library_filters(
             value=float(max_distance),
             step=0.5,
         )
+        stroller_mode = st.selectbox(
+            _t(lang, "Kinderwagen / Stroller", "Stroller / Kinderwagen"),
+            options=["all", "yes", "no"],
+            index=0,
+            format_func=lambda value: {
+                "all": _t(lang, "Alle / All", "All / Alle"),
+                "yes": _t(
+                    lang, "Nur geeignet / Suitable only", "Suitable only / Nur geeignet"
+                ),
+                "no": _t(
+                    lang,
+                    "Nur nicht geeignet / Not suitable only",
+                    "Not suitable only / Nur nicht geeignet",
+                ),
+            }[value],
+        )
 
-    with col_right:
-        st.markdown(f"**{_t(lang, 'Inhalte / Content', 'Content / Inhalte')}**")
+    with st.expander(
+        _t(lang, "Inhalte anzeigen / Show content", "Show content / Inhalte anzeigen"),
+        expanded=False,
+    ):
         topics = st.multiselect(
             _t(lang, "Themen / Topics", "Topics / Themen"),
             options=theme_options(lang),
@@ -392,7 +403,13 @@ def main() -> None:
         return
 
     lang: Language = cast(Language, st.session_state.get("lang", "DE"))
-    st.title("Bibliothek")
+    st.sidebar.page_link("app.py", label=page_label_daily(lang), icon="🌿")
+    st.sidebar.page_link(
+        "pages/2_Bibliothek.py", label=page_label_library(lang), icon="📚"
+    )
+    st.sidebar.divider()
+
+    st.title("Bibliothek / Library")
 
     adventures = _load_adventures()
     filters = _render_library_filters(adventures, lang)
