@@ -113,3 +113,21 @@ def test_normalize_result_payload_applies_fallback_date_and_url_cleanup() -> Non
     ]
     assert normalized["warnings_de_en"] == []
     assert normalized["errors_de_en"] == ["Hinweis"]
+
+
+def test_openai_activity_prompt_enforces_compact_output_rules() -> None:
+    criteria = ActivitySearchCriteria(
+        plz="40215",
+        radius_km=5.0,
+        date=date(2026, 1, 20),
+        time_window=TimeWindow(start=time(8, 0), end=time(9, 0)),
+        effort="niedrig",
+        budget_eur_max=10.0,
+        topics=["outdoor"],
+    )
+
+    prompt = _build_user_prompt(criteria, weather=None, strategy=None)
+
+    assert "Output-Anforderungen (kompakt, strikt)" in prompt
+    assert "höchstens 2 source_urls" in prompt
+    assert "Keine Wiederholung von Wetter, Suchstrategie oder Kriterien" in prompt

@@ -28,7 +28,7 @@ def test_limit_defaults_are_loaded(monkeypatch) -> None:
     cfg = load_config()
 
     assert cfg.max_input_chars == 4000
-    assert cfg.max_output_tokens == 800
+    assert cfg.max_output_tokens == 1400
     assert cfg.timeout_s == 45.0
     assert cfg.max_requests_per_session == 10
 

@@ -76,3 +76,4 @@ def test_runtime_settings_model_defaults(monkeypatch) -> None:
     assert settings.openai_model_plan == "gpt-4o-mini"
     assert settings.openai_model_events_fast == "gpt-4o-mini"
     assert settings.openai_model_events_accurate == "o3-mini"
+    assert settings.max_output_tokens == 1400

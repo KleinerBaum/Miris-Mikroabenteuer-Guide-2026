@@ -41,7 +41,7 @@ class RuntimeSettings(BaseSettings):
     openai_model_events_fast: str = "gpt-4o-mini"
     openai_model_events_accurate: str = "o3-mini"
     max_input_chars: int = 4000
-    max_output_tokens: int = 800
+    max_output_tokens: int = 1400
     timeout_s: float = 45.0
     max_requests_per_session: int = 10
 
