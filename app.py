@@ -596,6 +596,10 @@ def _collect_widget_raw_values(namespace: CriteriaNamespace) -> dict[str, Any]:
         "goals": st.session_state[keys.widget("goals")],
         "constraints": st.session_state[keys.widget("constraints")],
         "available_materials": st.session_state[keys.widget("available_materials")],
+        "constraints_optional": st.session_state.get(
+            keys.widget("constraints_optional"), ""
+        ),
+        "extra_context": st.session_state.get(keys.widget("extra_context"), ""),
     }
     if namespace == "events":
         raw_values["pref_outdoor"] = st.session_state.get(
@@ -603,12 +607,6 @@ def _collect_widget_raw_values(namespace: CriteriaNamespace) -> dict[str, Any]:
         )
         raw_values["pref_indoor"] = st.session_state.get(
             keys.widget("pref_indoor"), False
-        )
-        raw_values["constraints_optional"] = st.session_state.get(
-            keys.widget("constraints_optional"), ""
-        )
-        raw_values["extra_context"] = st.session_state.get(
-            keys.widget("extra_context"), ""
         )
     return raw_values
 
@@ -657,16 +655,15 @@ def normalize_widget_input(
     max_input_chars: int,
 ) -> NormalizedWidgetInput:
     constraints = list(cast(list[str], raw_values.get("constraints", [])))
-    if mode == "events":
-        constraints = list(
-            dict.fromkeys(
-                constraints
-                + _normalize_optional_constraints(raw_values)
-                + _normalize_extra_context_constraint(
-                    raw_values, max_input_chars=max_input_chars
-                )
+    constraints = list(
+        dict.fromkeys(
+            constraints
+            + _normalize_optional_constraints(raw_values)
+            + _normalize_extra_context_constraint(
+                raw_values, max_input_chars=max_input_chars
             )
         )
+    )
 
     goals = list(cast(list[DevelopmentDomain], raw_values.get("goals", [])))
     return NormalizedWidgetInput(
@@ -795,34 +792,8 @@ def _criteria_sidebar(
         formatters=formatters,
     )
 
-    with st.sidebar.expander(
-        _t(lang, "Weitere Suchoptionen", "More search options"), expanded=False
-    ):
-        render_filter_fields(
-            _core_specs_by_id("start_time", "available_minutes", "budget_eur_max"),
-            namespace=CriteriaKeySpace("daily").session_prefix,
-            mode="sidebar",
-            lang=lang,
-            on_change_handler=_sync_widget_change_to_criteria,
-            on_change_kwargs=on_change_kwargs,
-            formatters=formatters,
-        )
-        st.segmented_control(
-            _t(lang, "Ort", "Location"),
-            options=["mixed", "outdoor", "indoor"],
-            format_func=lambda opt: {
-                "mixed": "Gemischt" if lang == "DE" else "Mixed",
-                "outdoor": "Draußen" if lang == "DE" else "Outdoor",
-                "indoor": "Drinnen" if lang == "DE" else "Indoor",
-            }[opt],
-            key=CriteriaKeySpace("daily").widget("location_preference"),
-            on_change=_sync_widget_change_to_criteria,
-            kwargs=on_change_kwargs,
-        )
-
-    # Group 2 (effort/constraints).
     render_filter_fields(
-        _core_specs_by_id("effort"),
+        _core_specs_by_id("start_time", "available_minutes"),
         namespace=CriteriaKeySpace("daily").session_prefix,
         mode="sidebar",
         lang=lang,
@@ -831,7 +802,20 @@ def _criteria_sidebar(
         container=st.sidebar,
         formatters=formatters,
     )
+    st.sidebar.segmented_control(
+        _t(lang, "Ort", "Location"),
+        options=["mixed", "outdoor", "indoor"],
+        format_func=lambda opt: {
+            "mixed": "Gemischt" if lang == "DE" else "Mixed",
+            "outdoor": "Draußen" if lang == "DE" else "Outdoor",
+            "indoor": "Drinnen" if lang == "DE" else "Indoor",
+        }[opt],
+        key=CriteriaKeySpace("daily").widget("location_preference"),
+        on_change=_sync_widget_change_to_criteria,
+        kwargs=on_change_kwargs,
+    )
 
+    # Group 2 (constraints and advanced options).
     with st.sidebar.expander(
         _t(
             lang,
@@ -841,33 +825,14 @@ def _criteria_sidebar(
         expanded=False,
     ):
         render_filter_fields(
-            _core_specs_by_id("constraints"),
-            namespace=CriteriaKeySpace("daily").session_prefix,
-            mode="sidebar",
-            lang=lang,
-            on_change_handler=_sync_widget_change_to_criteria,
-            on_change_kwargs=on_change_kwargs,
-            formatters=formatters,
-        )
-
-    # Group 3 (goals/topics/materials).
-    render_filter_fields(
-        _core_specs_by_id("goals"),
-        namespace=CriteriaKeySpace("daily").session_prefix,
-        mode="sidebar",
-        lang=lang,
-        on_change_handler=_sync_widget_change_to_criteria,
-        on_change_kwargs=on_change_kwargs,
-        container=st.sidebar,
-        formatters=formatters,
-    )
-
-    with st.sidebar.expander(
-        _t(lang, "Themen & Material", "Topics & material"),
-        expanded=False,
-    ):
-        render_filter_fields(
-            _core_specs_by_id("topics", "available_materials"),
+            _core_specs_by_id(
+                "effort",
+                "goals",
+                "budget_eur_max",
+                "topics",
+                "constraints",
+                "available_materials",
+            ),
             namespace=CriteriaKeySpace("daily").session_prefix,
             mode="sidebar",
             lang=lang,
@@ -881,54 +846,62 @@ def _criteria_sidebar(
     st.session_state["use_ai"] = bool(st.session_state.get("use_ai", cfg.enable_llm))
 
     # Group 4 (profile/mode/language).
-    child_name = (
-        st.sidebar.text_input(
-            _t(lang, "Name des Kindes", "Name des Kindes"),
-            value=st.session_state.get("profile_child_name", "Carla"),
-            key="profile_child_name",
-        ).strip()
-        or "Carla"
-    )
-    parent_names = (
-        st.sidebar.text_input(
-            _t(
-                lang,
-                "Name der Eltern",
-                "",
-            ),
-            value=st.session_state.get("profile_parent_names", "Miri"),
-            key="profile_parent_names",
-        ).strip()
-        or "Miri"
-    )
-    lang = st.sidebar.selectbox("Sprache", options=["DE"], index=0, key="lang")
 
     with st.sidebar.expander(
-        _t(lang, "Weitere Profileinstellungen", ""),
+        _t(lang, "Weitere Profileinstellungen", "Additional profile settings"),
         expanded=False,
     ):
+        st.text_input(
+            _t(lang, "Name des Kindes", "Name of child"),
+            value=st.session_state.get("profile_child_name", "Carla"),
+            key="profile_child_name",
+        )
+        st.text_input(
+            _t(lang, "Name der Eltern", "Parent name(s)"),
+            value=st.session_state.get("profile_parent_names", "Miri"),
+            key="profile_parent_names",
+        )
         st.selectbox(
-            _t(lang, "Plan-Modus", "Plan mode"),
-            options=["standard", "parent_script"],
-            format_func=lambda value: (
-                "Standard"
-                if value == "standard"
-                else "Elternskript (kurz, wiederholbar)"
+            _t(lang, "Sprache", "Language"),
+            options=["DE"],
+            index=0,
+            key="lang",
+        )
+        st.text_input(
+            _t(
+                lang,
+                "Weitere Rahmenbedingungen (optional, max 80)",
+                "Additional constraints (optional, max 80)",
             ),
-            index=(
-                0 if st.session_state.get("plan_mode", "standard") == "standard" else 1
+            key=CriteriaKeySpace("daily").widget("constraints_optional"),
+            max_chars=80,
+        )
+        st.text_area(
+            _t(lang, "Zusätzlicher Kontext", "Additional context"),
+            key=CriteriaKeySpace("daily").widget("extra_context"),
+            help=_t(
+                lang,
+                f"Wird auf {cfg.max_input_chars} Zeichen begrenzt.",
+                f"Will be limited to {cfg.max_input_chars} characters.",
             ),
-            key="plan_mode",
         )
         st.toggle(
             _t(
                 lang,
                 "Offline-Modus (ohne LLM)",
-                "Offline-Modus (ohne LLM)",
+                "Offline mode (without LLM)",
             ),
             value=st.session_state.get("offline_mode", False),
             key="offline_mode",
         )
+
+    child_name = (
+        str(st.session_state.get("profile_child_name", "Carla")).strip() or "Carla"
+    )
+    parent_names = (
+        str(st.session_state.get("profile_parent_names", "Miri")).strip() or "Miri"
+    )
+    lang = cast(Language, st.session_state.get("lang", "DE"))
 
     family_profile = FamilyProfile(
         child_name=child_name,
