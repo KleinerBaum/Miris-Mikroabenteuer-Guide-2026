@@ -42,6 +42,8 @@ Die App kann:
   → `.github/workflows/ci.yml`, `.pre-commit-config.yaml`
 - **Verbesserte Lesbarkeit in der UI / Improved UI readability**: überarbeitetes Farbschema für Form-Controls (Inputs, Selects, Slider, Tags) mit höherem Kontrast.  
   → `app.py`
+- **Dynamische Familienüberschrift / Dynamic family headline**: Sidebar-Namensfelder starten ohne Default-Werte; die Titelzeile baut sich aus den aktuellen Eingaben auf, mit robusten Fallbacks „Kind“/„Eltern“.  
+  → `app.py`
 - **Button- und Select-Kontraste verfeinert / Refined button and select contrast**: bessere Lesbarkeit für primäre Buttons im Hover-Zustand sowie konsistente, helle Select-/MultiSelect-Hintergründe inkl. Icons.  
   → `app.py`
 - **UI-Flow neu strukturiert:** Wetter & Veranstaltungen werden über die Sidebar gesteuert; Ergebnisse erscheinen direkt unter dem Tagesabenteuer im Hauptbereich.  

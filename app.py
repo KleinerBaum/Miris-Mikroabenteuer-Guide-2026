@@ -158,6 +158,19 @@ def _replace_family_tokens(text: str, profile: FamilyProfile) -> str:
     return sanitized.replace("2,5", f"{profile.child_age_years:.1f}".replace(".", ","))
 
 
+def _profile_name_or_fallback(name: str, *, fallback: str) -> str:
+    cleaned_name = str(name).strip()
+    return cleaned_name or fallback
+
+
+def _build_profile_title(profile: FamilyProfile) -> str:
+    child_name = _profile_name_or_fallback(profile.child_name, fallback="Kind")
+    parent_names = profile.parent_names.strip()
+    if parent_names:
+        return f"Mikroabenteuer mit {child_name} und {parent_names}"
+    return f"Mikroabenteuer mit {child_name}"
+
+
 def _profiled_adventure(
     adventure: MicroAdventure, profile: FamilyProfile
 ) -> MicroAdventure:
@@ -853,12 +866,12 @@ def _criteria_sidebar(
     ):
         st.text_input(
             _t(lang, "Name des Kindes", "Name of child"),
-            value=st.session_state.get("profile_child_name", "Carla"),
+            value=st.session_state.get("profile_child_name", ""),
             key="profile_child_name",
         )
         st.text_input(
             _t(lang, "Name der Eltern", "Parent name(s)"),
-            value=st.session_state.get("profile_parent_names", "Miri"),
+            value=st.session_state.get("profile_parent_names", ""),
             key="profile_parent_names",
         )
         st.selectbox(
@@ -895,11 +908,13 @@ def _criteria_sidebar(
             key="offline_mode",
         )
 
-    child_name = (
-        str(st.session_state.get("profile_child_name", "Carla")).strip() or "Carla"
+    child_name = _profile_name_or_fallback(
+        str(st.session_state.get("profile_child_name", "")),
+        fallback="Kind",
     )
-    parent_names = (
-        str(st.session_state.get("profile_parent_names", "Miri")).strip() or "Miri"
+    parent_names = _profile_name_or_fallback(
+        str(st.session_state.get("profile_parent_names", "")),
+        fallback="Eltern",
     )
     lang = cast(Language, st.session_state.get("lang", "DE"))
 
@@ -918,7 +933,9 @@ def _criteria_sidebar(
         return (
             None,
             lang,
-            FamilyProfile(child_name="Carla", parent_names="Miri", child_age_years=2.5),
+            FamilyProfile(
+                child_name="Kind", parent_names="Eltern", child_age_years=2.5
+            ),
         )
 
 
@@ -1677,11 +1694,17 @@ def main() -> None:
     inject_custom_styles(ROOT / "Hintergrund.png")
 
     default_profile = FamilyProfile(
-        child_name=str(st.session_state.get("profile_child_name", "Carla")),
-        parent_names=str(st.session_state.get("profile_parent_names", "Miri")),
+        child_name=_profile_name_or_fallback(
+            str(st.session_state.get("profile_child_name", "")),
+            fallback="Kind",
+        ),
+        parent_names=_profile_name_or_fallback(
+            str(st.session_state.get("profile_parent_names", "")),
+            fallback="Eltern",
+        ),
         child_age_years=float(st.session_state.get("profile_child_age_years", 2.5)),
     )
-    st.title(_replace_family_tokens("Mikroabenteuer mit Carla", default_profile))
+    st.title(_build_profile_title(default_profile))
     top_col_left, top_col_center, top_col_right = st.columns([1, 1.6, 1])
     with top_col_center:
         st.image(image="ChatGPT Image 14. Feb. 2026, 20_05_20.png", width=240)
