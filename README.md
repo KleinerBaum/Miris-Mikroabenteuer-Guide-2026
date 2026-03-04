@@ -28,6 +28,8 @@ Die App kann:
   → `src/mikroabenteuer/openai_activity_service.py`, `app.py`
 - **Sichere Feldtyp-Hinweise bei Schema-Fehlern / Safe field-type hints for schema failures:** Bei Structured-Output-Validierungsfehlern werden ausschließlich sichere Metadaten (Feldpfad + Fehlertyp) in DE/EN angezeigt, damit klar ist, ob ein Retry sinnvoll ist – ohne Rohdaten/PII auszugeben.  
   → `src/mikroabenteuer/openai_activity_service.py`, `app.py`
+- **Schema-Reparatur + Best-Effort-Wiederherstellung / Schema repair + best-effort recovery:** Bei Parse-Fehlern erfolgt ein zweiter Responses-Call mit explizitem JSON-Reparaturhinweis; falls weiterhin ungültig, wird ein minimaler Titel/Quelle/Beschreibung-Pfad extrahiert und streng normalisiert, bevor erst danach der Offline-Fallback greift.  
+  → `src/mikroabenteuer/openai_activity_service.py`
 - **PLZ-basierte Standortauflösung für Event-Suche / Postal-code based location resolution for event search**: `user_location` wird nur mit validen Ortsdaten an das `web_search`-Tool übergeben; keine hartcodierte Stadt im Event-Wetter-Pfad.  
   → `app.py`, `src/mikroabenteuer/openai_activity_service.py`
 - **LLM-Planung als Schema** (`ActivityPlan`) + Safety‑Validator + “Plan B” Varianten  

@@ -244,7 +244,11 @@ def test_suggest_activities_marks_non_retryable_api_error(monkeypatch) -> None:
 def test_suggest_activities_marks_structured_output_error(monkeypatch) -> None:
     from mikroabenteuer import openai_activity_service as module
 
-    _FakeOpenAI.behavior = [SimpleNamespace(output_parsed=None)]
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(output_parsed=None),
+    ]
     monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
     monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
     monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
@@ -254,3 +258,50 @@ def test_suggest_activities_marks_structured_output_error(monkeypatch) -> None:
 
     assert result.error_code == module.ERROR_CODE_STRUCTURED_OUTPUT
     assert result.error_hint_de_en is not None
+
+
+def test_suggest_activities_recovers_after_schema_repair(monkeypatch) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(output_parsed=module.ActivitySuggestionResult()),
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert module.RECOVERY_MARKER_SCHEMA_REPAIR in result.warnings_de_en
+    assert result.error_code is None
+
+
+def test_suggest_activities_uses_best_effort_after_second_invalid_response(
+    monkeypatch,
+) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(
+            output_text=(
+                "Familienflohmarkt im Park\n"
+                "Treffpunkt am Haupteingang, kleine Mitmach-Stationen.\n"
+                "Quelle: https://example.org/event"
+            )
+        ),
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert result.error_code is None
+    assert result.suggestions
+    assert result.suggestions[0].source_urls == ["https://example.org/event"]
+    assert module.RECOVERY_MARKER_SCHEMA_REPAIR in result.warnings_de_en

@@ -16,6 +16,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 ## Unreleased
 
 ### Changed / Geändert
+- **Responses-Schema-Reparaturkette / Responses schema-repair chain:** Eventsuche versucht nach Parse-/Schema-Fehlern zuerst einen zweiten kontrollierten Responses-Call mit explizitem JSON-Reparaturhinweis, danach eine minimale Best-Effort-Extraktion (Titel/Quelle/Beschreibung) mit strikter Normalisierung; nur dann folgt der bestehende Offline-Fallback. Ein klarer Recovery-Marker wird in `warnings_de_en` gesetzt, wenn die Wiederherstellung gelingt.
 - **Bibliothek-Filter auf der Seite selbst / On-page library filters:** Such- und Filterfunktionen sind nun direkt auf der Seite „Bibliothek“ unterhalb der Überschrift in drei Spalten angeordnet; ohne gesetzte Filter wird standardmäßig die vollständige Abenteuerliste angezeigt.
 - **Daily-Export vollständig in Sidebar / Daily export fully moved to sidebar:** Die Sektion „Export“ inklusive JSON/Markdown/ICS sowie „E-Mail-Vorschau“ und „Automatisierung (optional)“ wurde aus der Landing-Page entfernt und komplett in die Sidebar verlegt.
 - **UI-Key-Resolver zentralisiert / Centralized UI key resolver:** Neue `CriteriaKeySpace`-Abstraktion (`daily`/`events` → `sidebar`/`form`) erzeugt Widget-Keys zentral; die Criteria-Domain-States (`CRITERIA_DAILY_KEY`/`CRITERIA_EVENTS_KEY`) bleiben davon entkoppelt und weiterhin fachliche Single Source of Truth.
@@ -32,6 +33,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 - **Import-Guardrails hinzugefügt / Import guardrails added:** Neue Tests verhindern in aktivem Code Rückfälle auf `src.mikroabenteuer`- oder `legacy.v1`-Imports.
 
 ### Changed / Geändert
+- **Responses-Schema-Reparaturkette / Responses schema-repair chain:** Eventsuche versucht nach Parse-/Schema-Fehlern zuerst einen zweiten kontrollierten Responses-Call mit explizitem JSON-Reparaturhinweis, danach eine minimale Best-Effort-Extraktion (Titel/Quelle/Beschreibung) mit strikter Normalisierung; nur dann folgt der bestehende Offline-Fallback. Ein klarer Recovery-Marker wird in `warnings_de_en` gesetzt, wenn die Wiederherstellung gelingt.
 - **Deutschsprachige UI vereinheitlicht:** Sichtbare UI-Texte im Tagesplan, in Fallback-Plänen und im Wetter/Events-Flow sind jetzt rein deutsch; englische Slash-Texte wurden entfernt.
 - **Tagesabenteuer-Layout verbessert:** Aktivitätstitel wird im Hauptbereich als eigene Überschrift gerendert; Planabschnitte werden strukturiert angezeigt, wobei "Sicherheit" eingeklappt startet.
 - **Wetter & Veranstaltungen in die Sidebar verschoben:** Eingabeformular, Aktionen und Event-Exporte liegen jetzt in der Sidebar; Ergebnisse werden im Hauptbereich unter dem Tagesabenteuer gerendert.
@@ -65,6 +67,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
   - Daily job runner (`scheduler.py`)
 
 ### Changed / Geändert
+- **Responses-Schema-Reparaturkette / Responses schema-repair chain:** Eventsuche versucht nach Parse-/Schema-Fehlern zuerst einen zweiten kontrollierten Responses-Call mit explizitem JSON-Reparaturhinweis, danach eine minimale Best-Effort-Extraktion (Titel/Quelle/Beschreibung) mit strikter Normalisierung; nur dann folgt der bestehende Offline-Fallback. Ein klarer Recovery-Marker wird in `warnings_de_en` gesetzt, wenn die Wiederherstellung gelingt.
 - CI via GitHub Actions (`.github/workflows/ci.yml`) mit ruff + pytest + import‑smoke.
 - Pre-commit hooks inkl. detect-secrets baseline (`.pre-commit-config.yaml`, `.secrets.baseline`).
 
