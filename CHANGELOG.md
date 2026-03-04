@@ -16,6 +16,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 ## Unreleased
 
 ### Changed / Geändert
+- **Landingpage in zwei Hauptsektionen / Landing page in two main sections:** Die Startseite ist jetzt klar in „Abenteuer des Tages“ und „Suche von Aktivitäten“ gegliedert. In der Such-Sektion ist „Suche (Schnellzugriff)“ standardmäßig ausgeklappt und im 3‑Spalten-Layout angeordnet; „Gemeldete Pläne ansehen“ wurde entfernt.
 - **Landing-Schnellzugriff aus Sidebar-Elementen / Landing quick access from sidebar elements:** Zwischen „Abenteuer des Tages“ und „Plan melden“ wurde ein eingeklappter 2‑Spalten-Bereich „Suche (Schnellzugriff)“ ergänzt, der zentrale Filter (Datum, Altersband, PLZ/Radius, Startzeit, verfügbare Zeit, Ort, Aufwand, Budget, Themen, Ziele, Rahmenbedingungen, Genauigkeit) übernimmt und nach Bestätigung in den Daily-Criteria-State schreibt.
 - **Plan melden visuell reduziert / Report plan visually de-emphasized:** Die Meldesektion ist jetzt standardmäßig eingeklappt und im 2‑Spalten-Layout organisiert (Grund + Aktion), damit sie deutlich weniger Aufmerksamkeit auf der Landingpage beansprucht.
 - **Profilnamen ohne Vorgabewerte / Profile names without presets:** Die Sidebar-Felder „Name des Kindes“ und „Name der Eltern“ starten jetzt leer; wenn keine Eingabe erfolgt, nutzt die App intern die Fallbacks „Kind“ und „Eltern“. Die Hauptüberschrift wird dynamisch aus den Sidebar-Eingaben aufgebaut.

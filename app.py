@@ -58,7 +58,6 @@ from mikroabenteuer.openai_activity_service import (
 )
 from mikroabenteuer.plan_reports import (
     REPORT_REASONS,
-    load_plan_reports,
     save_plan_report,
 )
 from mikroabenteuer.recommender import pick_daily_adventure
@@ -1010,10 +1009,10 @@ def _render_landing_quick_filters(
 
     with st.expander(
         _t(lang, "Suche (Schnellzugriff)", "Search (quick access)"),
-        expanded=False,
+        expanded=True,
     ):
         with st.form("landing_quick_filters_form"):
-            col_left, col_right = st.columns(2)
+            col_left, col_center, col_right = st.columns(3)
             with col_left:
                 date_value = st.date_input(
                     _t(lang, "Datum", "Date"),
@@ -1044,6 +1043,17 @@ def _render_landing_quick_filters(
                     ),
                     key="landing_quick_radius",
                 )
+                available_minutes = st.slider(
+                    _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
+                    min_value=30,
+                    max_value=360,
+                    step=15,
+                    value=int(
+                        st.session_state.get(namespace.widget("available_minutes"), 60)
+                    ),
+                    key="landing_quick_available_minutes",
+                )
+            with col_center:
                 start_time_value = st.time_input(
                     _t(lang, "Startzeit", "Start time"),
                     value=cast(
@@ -1069,17 +1079,6 @@ def _render_landing_quick_filters(
                         ),
                     ),
                     key="landing_quick_location_preference",
-                )
-            with col_right:
-                available_minutes = st.slider(
-                    _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
-                    min_value=30,
-                    max_value=360,
-                    step=15,
-                    value=int(
-                        st.session_state.get(namespace.widget("available_minutes"), 60)
-                    ),
-                    key="landing_quick_available_minutes",
                 )
                 effort_value = cast(
                     Literal["niedrig", "mittel", "hoch"],
@@ -1108,6 +1107,7 @@ def _render_landing_quick_filters(
                     ),
                     key="landing_quick_budget",
                 )
+            with col_right:
                 topics = st.multiselect(
                     _t(lang, "Themen", "Topics"),
                     options=theme_options(lang),
@@ -1922,17 +1922,6 @@ def main() -> None:
     picked, _candidates = pick_daily_adventure(adventures, criteria, weather)
     picked = _profiled_adventure(picked, family_profile)
 
-    st.subheader(_t(lang, "Abenteuer des Tages", ""))
-    st.subheader(picked.title)
-    if weather:
-        st.caption(
-            _t(
-                lang,
-                f"Wetter-Tags: {', '.join(weather.derived_tags)}",
-                "",
-            )
-        )
-
     activity_plan = _generate_activity_plan_with_retry(
         cfg,
         picked,
@@ -1966,77 +1955,83 @@ def main() -> None:
         }
     )
     daily_md = render_activity_plan_markdown(activity_plan)
-    render_daily_plan_sections(daily_md, lang)
-
-    quick_filters_saved, quick_filters_error = _render_landing_quick_filters(lang=lang)
-    if quick_filters_saved:
-        st.success(
-            _t(
-                lang,
-                "Schnellzugriff-Filter gespeichert und in die Suche übernommen.",
-                "Quick-access filters saved and applied to search.",
-            )
-        )
-    if quick_filters_error:
-        st.error(
-            _t(
-                lang,
-                "Schnellzugriff-Filter konnten nicht validiert werden.",
-                "Quick-access filters could not be validated.",
-            )
-        )
-        _render_criteria_validation_error(quick_filters_error, lang=lang)
-
-    with st.expander(_t(lang, "Plan melden", "Report plan"), expanded=False):
-        report_col_left, report_col_right = st.columns(2)
-        with report_col_left:
-            report_reason = st.selectbox(
-                _t(lang, "Grund", "Reason"),
-                options=REPORT_REASONS,
-                key="plan_report_reason",
-            )
-        with report_col_right:
+    with st.container(border=True):
+        st.subheader(_t(lang, "Abenteuer des Tages", "Adventure of the day"))
+        st.markdown(f"**{picked.title}**")
+        if weather:
             st.caption(
                 _t(
                     lang,
-                    "Optional für Qualitätsfeedback.",
-                    "Optional quality feedback.",
+                    f"Wetter-Tags: {', '.join(weather.derived_tags)}",
+                    "Weather tags",
                 )
             )
-            report_submitted = st.button(
-                _t(lang, "Diesen Plan melden", "Report this plan")
-            )
+        render_daily_plan_sections(daily_md, lang)
 
-        if report_submitted:
-            report = save_plan_report(activity_plan, report_reason)
+    with st.container(border=True):
+        st.subheader(_t(lang, "Suche von Aktivitäten", "Activity search"))
+
+        quick_filters_saved, quick_filters_error = _render_landing_quick_filters(
+            lang=lang
+        )
+        if quick_filters_saved:
             st.success(
                 _t(
                     lang,
-                    f"Meldung gespeichert ({report.timestamp_utc}). Keine Personenangaben wurden gespeichert.",
-                    "Report saved without personal data.",
+                    "Schnellzugriff-Filter gespeichert und in die Suche übernommen.",
+                    "Quick-access filters saved and applied to search.",
                 )
             )
+        if quick_filters_error:
+            st.error(
+                _t(
+                    lang,
+                    "Schnellzugriff-Filter konnten nicht validiert werden.",
+                    "Quick-access filters could not be validated.",
+                )
+            )
+            _render_criteria_validation_error(quick_filters_error, lang=lang)
 
-    with st.expander(
-        _t(lang, "Gemeldete Pläne ansehen", ""),
-        expanded=False,
-    ):
-        reports = load_plan_reports(limit=100)
-        if reports:
-            st.dataframe(reports, width="stretch", hide_index=True)
-        else:
-            st.caption(_t(lang, "Noch keine Meldungen vorhanden.", ""))
+        with st.expander(_t(lang, "Plan melden", "Report plan"), expanded=False):
+            report_col_left, report_col_right = st.columns(2)
+            with report_col_left:
+                report_reason = st.selectbox(
+                    _t(lang, "Grund", "Reason"),
+                    options=REPORT_REASONS,
+                    key="plan_report_reason",
+                )
+            with report_col_right:
+                st.caption(
+                    _t(
+                        lang,
+                        "Optional für Qualitätsfeedback.",
+                        "Optional quality feedback.",
+                    )
+                )
+                report_submitted = st.button(
+                    _t(lang, "Diesen Plan melden", "Report this plan")
+                )
 
-    st.divider()
-    events_payload = render_wetter_und_events_section(cfg, lang)
+            if report_submitted:
+                report = save_plan_report(activity_plan, report_reason)
+                st.success(
+                    _t(
+                        lang,
+                        f"Meldung gespeichert ({report.timestamp_utc}). Keine Personenangaben wurden gespeichert.",
+                        "Report saved without personal data.",
+                    )
+                )
 
-    render_events_results(
-        cast(
-            Optional[dict[str, Any]],
-            st.session_state.get("events_payload") or events_payload,
-        ),
-        lang,
-    )
+        st.divider()
+        events_payload = render_wetter_und_events_section(cfg, lang)
+
+        render_events_results(
+            cast(
+                Optional[dict[str, Any]],
+                st.session_state.get("events_payload") or events_payload,
+            ),
+            lang,
+        )
 
     with st.sidebar:
         st.markdown("### " + _t(lang, "Export", ""))
