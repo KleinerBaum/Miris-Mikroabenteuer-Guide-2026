@@ -62,6 +62,8 @@ Die App kann:
   → `pages/2_Bibliothek.py`
 - **Bibliothek: In-Page Filterleiste in 3 Spalten / Library: in-page filter bar in 3 columns:** Auf der Bibliothek-Seite stehen Suche und Filter jetzt direkt unter der Überschrift in drei gruppierten Spalten; standardmäßig sind keine Filter gesetzt und die komplette Abenteuerliste ist sichtbar.  
   → `pages/2_Bibliothek.py`
+- **Landingpage: Sidebar-Elemente als Schnellzugriff / Landing page: sidebar elements as quick access:** Zwischen „Abenteuer des Tages“ und „Plan melden“ gibt es jetzt einen eingeklappten 2‑Spalten‑Bereich „Suche (Schnellzugriff)“ mit den wichtigsten Filtern (u. a. Datum, Altersband, Ort, Aufwand, Themen, Ziele, Genauigkeit) zur schnellen Übernahme in die tägliche Suche; „Plan melden“ ist ebenfalls eingeklappt und damit visuell zurückgenommen.  
+  → `app.py`
 
 ---
 

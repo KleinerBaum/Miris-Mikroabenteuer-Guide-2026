@@ -999,6 +999,200 @@ def _generate_activity_plan_with_retry(
     )
 
 
+def _render_landing_quick_filters(
+    *, lang: Language
+) -> tuple[bool, Optional[ValidationError]]:
+    namespace = CriteriaKeySpace("daily")
+    age_band_labels = [label for label, _ in AGE_BAND_OPTIONS]
+    age_band_map = dict(AGE_BAND_OPTIONS)
+    current_age = float(st.session_state.get("profile_child_age_years", 2.5))
+    current_band = min(AGE_BAND_OPTIONS, key=lambda item: abs(item[1] - current_age))[0]
+
+    with st.expander(
+        _t(lang, "Suche (Schnellzugriff)", "Search (quick access)"),
+        expanded=False,
+    ):
+        with st.form("landing_quick_filters_form"):
+            col_left, col_right = st.columns(2)
+            with col_left:
+                date_value = st.date_input(
+                    _t(lang, "Datum", "Date"),
+                    value=cast(
+                        date,
+                        st.session_state.get(namespace.widget("date"), date.today()),
+                    ),
+                    key="landing_quick_date",
+                )
+                age_band = st.selectbox(
+                    _t(lang, "Altersband", "Age band"),
+                    options=age_band_labels,
+                    index=age_band_labels.index(current_band),
+                    key="landing_quick_child_age_band",
+                )
+                plz = st.text_input(
+                    _t(lang, "PLZ", "ZIP code"),
+                    value=str(st.session_state.get(namespace.widget("plz"), "")),
+                    key="landing_quick_plz",
+                )
+                radius_km = st.slider(
+                    _t(lang, "Radius (km)", "Radius (km)"),
+                    min_value=1.0,
+                    max_value=50.0,
+                    step=0.5,
+                    value=float(
+                        st.session_state.get(namespace.widget("radius_km"), 5.0)
+                    ),
+                    key="landing_quick_radius",
+                )
+                start_time_value = st.time_input(
+                    _t(lang, "Startzeit", "Start time"),
+                    value=cast(
+                        time,
+                        st.session_state.get(
+                            namespace.widget("start_time"), time(9, 0)
+                        ),
+                    ),
+                    key="landing_quick_start_time",
+                )
+                location_preference = st.segmented_control(
+                    _t(lang, "Ort", "Location"),
+                    options=["mixed", "outdoor", "indoor"],
+                    format_func=lambda opt: {
+                        "mixed": "Gemischt" if lang == "DE" else "Mixed",
+                        "outdoor": "Draußen" if lang == "DE" else "Outdoor",
+                        "indoor": "Drinnen" if lang == "DE" else "Indoor",
+                    }[opt],
+                    default=cast(
+                        str,
+                        st.session_state.get(
+                            namespace.widget("location_preference"), "mixed"
+                        ),
+                    ),
+                    key="landing_quick_location_preference",
+                )
+            with col_right:
+                available_minutes = st.slider(
+                    _t(lang, "Verfügbare Zeit (Minuten)", "Available time (minutes)"),
+                    min_value=30,
+                    max_value=360,
+                    step=15,
+                    value=int(
+                        st.session_state.get(namespace.widget("available_minutes"), 60)
+                    ),
+                    key="landing_quick_available_minutes",
+                )
+                effort_value = cast(
+                    Literal["niedrig", "mittel", "hoch"],
+                    st.selectbox(
+                        _t(lang, "Aufwand", "Effort"),
+                        options=["niedrig", "mittel", "hoch"],
+                        format_func=lambda value: effort_label(value, lang),
+                        index=["niedrig", "mittel", "hoch"].index(
+                            cast(
+                                str,
+                                st.session_state.get(
+                                    namespace.widget("effort"), "mittel"
+                                ),
+                            )
+                        ),
+                        key="landing_quick_effort",
+                    ),
+                )
+                budget_eur_max = st.number_input(
+                    _t(lang, "Budget (max €)", "Budget (max €)"),
+                    min_value=0.0,
+                    max_value=250.0,
+                    step=1.0,
+                    value=float(
+                        st.session_state.get(namespace.widget("budget_eur_max"), 15.0)
+                    ),
+                    key="landing_quick_budget",
+                )
+                topics = st.multiselect(
+                    _t(lang, "Themen", "Topics"),
+                    options=theme_options(lang),
+                    default=list(
+                        cast(
+                            list[str],
+                            st.session_state.get(namespace.widget("topics"), []),
+                        )
+                    ),
+                    format_func=lambda value: theme_label(value, lang),
+                    key="landing_quick_topics",
+                )
+                goals = st.multiselect(
+                    _t(lang, "Ziele", "Goals"),
+                    options=list(GOAL_OPTIONS),
+                    default=list(
+                        cast(
+                            list[DevelopmentDomain],
+                            st.session_state.get(namespace.widget("goals"), []),
+                        )
+                    ),
+                    format_func=lambda goal: DOMAIN_LABELS[
+                        cast(DevelopmentDomain, goal)
+                    ],
+                    key="landing_quick_goals",
+                )
+                constraints = st.multiselect(
+                    _t(lang, "Rahmenbedingungen", "Constraints"),
+                    options=list(CONSTRAINT_OPTIONS),
+                    default=list(
+                        cast(
+                            list[str],
+                            st.session_state.get(namespace.widget("constraints"), []),
+                        )
+                    ),
+                    key="landing_quick_constraints",
+                )
+                mode = st.radio(
+                    _t(lang, "Genauigkeit", "Accuracy"),
+                    options=["schnell", "genau"],
+                    format_func=lambda item: (
+                        _t(lang, "Schnell", "Fast")
+                        if item == "schnell"
+                        else _t(lang, "Genau", "Precise")
+                    ),
+                    horizontal=True,
+                    index=0
+                    if cast(str, st.session_state.get("events_mode", "schnell"))
+                    == "schnell"
+                    else 1,
+                    key="landing_quick_mode",
+                )
+
+            submitted = st.form_submit_button(
+                _t(lang, "Filter übernehmen", "Apply filters")
+            )
+
+    if not submitted:
+        return False, None
+
+    st.session_state["profile_child_age_years"] = float(age_band_map[age_band])
+    st.session_state[namespace.widget("date")] = date_value
+    st.session_state[namespace.widget("plz")] = plz
+    st.session_state[namespace.widget("radius_km")] = float(radius_km)
+    st.session_state[namespace.widget("start_time")] = start_time_value
+    st.session_state[namespace.widget("available_minutes")] = int(available_minutes)
+    st.session_state[namespace.widget("effort")] = effort_value
+    st.session_state[namespace.widget("budget_eur_max")] = float(budget_eur_max)
+    st.session_state[namespace.widget("topics")] = list(topics)
+    st.session_state[namespace.widget("goals")] = list(goals)
+    st.session_state[namespace.widget("constraints")] = list(constraints)
+    st.session_state[namespace.widget("location_preference")] = location_preference
+    st.session_state["events_mode"] = mode
+
+    try:
+        _sync_widget_change_to_criteria(
+            namespace="daily",
+            state_key=CRITERIA_DAILY_KEY,
+            raise_on_error=True,
+        )
+        return True, None
+    except ValidationError as exc:
+        return False, exc
+
+
 def _split_markdown_sections(markdown: str) -> dict[str, str]:
     section_map: dict[str, str] = {
         "plan": "",
@@ -1774,21 +1968,54 @@ def main() -> None:
     daily_md = render_activity_plan_markdown(activity_plan)
     render_daily_plan_sections(daily_md, lang)
 
-    st.markdown("#### " + _t(lang, "Plan melden", ""))
-    report_reason = st.selectbox(
-        _t(lang, "Grund", ""),
-        options=REPORT_REASONS,
-        key="plan_report_reason",
-    )
-    if st.button(_t(lang, "Diesen Plan melden", "")):
-        report = save_plan_report(activity_plan, report_reason)
+    quick_filters_saved, quick_filters_error = _render_landing_quick_filters(lang=lang)
+    if quick_filters_saved:
         st.success(
             _t(
                 lang,
-                f"Meldung gespeichert ({report.timestamp_utc}). Keine Personenangaben wurden gespeichert.",
-                "",
+                "Schnellzugriff-Filter gespeichert und in die Suche übernommen.",
+                "Quick-access filters saved and applied to search.",
             )
         )
+    if quick_filters_error:
+        st.error(
+            _t(
+                lang,
+                "Schnellzugriff-Filter konnten nicht validiert werden.",
+                "Quick-access filters could not be validated.",
+            )
+        )
+        _render_criteria_validation_error(quick_filters_error, lang=lang)
+
+    with st.expander(_t(lang, "Plan melden", "Report plan"), expanded=False):
+        report_col_left, report_col_right = st.columns(2)
+        with report_col_left:
+            report_reason = st.selectbox(
+                _t(lang, "Grund", "Reason"),
+                options=REPORT_REASONS,
+                key="plan_report_reason",
+            )
+        with report_col_right:
+            st.caption(
+                _t(
+                    lang,
+                    "Optional für Qualitätsfeedback.",
+                    "Optional quality feedback.",
+                )
+            )
+            report_submitted = st.button(
+                _t(lang, "Diesen Plan melden", "Report this plan")
+            )
+
+        if report_submitted:
+            report = save_plan_report(activity_plan, report_reason)
+            st.success(
+                _t(
+                    lang,
+                    f"Meldung gespeichert ({report.timestamp_utc}). Keine Personenangaben wurden gespeichert.",
+                    "Report saved without personal data.",
+                )
+            )
 
     with st.expander(
         _t(lang, "Gemeldete Pläne ansehen", ""),
