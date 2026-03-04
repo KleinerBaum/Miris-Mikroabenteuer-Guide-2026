@@ -6,6 +6,8 @@ import importlib.util
 from pathlib import Path
 import sys
 
+import pytest
+
 from mikroabenteuer.config import load_config
 from mikroabenteuer.models import DevelopmentDomain
 
@@ -20,6 +22,20 @@ def _load_app_module():
 
 
 app = _load_app_module()
+
+REQUIRED_CORE_FIELDS: set[str] = {
+    "plz",
+    "radius_km",
+    "date",
+    "start_time",
+    "available_minutes",
+    "effort",
+    "budget_eur_max",
+    "topics",
+    "goals",
+    "constraints",
+    "available_materials",
+}
 
 
 def _seed_widget_state(prefix: str, *, plz: str) -> dict[str, object]:
@@ -81,6 +97,28 @@ def test_sync_widget_change_updates_only_target_criteria_key(monkeypatch) -> Non
     assert events.plz == "50667"
 
 
+def test_master_filter_contract_matches_catalog_and_namespaces(monkeypatch) -> None:
+    """Schützt Master-Filtervertrag zwischen Daily und Events."""
+    common_catalog_fields = {spec.id for spec in app.CORE_FILTER_SPECS}
+    supported_criteria_fields = set(app.CRITERIA_WIDGET_FIELDS)
+
+    assert REQUIRED_CORE_FIELDS.issubset(common_catalog_fields)
+    assert REQUIRED_CORE_FIELDS.issubset(supported_criteria_fields)
+    assert common_catalog_fields.issubset(supported_criteria_fields)
+
+    monkeypatch.setattr(app.st, "session_state", {})
+    cfg = replace(load_config(), default_postal_code="40215")
+    daily = app.get_criteria_state(cfg, key=app.CRITERIA_DAILY_KEY)
+    events = app.get_criteria_state(cfg, key=app.CRITERIA_EVENTS_KEY)
+
+    app._ensure_ui_adapter_state(namespace="daily", criteria=daily)
+    app._ensure_ui_adapter_state(namespace="events", criteria=events)
+
+    for field in REQUIRED_CORE_FIELDS:
+        assert app.CriteriaKeySpace("daily").widget(field) in app.st.session_state
+        assert app.CriteriaKeySpace("events").widget(field) in app.st.session_state
+
+
 def test_normalize_widget_input_events_merges_special_constraints() -> None:
     raw_values: dict[str, object] = {
         "plz": "50667",
@@ -134,3 +172,28 @@ def test_build_criteria_from_widget_state_uses_normalized_location_for_events(
     criteria = app._build_criteria_from_widget_state(namespace="events")
 
     assert criteria.location_preference == "indoor"
+
+
+@pytest.mark.parametrize(
+    ("pref_outdoor", "pref_indoor", "expected"),
+    [
+        (True, False, "outdoor"),
+        (False, True, "indoor"),
+        (True, True, "mixed"),
+        (False, False, "mixed"),
+    ],
+)
+def test_location_preference_mapping_for_events_is_stable(
+    pref_outdoor: bool,
+    pref_indoor: bool,
+    expected: str,
+) -> None:
+    raw_values: dict[str, object] = {
+        "location_preference": "indoor",
+        "pref_outdoor": pref_outdoor,
+        "pref_indoor": pref_indoor,
+    }
+
+    mapped = app._normalize_location_preference(raw_values, mode="events")
+
+    assert mapped == expected
