@@ -86,7 +86,7 @@ def load_config() -> AppConfig:
             "OPENAI_MODEL_EVENTS_ACCURATE", "o3-mini"
         ),
         max_input_chars=max(200, int(os.getenv("MAX_INPUT_CHARS", "4000"))),
-        max_output_tokens=max(100, int(os.getenv("MAX_OUTPUT_TOKENS", "800"))),
+        max_output_tokens=max(100, int(os.getenv("MAX_OUTPUT_TOKENS", "1400"))),
         timeout_s=max(5.0, float(os.getenv("TIMEOUT_S", "45"))),
         max_requests_per_session=max(
             1, int(os.getenv("MAX_REQUESTS_PER_SESSION", "10"))

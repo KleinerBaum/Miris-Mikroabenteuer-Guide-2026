@@ -33,9 +33,7 @@ RECOVERY_MARKER_SCHEMA_REPAIR = (
     "Recovered after schema repair / Nach Schema-Reparatur wiederhergestellt."
 )
 SUGGESTION_TITLE_FALLBACK = "Aktivität / Activity"
-SUGGESTION_REASON_FALLBACK = (
-    "Keine Begründung geliefert. / No rationale provided."
-)
+SUGGESTION_REASON_FALLBACK = "Keine Begründung geliefert. / No rationale provided."
 INDOOR_OUTDOOR_ALLOWED_VALUES = {"indoor", "outdoor", "mixed"}
 
 
@@ -69,7 +67,8 @@ def _build_user_prompt(
     weather: WeatherSummary | None,
     strategy: SearchStrategy | None,
 ) -> str:
-    params = criteria.to_llm_params()
+    effective_criteria = _apply_event_compactness_guardrails(criteria)
+    params = effective_criteria.to_llm_params()
     if weather is None:
         weather_payload = None
     elif hasattr(weather, "model_dump"):
@@ -109,11 +108,39 @@ Regeln / Rules:
   / Do not recommend unavailable materials. If needed, provide substitutions using available items.
 - Gib maximal {params["max_suggestions"]} Vorschläge.
 
-Output-Anforderungen:
-- Für jeden Vorschlag: kurzer Grund (DE/EN in einem String), mindestens 1 Quelle-URL (http/https).
+Output-Anforderungen (kompakt, strikt):
+- Gib NUR die JSON-Felder aus dem Schema aus, ohne zusätzliche Prosa.
+- Für jeden Vorschlag: exakt 1 kurzer reason_de_en-Satz (max. 22 Wörter) und eine kurze description (max. 180 Zeichen).
+- Für jeden Vorschlag höchstens 2 source_urls; bevorzuge 1 belastbare Primärquelle.
+- Keine Wiederholung von Wetter, Suchstrategie oder Kriterien im Freitext der Vorschläge.
 - Wenn du keine Events findest, gib zumindest activity_idea Vorschläge (ohne harte Zeiten) mit Quellen, die die Idee stützen.
 """.strip()
     )
+
+
+def _apply_event_compactness_guardrails(
+    criteria: ActivitySearchCriteria,
+) -> ActivitySearchCriteria:
+    """Clamp event suggestion count for long/high-entropy contexts to stabilize output shape."""
+    text_budget = sum(
+        len(item)
+        for item in (
+            *criteria.constraints,
+            *criteria.available_materials,
+            *criteria.topics,
+        )
+    )
+    long_context = text_budget >= 350
+    high_entropy_context = (
+        len(criteria.constraints) >= 5
+        or len(criteria.available_materials) >= 7
+        or len(criteria.topics) >= 6
+    )
+    if long_context or high_entropy_context:
+        return criteria.model_copy(
+            update={"max_suggestions": min(criteria.max_suggestions, 4)}
+        )
+    return criteria
 
 
 def _select_model(
@@ -250,7 +277,7 @@ def _normalize_result_payload(
                 item["indoor_outdoor"] = "mixed"
             else:
                 item["indoor_outdoor"] = normalized_indoor_outdoor
-            item["source_urls"] = _normalize_url_list(item.get("source_urls"))
+            item["source_urls"] = _normalize_url_list(item.get("source_urls"))[:2]
             if not item["source_urls"]:
                 normalization_warnings.append(
                     f"Vorschlag #{index + 1} ohne valide Quellen-URL übernommen. / Suggestion #{index + 1} kept without a valid source URL."
@@ -433,7 +460,7 @@ def suggest_activities(
     base_url: str | None = None,
     timeout_s: float = 45.0,
     max_input_chars: int = 4000,
-    max_output_tokens: int = 800,
+    max_output_tokens: int = 1400,
     model_fast: str = "gpt-4o-mini",
     model_accurate: str = "o3-mini",
     # Use existing retry_with_backoff; keep SDK retries off to avoid double retry.

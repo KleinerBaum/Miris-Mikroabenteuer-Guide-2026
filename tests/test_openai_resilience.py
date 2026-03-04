@@ -445,3 +445,55 @@ def test_suggest_activities_fills_empty_title_with_fallback(monkeypatch) -> None
 
     assert result.suggestions
     assert result.suggestions[0].title == "Aktivität / Activity"
+
+
+def test_suggest_activities_long_context_keeps_structured_output_stable(
+    monkeypatch,
+) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    long_constraints = [f"constraint-{idx}-" + ("x" * 70) for idx in range(8)]
+    long_materials = [f"material-{idx}-" + ("y" * 25) for idx in range(8)]
+    criteria = _build_criteria().model_copy(
+        update={
+            "constraints": long_constraints,
+            "available_materials": long_materials,
+            "topics": ["natur", "kunst", "musik", "sport", "technik", "lernen"],
+            "max_suggestions": 7,
+        }
+    )
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(
+            output_parsed={
+                "suggestions": [
+                    {
+                        "title": f"Event {idx}",
+                        "reason_de_en": "Kurz / concise",
+                        "description": "Kompakt",
+                        "source_urls": [
+                            f"https://example.org/event-{idx}",
+                            f"https://example.org/event-{idx}/more",
+                            f"https://example.org/event-{idx}/extra",
+                        ],
+                    }
+                    for idx in range(4)
+                ]
+            }
+        )
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(criteria, mode="schnell")
+
+    assert result.error_code is None
+    assert len(result.suggestions) == 4
+    assert all(len(item.source_urls) <= 2 for item in result.suggestions)
+    assert _FakeOpenAI.last_client is not None
+    user_prompt = _FakeOpenAI.last_client.responses.last_parse_kwargs["input"][1][
+        "content"
+    ]
+    assert "Gib maximal 4 Vorschläge" in str(user_prompt)

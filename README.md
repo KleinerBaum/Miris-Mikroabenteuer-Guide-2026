@@ -87,3 +87,18 @@ source .venv/bin/activate  # macOS/Linux
 # .venv\Scripts\activate   # Windows
 
 pip install -r requirements.txt
+
+
+### 2) Optionale `.env`-Konfiguration (Events/LLM)
+
+```env
+ENABLE_LLM=true
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL_EVENTS_FAST=gpt-4o-mini
+OPENAI_MODEL_EVENTS_ACCURATE=o3-mini
+MAX_INPUT_CHARS=4000
+MAX_OUTPUT_TOKENS=1400
+TIMEOUT_S=45
+```
+
+Hinweis: Für stabile Event-Structured-Outputs ist `MAX_OUTPUT_TOKENS=1400` der neue robuste Standard (überschreibbar per Env).
