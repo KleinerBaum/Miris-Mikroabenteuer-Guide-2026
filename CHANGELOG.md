@@ -16,6 +16,7 @@ Language: We keep entries short and typically bilingual (DE/EN) when user-facing
 ## Unreleased
 
 ### Changed / Geändert
+- **Profilnamen ohne Vorgabewerte / Profile names without presets:** Die Sidebar-Felder „Name des Kindes“ und „Name der Eltern“ starten jetzt leer; wenn keine Eingabe erfolgt, nutzt die App intern die Fallbacks „Kind“ und „Eltern“. Die Hauptüberschrift wird dynamisch aus den Sidebar-Eingaben aufgebaut.
 - **Master-Filtervertrag per Tests abgesichert / Master filter contract protected by tests:** Neue Regressionstests validieren den gemeinsamen Kernfeld-Katalog zwischen Daily und Events inklusive Keyspace-Namespace-Präsenz und stabiler Location-Preference-Abbildung (`outdoor`/`indoor`/`mixed`).
 - **Event-Output stabilisiert / Event output stabilized:** Standard für `MAX_OUTPUT_TOKENS` wurde auf 1400 erhöht; Event-Prompts erzwingen kompakte Vorschläge (kurze Beschreibung, max. 2 Quellen, keine Wetter-/Kriterien-Wiederholung) und deckeln bei sehr langem Kontext die gewünschte Anzahl Vorschläge dynamisch auf maximal 4, um Structured-Output-Degeneration zu vermeiden.
 - **Responses-Schema-Reparaturkette / Responses schema-repair chain:** Eventsuche versucht nach Parse-/Schema-Fehlern zuerst einen zweiten kontrollierten Responses-Call mit explizitem JSON-Reparaturhinweis, danach eine minimale Best-Effort-Extraktion (Titel/Quelle/Beschreibung) mit strikter Normalisierung; nur dann folgt der bestehende Offline-Fallback. Ein klarer Recovery-Marker wird in `warnings_de_en` gesetzt, wenn die Wiederherstellung gelingt.
