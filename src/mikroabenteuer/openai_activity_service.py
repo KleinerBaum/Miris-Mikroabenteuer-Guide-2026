@@ -255,17 +255,51 @@ def _extract_text_for_best_effort(response: Any) -> str:
     output = getattr(response, "output", None)
     if isinstance(output, list):
         for item in output:
-            if not isinstance(item, dict):
+            item_data = item if isinstance(item, dict) else None
+            if item_data is None and hasattr(item, "model_dump"):
+                dumped = item.model_dump(mode="json")
+                if isinstance(dumped, dict):
+                    item_data = dumped
+            if item_data is None:
                 continue
-            content = item.get("content")
+
+            content = item_data.get("content")
             if not isinstance(content, list):
                 continue
             for block in content:
-                if not isinstance(block, dict):
+                block_data = block if isinstance(block, dict) else None
+                if block_data is None and hasattr(block, "model_dump"):
+                    dumped_block = block.model_dump(mode="json")
+                    if isinstance(dumped_block, dict):
+                        block_data = dumped_block
+                if block_data is None:
                     continue
-                text_value = block.get("text")
+
+                text_value = block_data.get("text")
                 if isinstance(text_value, str) and text_value.strip():
                     return text_value.strip()
+
+                if isinstance(block_data.get("type"), str) and block_data.get(
+                    "type"
+                ) in {
+                    "output_text",
+                    "text",
+                }:
+                    nested_text = block_data.get("value")
+                    if isinstance(nested_text, str) and nested_text.strip():
+                        return nested_text.strip()
+
+            text_value = item_data.get("text")
+            if isinstance(text_value, str) and text_value.strip():
+                return text_value.strip()
+
+            summary = item_data.get("summary")
+            if isinstance(summary, list):
+                for summary_item in summary:
+                    if isinstance(summary_item, dict):
+                        summary_text = summary_item.get("text")
+                        if isinstance(summary_text, str) and summary_text.strip():
+                            return summary_text.strip()
     return ""
 
 
@@ -501,7 +535,7 @@ def suggest_activities(
                 TypeError,
                 ValueError,
             ):
-                repair_response = client.responses.parse(
+                repair_response = client.responses.create(
                     model=model,
                     max_output_tokens=max_output_tokens,
                     input=[
@@ -511,12 +545,12 @@ def suggest_activities(
                     tools=cast(Any, tools),
                     tool_choice="auto",
                     include=["web_search_call.action.sources"],
-                    text_format=ActivitySuggestionResult,
                 )
                 best_effort_payload = _best_effort_extract_payload(repair_response)
                 if best_effort_payload is None:
-                    raise RuntimeError(
-                        "No structured output payload found in response."
+                    return _template_fallback_result(
+                        weather,
+                        error_code=ERROR_CODE_STRUCTURED_OUTPUT,
                     )
                 normalized_best_effort = _normalize_result_payload(
                     best_effort_payload,

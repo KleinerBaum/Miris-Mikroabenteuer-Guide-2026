@@ -26,15 +26,28 @@ class _FakeResponses:
     def __init__(self, behavior: list[object]) -> None:
         self._behavior = behavior
         self.calls = 0
+        self.parse_calls = 0
+        self.create_calls = 0
         self.last_parse_kwargs: dict[str, object] = {}
+        self.last_create_kwargs: dict[str, object] = {}
 
-    def parse(self, **kwargs: object) -> object:
-        self.calls += 1
-        self.last_parse_kwargs = kwargs
+    def _next(self) -> object:
         current = self._behavior.pop(0)
         if isinstance(current, Exception):
             raise current
         return current
+
+    def parse(self, **kwargs: object) -> object:
+        self.calls += 1
+        self.parse_calls += 1
+        self.last_parse_kwargs = kwargs
+        return self._next()
+
+    def create(self, **kwargs: object) -> object:
+        self.calls += 1
+        self.create_calls += 1
+        self.last_create_kwargs = kwargs
+        return self._next()
 
 
 class _FakeOpenAIClient:
@@ -276,6 +289,71 @@ def test_suggest_activities_recovers_after_schema_repair(monkeypatch) -> None:
 
     assert module.RECOVERY_MARKER_SCHEMA_REPAIR in result.warnings_de_en
     assert result.error_code is None
+
+
+def test_suggest_activities_uses_best_effort_from_create_after_parse_failures(
+    monkeypatch,
+) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(
+            output=[
+                {
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "text": (
+                                "Familienflohmarkt im Park\n"
+                                "Treffpunkt am Haupteingang, kleine Mitmach-Stationen.\n"
+                                "Quelle: https://example.org/event"
+                            ),
+                        }
+                    ]
+                }
+            ]
+        ),
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert result.error_code is None
+    assert result.suggestions
+    assert result.suggestions[0].source_urls == ["https://example.org/event"]
+    assert module.RECOVERY_MARKER_SCHEMA_REPAIR in result.warnings_de_en
+    assert _FakeOpenAI.last_client is not None
+    assert _FakeOpenAI.last_client.responses.create_calls == 1
+
+
+def test_suggest_activities_returns_structured_fallback_when_create_unusable(
+    monkeypatch,
+) -> None:
+    from mikroabenteuer import openai_activity_service as module
+
+    _FakeOpenAI.behavior = [
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(output_parsed=None),
+        SimpleNamespace(
+            output=[{"content": [{"type": "output_text", "text": "Ohne URL"}]}]
+        ),
+    ]
+    monkeypatch.setitem(sys.modules, "openai", SimpleNamespace(OpenAI=_FakeOpenAI))
+    monkeypatch.setattr(module, "configure_openai_api_key", lambda: None)
+    monkeypatch.setattr(module, "resolve_openai_api_key", lambda: "test-key")
+    monkeypatch.setattr(module, "moderate_text", lambda *_args, **_kwargs: False)
+
+    result = suggest_activities(_build_criteria(), mode="schnell")
+
+    assert result.error_code == module.ERROR_CODE_STRUCTURED_OUTPUT
+    assert result.error_hint_de_en is not None
+    assert _FakeOpenAI.last_client is not None
+    assert _FakeOpenAI.last_client.responses.create_calls == 1
 
 
 def test_suggest_activities_uses_best_effort_after_second_invalid_response(
