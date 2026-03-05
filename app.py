@@ -338,11 +338,33 @@ def inject_custom_styles(background_path: Path) -> None:
                 color: #ffffff !important;
                 border: 1px solid #00584a !important;
             }}
+            .stNumberInput button,
+            .stDateInput button,
+            .stTimeInput button,
+            .stSelectbox button,
+            .stMultiSelect button,
+            button[kind="secondary"],
+            button[kind="tertiary"] {{
+                background-color: var(--surface-soft) !important;
+                color: var(--text-charcoal) !important;
+                border: 1px solid #b9c5cc !important;
+            }}
             .stDownloadButton button:hover,
             .stButton button:hover {{
                 background-color: var(--primary-dark-green-hover) !important;
                 color: #ffffff !important;
                 border-color: #004d40 !important;
+            }}
+            .stNumberInput button:hover,
+            .stDateInput button:hover,
+            .stTimeInput button:hover,
+            .stSelectbox button:hover,
+            .stMultiSelect button:hover,
+            button[kind="secondary"]:hover,
+            button[kind="tertiary"]:hover {{
+                background-color: var(--surface-soft-hover) !important;
+                color: var(--text-charcoal) !important;
+                border-color: #a8b6be !important;
             }}
             .stDownloadButton button:disabled {{
                 background-color: var(--line-soft) !important;

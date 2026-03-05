@@ -44,7 +44,8 @@ Die App kann:
   → `app.py`
 - **Dynamische Familienüberschrift / Dynamic family headline**: Sidebar-Namensfelder starten ohne Default-Werte; die Titelzeile baut sich aus den aktuellen Eingaben auf, mit robusten Fallbacks „Kind“/„Eltern“.  
   → `app.py`
-- **Button- und Select-Kontraste verfeinert / Refined button and select contrast**: bessere Lesbarkeit für primäre Buttons im Hover-Zustand sowie konsistente, helle Select-/MultiSelect-Hintergründe inkl. Icons.  
+- **Button- und Select-Kontraste verfeinert / Refined button and select contrast**: bessere Lesbarkeit für primäre Buttons im Hover-Zustand sowie konsistente, helle Select-/MultiSelect-Hintergründe inkl. Icons.
+- **Dunkle Button-Flächen aufgehellt / Dark button surfaces lightened**: Sekundäre Buttons in Inputs und Select-Komponenten nutzen jetzt appweit helle Hintergründe (inkl. Hover), um Lesbarkeit von Text und Icons sicherzustellen.  
   → `app.py`
 - **UI-Flow neu strukturiert:** Wetter & Veranstaltungen werden über die Sidebar gesteuert; Ergebnisse erscheinen direkt unter dem Tagesabenteuer im Hauptbereich.  
   → `app.py`
