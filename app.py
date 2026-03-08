@@ -492,6 +492,8 @@ def _get_weather(day_iso: str, tz: str) -> WeatherSummary:
 
 CRITERIA_DAILY_KEY = "criteria_daily"
 CRITERIA_EVENTS_KEY = "criteria_events"
+PENDING_DAILY_WIDGET_SYNC_KEY = "pending_daily_widget_sync"
+LANDING_QUICK_FILTERS_APPLIED_KEY = "landing_quick_filters_applied"
 
 
 def _default_criteria(cfg: AppConfig) -> ActivitySearchCriteria:
@@ -601,6 +603,18 @@ def _sync_widget_change_to_criteria(
         if raise_on_error:
             raise
         return
+
+
+def _apply_pending_daily_widget_sync() -> None:
+    pending_values = st.session_state.pop(PENDING_DAILY_WIDGET_SYNC_KEY, None)
+    if not isinstance(pending_values, dict):
+        return
+
+    keyspace = CriteriaKeySpace("daily")
+    for field, value in pending_values.items():
+        st.session_state[keyspace.widget(field)] = value
+
+    _sync_widget_change_to_criteria(namespace="daily", state_key=CRITERIA_DAILY_KEY)
 
 
 @dataclass(frozen=True)
@@ -777,6 +791,7 @@ def _criteria_sidebar(
     # It initializes adapter keys once from criteria and writes changes back to criteria.
     criteria = get_criteria_state(cfg, key=CRITERIA_DAILY_KEY)
     _ensure_ui_adapter_state(namespace="daily", criteria=criteria)
+    _apply_pending_daily_widget_sync()
 
     lang: Language = cast(Language, st.session_state.get("lang", "DE"))
     st.sidebar.page_link("app.py", label=page_label_daily(lang), icon="🌿")
@@ -1205,28 +1220,23 @@ def _render_landing_quick_filters(
         return False, None
 
     st.session_state["profile_child_age_years"] = float(age_band_map[age_band])
-    st.session_state[namespace.widget("date")] = date_value
-    st.session_state[namespace.widget("plz")] = plz
-    st.session_state[namespace.widget("radius_km")] = float(radius_km)
-    st.session_state[namespace.widget("start_time")] = start_time_value
-    st.session_state[namespace.widget("available_minutes")] = int(available_minutes)
-    st.session_state[namespace.widget("effort")] = effort_value
-    st.session_state[namespace.widget("budget_eur_max")] = float(budget_eur_max)
-    st.session_state[namespace.widget("topics")] = list(topics)
-    st.session_state[namespace.widget("goals")] = list(goals)
-    st.session_state[namespace.widget("constraints")] = list(constraints)
-    st.session_state[namespace.widget("location_preference")] = location_preference
+    st.session_state[PENDING_DAILY_WIDGET_SYNC_KEY] = {
+        "date": date_value,
+        "plz": plz,
+        "radius_km": float(radius_km),
+        "start_time": start_time_value,
+        "available_minutes": int(available_minutes),
+        "effort": effort_value,
+        "budget_eur_max": float(budget_eur_max),
+        "topics": list(topics),
+        "goals": list(goals),
+        "constraints": list(constraints),
+        "location_preference": location_preference,
+    }
     st.session_state["events_mode"] = mode
-
-    try:
-        _sync_widget_change_to_criteria(
-            namespace="daily",
-            state_key=CRITERIA_DAILY_KEY,
-            raise_on_error=True,
-        )
-        return True, None
-    except ValidationError as exc:
-        return False, exc
+    st.session_state[LANDING_QUICK_FILTERS_APPLIED_KEY] = True
+    st.rerun()
+    return True, None
 
 
 def _split_markdown_sections(markdown: str) -> dict[str, str]:
@@ -2007,10 +2017,10 @@ def main() -> None:
     with st.container(border=True):
         st.subheader(_t(lang, "Suche von Aktivitäten", "Activity search"))
 
-        quick_filters_saved, quick_filters_error = _render_landing_quick_filters(
+        _, quick_filters_error = _render_landing_quick_filters(
             lang=lang
         )
-        if quick_filters_saved:
+        if st.session_state.pop(LANDING_QUICK_FILTERS_APPLIED_KEY, False):
             st.success(
                 _t(
                     lang,
