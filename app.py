@@ -15,7 +15,6 @@ import re
 
 import requests
 import streamlit as st
-import streamlit.components.v1 as components
 from pydantic import ValidationError
 
 ROOT = Path(__file__).resolve().parent
@@ -1364,7 +1363,21 @@ def _render_export_block(
                 "",
             )
         )
-        components.html(email_html, height=680, scrolling=True)
+        payload = base64.b64encode(email_html.encode("utf-8")).decode("ascii")
+        src = f"data:text/html;base64,{payload}"
+        max_data_url_length = 1_800_000
+
+        if len(src) <= max_data_url_length:
+            st.iframe(src, height=680, scrolling=True)
+        else:
+            st.caption(
+                _t(
+                    lang,
+                    "Fallback auf st.html(), da die Vorschau zu groß für data:-URL/iframe ist; Styles können dabei in den App-DOM wirken.",
+                    "",
+                )
+            )
+            st.html(email_html)
 
         with st.expander(_t(lang, "HTML-Code anzeigen", "")):
             st.code(
@@ -2017,9 +2030,7 @@ def main() -> None:
     with st.container(border=True):
         st.subheader(_t(lang, "Suche von Aktivitäten", "Activity search"))
 
-        _, quick_filters_error = _render_landing_quick_filters(
-            lang=lang
-        )
+        _, quick_filters_error = _render_landing_quick_filters(lang=lang)
         if st.session_state.pop(LANDING_QUICK_FILTERS_APPLIED_KEY, False):
             st.success(
                 _t(
