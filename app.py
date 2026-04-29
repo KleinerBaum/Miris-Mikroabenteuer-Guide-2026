@@ -15,6 +15,7 @@ import re
 
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 from pydantic import ValidationError
 
 ROOT = Path(__file__).resolve().parent
@@ -1368,7 +1369,7 @@ def _render_export_block(
         max_data_url_length = 1_800_000
 
         if len(src) <= max_data_url_length:
-            st.iframe(src, height=680, scrolling=True)
+            components.iframe(src, height=680, scrolling=True)
         else:
             st.caption(
                 _t(
