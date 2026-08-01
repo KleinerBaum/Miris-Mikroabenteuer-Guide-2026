@@ -1,41 +1,62 @@
+# AGENTS.md — Miris-Mikroabenteuer-Guide-2026
 
----
-
-```md
-# AGENTS.md
-
-# AGENTS.md (Repository scope)
-
-Operational rules for automated agents (Codex) and human contributors.
+Repository-wide operating rules for Codex and contributors.
 
 ## Non-negotiables
 
-- **No secrets / tokens / PII** in code, logs, commits, PR descriptions.
-- Keep changes **small, reviewable, reversible** (prefer multiple PRs).
-- If you change a schema/contract, propagate it everywhere (see CS_SCHEMA_PROPAGATE).
-- Prefer **determinism** and **cached results** in Streamlit flows to avoid costly reruns.
+- Never place secrets, tokens, credentials, PII, or raw provider payloads in code, logs, commits, screenshots, or PR descriptions.
+- Keep changes small, reviewable, reversible, and covered by the narrowest useful verification first.
+- Preserve the deterministic offline path. OpenAI, weather, event search, Gmail, and Calendar integrations remain optional enhancements.
+- Preserve curated safety rules, moderation, PII redaction, age filters, supervision guidance, hazards, mitigations, and stop conditions.
+- Keep schema, state, UI, exports, prompts, tests, and documentation synchronized when a contract changes.
 
----
+## Codex and WSL environment
 
-## Repo map (important)
+- Use the native WSL checkout at `/home/gerri/src/github.com/KleinerBaum/Miris-Mikroabenteuer-Guide-2026`; do not operate this repository through `/mnt/c`, `/mnt/wslg/distro`, `\\wsl$`, or Git for Windows.
+- Use Python 3.11, matching CI. The checked-in Codex environment creates `.venv` with `uv` and installs runtime plus test tooling.
+- Keep `.env` and `.streamlit/secrets.toml` local and ignored. Never print their values.
+- Do not deploy, publish, commit, push, or change external services unless the user explicitly requests it.
 
-### Current state: two codebases
+## Repository map
 
-- **V2 (active):** `src/mikroabenteuer/*`  
-  Imported as `mikroabenteuer.*` (`src/` is source-root only; `src/__init__.py` does not exist).
-- **V1 (legacy):** `legacy/v1/*`  
-  Older implementations; avoid new dependencies on V1.
+- `src/mikroabenteuer/` — active V2 package and the destination for new implementation work.
+- `legacy/v1/` — legacy implementation; do not add new dependencies on it without an explicit migration task.
+- `app.py` and `pages/` — Streamlit entry points.
+- `data/activity_library.json` — curated activity source; preserve provenance and safety metadata.
+- `tests/` — unit, contract, privacy, resilience, and safety coverage.
 
-✅ New work goes into **V2**.  
-⚠️ Do not introduce new dependencies on V1 unless it’s part of the migration plan.
+## Local commands
 
----
+The Codex setup action prepares the environment automatically. Manual equivalent:
 
-## Local commands (baseline)
-
-### Install
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-pip install ruff pytest
+uv venv --python 3.11 --allow-existing .venv
+uv pip install --python .venv/bin/python -r requirements.txt
+uv pip install --python .venv/bin/python ruff pytest
+```
+
+Run the app:
+
+```bash
+.venv/bin/python -m streamlit run app.py
+```
+
+## Verification
+
+Run before handoff:
+
+```bash
+.venv/bin/python -m ruff format --check .
+.venv/bin/python -m ruff check .
+.venv/bin/python -m pytest -m "not integration"
+.venv/bin/python -c "import app"
+```
+
+Report exact commands and actual results. Do not claim a check passed unless it ran successfully.
+
+## Working style
+
+- Prefer deterministic domain helpers and cached Streamlit results over UI-only logic.
+- Use English technical names and preserve the existing German product copy.
+- Add or update regression tests when behavior changes.
+- Avoid unrelated formatting churn, broad refactors, dependency additions, or scope expansion.

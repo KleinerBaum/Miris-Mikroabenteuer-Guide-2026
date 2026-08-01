@@ -1,0 +1,67 @@
+# Generated-compatible configuration for the Codex desktop app.
+version = 1
+name = "Miris-Mikroabenteuer-Guide-2026"
+
+[setup]
+script = '''
+set -euo pipefail
+cd "${CODEX_WORKTREE_PATH:-$PWD}"
+
+if ! command -v uv >/dev/null 2>&1; then
+  echo "uv is required for the Python 3.11 environment." >&2
+  exit 2
+fi
+
+uv venv --python 3.11 --allow-existing .venv
+.venv/bin/python -c 'import sys; raise SystemExit(0 if sys.version_info[:2] == (3, 11) else 2)'
+uv pip install --python .venv/bin/python -r requirements.txt
+uv pip install --python .venv/bin/python ruff pytest
+'''
+
+[setup.win32]
+script = '''
+$ErrorActionPreference = "Stop"
+Write-Error "Use this repository through the Codex WSL agent and its native /home/gerri checkout."
+exit 2
+'''
+
+[cleanup]
+script = "echo \"No project-specific cleanup required.\""
+
+[cleanup.win32]
+script = "Write-Host \"No project-specific cleanup required.\""
+
+[[actions]]
+name = "Start Streamlit"
+icon = "tool"
+command = '''
+set -euo pipefail
+.venv/bin/python -m streamlit run app.py
+'''
+
+[[actions]]
+name = "CI quality gate"
+icon = "tool"
+command = '''
+set -euo pipefail
+.venv/bin/python -m ruff format --check .
+.venv/bin/python -m ruff check .
+.venv/bin/python -m pytest -m "not integration"
+.venv/bin/python -c "import app"
+'''
+
+[[actions]]
+name = "Unit tests"
+icon = "tool"
+command = '''
+set -euo pipefail
+.venv/bin/python -m pytest -q
+'''
+
+[[actions]]
+name = "Import smoke"
+icon = "tool"
+command = '''
+set -euo pipefail
+.venv/bin/python -c "import app"
+'''
